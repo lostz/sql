@@ -7,6 +7,7 @@
    bytes []byte
    statement Statement
    table     Table
+   tables  Tables
 }
 
 
@@ -703,7 +704,8 @@
 %type <statement> simple_statement_or_begin simple_statement 
 %type <statement> alter
 %type <table>  table_ident
-%type <bytes> ident IDENT_sys ident_keyword role_or_label_keyword role_or_ident_keyword label_keyword ident_or_text TEXT_STRING_sys
+%type <tables> table_element_list
+%type <bytes> ident IDENT_sys ident_keyword role_or_label_keyword role_or_ident_keyword label_keyword ident_or_text TEXT_STRING_sys charset_name charset_name_or_default
 
 
 %%
@@ -748,14 +750,158 @@ simple_statement:
 */
 
 alter:
-     ALTER TABLE_SYM table_ident
+     ALTER TABLE_SYM table_ident alter_commands
      {
          $$ = &AlterTableStmt{Table: $3}
      }
      ;
 
 
+alter_commands:
+              alter_command_list
+              | alter_command_list partition_clause
+              | alter_command_list remove_partitioning
+              | standalone_alter_commands
+              | alter_commands_modifier_list ',' standalone_alter_commands
+              ;
+alter_command_list:
+                  | alter_commands_modifier_list
+                  | alter_list
+                  | alter_commands_modifier_list ',' alter_list
+                   ;
 
+standalone_alter_commands:
+                         DISCARD TABLESPACE_SYM
+                         |IMPORT TABLESPACE_SYM
+                         ;
+
+
+
+
+
+alter_commands_modifier_list:
+                            alter_commands_modifier
+                            | alter_commands_modifier_list ',' alter_commands_modifier
+                            ;
+
+alter_list:
+          alter_list_item
+          | alter_list ',' alter_list_item
+          | alter_list ',' alter_commands_modifier
+          ;
+
+
+
+alter_commands_modifier:
+                       alter_algorithm_option
+                       | alter_lock_option
+                       | alter_opt_validation
+                       ;
+
+alter_list_item:
+               add_column field_ident field_def opt_check_or_references opt_place
+               | ADD table_constraint_def
+               | add_column '(' table_element_list ')'
+               | CHANGE opt_column field_ident field_ident
+                 field_def
+                 opt_place
+               | MODIFY_SYM opt_column field_ident
+                 field_def
+                 opt_place
+               | DROP opt_column field_ident opt_restrict
+               | DROP FOREIGN KEY_SYM field_ident
+               | DROP PRIMARY_SYM KEY_SYM
+               | DROP key_or_index field_ident
+               | DISABLE_SYM KEYS
+               | DROP key_or_index field_ident
+               | DISABLE_SYM KEYS
+               | ENABLE_SYM KEYS
+               | ALTER opt_column field_ident SET_SYM DEFAULT_SYM signed_literal
+               | ALTER INDEX_SYM ident visibility
+               | ALTER opt_column field_ident DROP DEFAULT_SYM
+               | RENAME opt_to table_ident
+               | RENAME key_or_index field_ident TO_SYM field_ident
+               | CONVERT_SYM TO_SYM charset charset_name_or_default opt_collate
+               | create_table_options_space_separated
+               | FORCE_SYM
+               | alter_order_clause
+               ;
+
+alter_algorithm_option:
+                      ALGORITHM_SYM opt_equal DEFAULT_SYM
+                      | ALGORITHM_SYM opt_equal ident
+                      ;
+alter_lock_option:
+                 LOCK_SYM opt_equal DEFAULT_SYM
+                 | LOCK_SYM opt_equal ident
+                 ;
+
+alter_opt_validation:
+                    WITH VALIDATION_SYM
+                    | WITHOUT_SYM VALIDATION_SYM
+                    ;
+add_column:
+          ADD opt_column
+          ;
+
+alter_order_clause:
+                  ORDER_SYM BY alter_order_list
+                  ;
+
+alter_order_list:
+                alter_order_list ',' alter_order_item
+                | alter_order_item
+                ;
+
+alter_order_item:
+                simple_ident_nospvar order_dir
+                ;
+
+
+charset:
+       CHAR_SYM SET_SYM {}
+       | CHARSET {}
+       ;
+
+charset_name_or_default:
+                       charset_name { $$=$1   }
+                       | DEFAULT_SYM    { $$=$1; }
+                       ;
+
+create_table_options_space_separated:
+                                    create_table_option
+                                    | create_table_options_space_separated create_table_option
+                                    ;
+create_table_options:
+                    create_table_option
+                    | create_table_options opt_comma create_table_option
+                    ;
+
+opt_comma:
+         /* empty */
+         | ','
+         ;
+
+partition_clause:
+                PARTITION_SYM BY part_type_def opt_num_parts opt_sub_part
+                opt_part_defs
+                ;
+part_type_def:
+             opt_linear KEY_SYM opt_key_algo '(' opt_name_list ')'
+             | opt_linear HASH_SYM '(' bit_expr ')'
+             | RANGE_SYM '(' bit_expr ')'
+             | RANGE_SYM COLUMNS '(' name_list ')'
+             | LIST_SYM '(' bit_expr ')'
+             | LIST_SYM COLUMNS '(' name_list ')'
+             ;
+opt_linear:
+          | LINEAR_SYM 
+          ;
+
+
+remove_partitioning:
+                   REMOVE_SYM PARTITIONING_SYM
+                   ;
 
 
 
@@ -1205,3 +1351,211 @@ ident_or_text:
 TEXT_STRING_sys:
                TEXT_STRING { $$ = $1} 
                ;
+
+field_def:
+         type opt_column_attribute_list
+         | type opt_collate_explicit opt_generated_always
+           AS '(' expr ')'
+           opt_stored_attribute opt_column_attribute_lis
+         ;
+
+field_ident:
+           ident
+           | ident '.' ident '.' ident
+           | ident '.' ident
+           | '.' ident /* For Delphi */
+           ;
+key_or_index:
+            KEY_SYM {}
+            | INDEX_SYM {}
+            ;
+
+opt_check_or_references:
+
+            | check_constraint
+            | references
+            ;
+
+opt_collate:
+
+           | COLLATE_SYM collation_name_or_default
+           ;
+
+opt_column:
+
+          | COLUMN_SYM 
+          ;
+
+opt_restrict:
+            | RESTRICT
+            | CASCADE
+            ;
+
+
+opt_to:
+
+      | TO_SYM {}
+      | EQ
+      | AS
+      ;
+
+
+opt_place:
+
+         | AFTER_SYM ident
+         | FIRST_SYM 
+         ;
+
+signed_literal:
+              literal
+              | '+' NUM_literal
+              | '-' NUM_literal
+              ;
+table_constraint_def:
+                    normal_key_type opt_index_name_and_type '(' key_list ')'
+                    opt_index_options
+                    | FULLTEXT_SYM opt_key_or_index opt_ident '(' key_list ')'
+                      opt_fulltext_index_options
+                    | spatial opt_key_or_index opt_ident '(' key_list ')'
+                      opt_spatial_index_options
+                    | opt_constraint constraint_key_type opt_index_name_and_type
+                      '(' key_list ')' opt_index_options
+                    | opt_constraint FOREIGN KEY_SYM opt_ident '(' key_list ')' references
+                    | opt_constraint check_constraint
+                    ;
+table_element_list:
+                  table_element
+                  { 
+                   $$ = Tables{$1}
+                  }
+                  | table_element_list ',' table_element
+                  {
+                    $$ = append($1, $3)
+                  }
+                  ;
+
+table_element:
+             column_def
+             {
+                $$=$1
+             }
+             | table_constraint_def
+             {
+                $$=$1
+             }
+             ;
+visibility:
+          VISIBLE_SYM
+          | INVISIBLE_SYM 
+          ;
+
+equal:
+     EQ
+     | SET_VAR
+     ;
+
+opt_equal:
+         /* empty */
+         | equal
+         ;
+
+order_dir:
+         /* empty */
+         | ASC
+         | DESC
+         ;
+simple_ident_nospvar:
+                   ident
+                   | simple_ident_q
+                   ;
+charset_name:
+            ident_or_text
+            {
+                $$=$1
+            }
+            | BINARY_SYM
+            {
+                $$=$1
+            }
+            ;
+
+create_table_option:
+                   ENGINE_SYM opt_equal ident_or_text
+                   | MAX_ROWS opt_equal ulonglong_num
+                   | MIN_ROWS opt_equal ulonglong_num
+                   | AVG_ROW_LENGTH opt_equal ulong_num
+                   | PASSWORD opt_equal TEXT_STRING_sys
+                   | COMMENT_SYM opt_equal TEXT_STRING_sys
+                   | COMPRESSION_SYM opt_equal TEXT_STRING_sys
+                   | ENCRYPTION_SYM opt_equal TEXT_STRING_sys
+                   | AUTO_INC opt_equal ulonglong_num
+                   | PACK_KEYS_SYM opt_equal ternary_option
+                   | STATS_AUTO_RECALC_SYM opt_equal ternary_option
+                   | STATS_SAMPLE_PAGES_SYM opt_equal ulong_num
+                   | STATS_SAMPLE_PAGES_SYM opt_equal DEFAULT_SYM
+                   | CHECKSUM_SYM opt_equal ulong_num
+                   | TABLE_CHECKSUM_SYM opt_equal ulong_num
+                   | DELAY_KEY_WRITE_SYM opt_equal ulong_num
+                   | ROW_FORMAT_SYM opt_equal row_types
+                   | UNION_SYM opt_equal '(' opt_table_list ')'
+                   | default_charset
+                   | default_collation
+                   | INSERT_METHOD opt_equal merge_insert_types
+                   | DATA_SYM DIRECTORY_SYM opt_equal TEXT_STRING_sys
+                   | INDEX_SYM DIRECTORY_SYM opt_equal TEXT_STRING_sys
+                   | TABLESPACE_SYM opt_equal ident
+                   | STORAGE_SYM DISK_SYM
+                   | STORAGE_SYM MEMORY_SYM
+                   | CONNECTION_SYM opt_equal TEXT_STRING_sys
+                   | KEY_BLOCK_SIZE opt_equal ulong_num
+                   ;
+
+opt_num_parts:
+             /* empty */
+             | PARTITIONS_SYM real_ulong_num
+             ;
+
+opt_part_defs:
+             /* empty */
+             | '(' part_def_list ')'
+             ;
+opt_sub_part:
+            /* empty */
+            | SUBPARTITION_SYM BY opt_linear HASH_SYM '(' bit_expr ')'
+            opt_num_subparts
+            | SUBPARTITION_SYM BY opt_linear KEY_SYM opt_key_algo
+            '(' name_list ')' opt_num_subparts
+            ;
+bit_expr:
+        bit_expr '|' bit_expr %prec '|'
+        {
+             $$ = &BitOr{Left: $1,  Right: $3}
+        }
+        |bit_expr '&' bit_expr %prec '&'
+        {
+             $$ = &BitAnd{Left: $1,  Right: $3}
+        }
+        |bit_expr SHIFT_LEFT bit_expr %prec SHIFT_LEFT
+        {
+            $$ = &BitShiftLeft{Left:$1,Right:$3}
+        }
+        | bit_expr SHIFT_RIGHT bit_expr %prec SHIFT_RIGHT
+        {
+            $$ = &BitShiftRight{Left:$1,Right:$3}
+        }
+        | bit_expr '+' bit_expr %prec '+'
+        {
+            $$ = &BitPlus{Left:$1,Right:$3}
+        }
+        | bit_expr '-' bit_expr %prec '-'
+        {
+            $$ = &BitMinus{Left:$1,Right:$3}
+        }
+        | bit_expr '+' INTERVAL_SYM expr interval %prec '+'
+        {
+            $$ = BitAdd
+        }
+
+
+
+
