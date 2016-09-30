@@ -6,12 +6,12 @@ import (
 )
 
 func TestPase(t *testing.T) {
-	sql := "db.test"
+	sql := "alter table t1"
 	stmt, err := Parse(sql)
 	if err != nil {
 		log.Println(err.Error())
 		return
 	}
-	log.Println(stmt)
+	log.Println(stmt.IsDDL())
 
 }

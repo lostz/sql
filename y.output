@@ -1,0 +1,4384 @@
+state 0 //
+
+    0 $accept: . start_entry
+
+    ALTER         shift, and goto state 7
+    END_OF_INPUT  shift, and goto state 3
+
+    alter                      goto state 6
+    simple_statement           goto state 5
+    simple_statement_or_begin  goto state 4
+    sql_statement              goto state 2
+    start_entry                goto state 1
+
+state 1 // END_OF_INPUT [$end]
+
+    0 $accept: start_entry .  [$end]
+
+    $end  accept
+
+state 2 // END_OF_INPUT [$end]
+
+    1 start_entry: sql_statement .  [$end]
+
+    $end  reduce using rule 1 (start_entry)
+
+state 3 // END_OF_INPUT
+
+    2 sql_statement: END_OF_INPUT .  [$end]
+
+    $end  reduce using rule 2 (sql_statement)
+
+state 4 // ALTER TABLE_SYM ACCOUNT_SYM [';']
+
+    4 sql_statement: simple_statement_or_begin . $@1 ';' opt_end_of_input
+    5 sql_statement: simple_statement_or_begin . END_OF_INPUT
+    3 $@1: .  [';']
+
+    ';'           reduce using rule 3 ($@1)
+    END_OF_INPUT  shift, and goto state 401
+
+    $@1  goto state 400
+
+state 5 // ALTER TABLE_SYM ACCOUNT_SYM [';']
+
+    8 simple_statement_or_begin: simple_statement .  [';', END_OF_INPUT]
+
+    ';'           reduce using rule 8 (simple_statement_or_begin)
+    END_OF_INPUT  reduce using rule 8 (simple_statement_or_begin)
+
+state 6 // ALTER TABLE_SYM ACCOUNT_SYM [';']
+
+    9 simple_statement: alter .  [';', END_OF_INPUT]
+
+    ';'           reduce using rule 9 (simple_statement)
+    END_OF_INPUT  reduce using rule 9 (simple_statement)
+
+state 7 // ALTER
+
+   10 alter: ALTER . TABLE_SYM table_ident
+
+    TABLE_SYM  shift, and goto state 8
+
+state 8 // ALTER TABLE_SYM
+
+   10 alter: ALTER TABLE_SYM . table_ident
+
+    '.'                          shift, and goto state 11
+    ACCOUNT_SYM                  shift, and goto state 29
+    ACTION                       shift, and goto state 84
+    ADDDATE_SYM                  shift, and goto state 85
+    AFTER_SYM                    shift, and goto state 86
+    AGAINST                      shift, and goto state 87
+    AGGREGATE_SYM                shift, and goto state 88
+    ALGORITHM_SYM                shift, and goto state 89
+    ALWAYS_SYM                   shift, and goto state 31
+    ANALYSE_SYM                  shift, and goto state 90
+    ANY_SYM                      shift, and goto state 91
+    ASCII_SYM                    shift, and goto state 30
+    AT_SYM                       shift, and goto state 92
+    AUTOEXTEND_SIZE_SYM          shift, and goto state 94
+    AUTO_INC                     shift, and goto state 93
+    AVG_ROW_LENGTH               shift, and goto state 95
+    AVG_SYM                      shift, and goto state 96
+    BACKUP_SYM                   shift, and goto state 32
+    BEGIN_SYM                    shift, and goto state 33
+    BINLOG_SYM                   shift, and goto state 97
+    BIT_SYM                      shift, and goto state 98
+    BLOCK_SYM                    shift, and goto state 99
+    BOOLEAN_SYM                  shift, and goto state 101
+    BOOL_SYM                     shift, and goto state 100
+    BTREE_SYM                    shift, and goto state 102
+    BYTE_SYM                     shift, and goto state 34
+    CACHE_SYM                    shift, and goto state 35
+    CASCADED                     shift, and goto state 103
+    CATALOG_NAME_SYM             shift, and goto state 104
+    CHAIN_SYM                    shift, and goto state 105
+    CHANGED                      shift, and goto state 106
+    CHANNEL_SYM                  shift, and goto state 107
+    CHARSET                      shift, and goto state 36
+    CHECKSUM_SYM                 shift, and goto state 37
+    CIPHER_SYM                   shift, and goto state 108
+    CLASS_ORIGIN_SYM             shift, and goto state 110
+    CLIENT_SYM                   shift, and goto state 109
+    CLOSE_SYM                    shift, and goto state 38
+    COALESCE                     shift, and goto state 111
+    CODE_SYM                     shift, and goto state 112
+    COLLATION_SYM                shift, and goto state 113
+    COLUMNS                      shift, and goto state 116
+    COLUMN_FORMAT_SYM            shift, and goto state 115
+    COLUMN_NAME_SYM              shift, and goto state 114
+    COMMENT_SYM                  shift, and goto state 39
+    COMMITTED_SYM                shift, and goto state 117
+    COMMIT_SYM                   shift, and goto state 40
+    COMPACT_SYM                  shift, and goto state 118
+    COMPLETION_SYM               shift, and goto state 119
+    COMPONENT_SYM                shift, and goto state 120
+    COMPRESSED_SYM               shift, and goto state 121
+    COMPRESSION_SYM              shift, and goto state 122
+    CONCURRENT                   shift, and goto state 124
+    CONNECTION_SYM               shift, and goto state 125
+    CONSISTENT_SYM               shift, and goto state 126
+    CONSTRAINT_CATALOG_SYM       shift, and goto state 127
+    CONSTRAINT_NAME_SYM          shift, and goto state 129
+    CONSTRAINT_SCHEMA_SYM        shift, and goto state 128
+    CONTAINS_SYM                 shift, and goto state 41
+    CONTEXT_SYM                  shift, and goto state 130
+    CPU_SYM                      shift, and goto state 131
+    CUBE_SYM                     shift, and goto state 132
+    CURRENT_SYM                  shift, and goto state 133
+    CURSOR_NAME_SYM              shift, and goto state 134
+    DATAFILE_SYM                 shift, and goto state 136
+    DATA_SYM                     shift, and goto state 135
+    DATETIME_SYM                 shift, and goto state 137
+    DATE_SYM                     shift, and goto state 138
+    DAY_SYM                      shift, and goto state 139
+    DEALLOCATE_SYM               shift, and goto state 42
+    DEFAULT_AUTH_SYM             shift, and goto state 140
+    DEFINER_SYM                  shift, and goto state 141
+    DELAY_KEY_WRITE_SYM          shift, and goto state 142
+    DES_KEY_FILE                 shift, and goto state 143
+    DIAGNOSTICS_SYM              shift, and goto state 144
+    DIRECTORY_SYM                shift, and goto state 145
+    DISABLE_SYM                  shift, and goto state 146
+    DISCARD                      shift, and goto state 147
+    DISK_SYM                     shift, and goto state 148
+    DO_SYM                       shift, and goto state 43
+    DUMPFILE                     shift, and goto state 149
+    DUPLICATE_SYM                shift, and goto state 150
+    DYNAMIC_SYM                  shift, and goto state 151
+    ENABLE_SYM                   shift, and goto state 170
+    ENCRYPTION_SYM               shift, and goto state 123
+    END                          shift, and goto state 44
+    ENDS_SYM                     shift, and goto state 152
+    ENGINES_SYM                  shift, and goto state 155
+    ENGINE_SYM                   shift, and goto state 154
+    ENUM_SYM                     shift, and goto state 153
+    ERRORS                       shift, and goto state 157
+    ERROR_SYM                    shift, and goto state 156
+    ESCAPE_SYM                   shift, and goto state 158
+    EVENTS_SYM                   shift, and goto state 159
+    EVENT_SYM                    shift, and goto state 21
+    EVERY_SYM                    shift, and goto state 160
+    EXCHANGE_SYM                 shift, and goto state 161
+    EXECUTE_SYM                  shift, and goto state 18
+    EXPANSION_SYM                shift, and goto state 162
+    EXPIRE_SYM                   shift, and goto state 163
+    EXPORT_SYM                   shift, and goto state 164
+    EXTENDED_SYM                 shift, and goto state 165
+    EXTENT_SIZE_SYM              shift, and goto state 166
+    FAST_SYM                     shift, and goto state 168
+    FAULTS_SYM                   shift, and goto state 167
+    FILE_BLOCK_SIZE_SYM          shift, and goto state 172
+    FILE_SYM                     shift, and goto state 22
+    FILTER_SYM                   shift, and goto state 173
+    FIRST_SYM                    shift, and goto state 174
+    FIXED_SYM                    shift, and goto state 175
+    FLUSH_SYM                    shift, and goto state 45
+    FOLLOWS_SYM                  shift, and goto state 46
+    FORMAT_SYM                   shift, and goto state 47
+    FOUND_SYM                    shift, and goto state 169
+    FULL                         shift, and goto state 171
+    FUNCTION_SYM                 shift, and goto state 374
+    GENERAL                      shift, and goto state 176
+    GEOMETRYCOLLECTION_SYM       shift, and goto state 178
+    GEOMETRY_SYM                 shift, and goto state 177
+    GET_FORMAT                   shift, and goto state 179
+    GLOBAL_SYM                   shift, and goto state 181
+    GRANTS                       shift, and goto state 180
+    GROUP_REPLICATION            shift, and goto state 48
+    HANDLER_SYM                  shift, and goto state 49
+    HASH_SYM                     shift, and goto state 182
+    HELP_SYM                     shift, and goto state 50
+    HOSTS_SYM                    shift, and goto state 183
+    HOST_SYM                     shift, and goto state 51
+    HOUR_SYM                     shift, and goto state 184
+    IDENT                        shift, and goto state 14
+    IDENTIFIED_SYM               shift, and goto state 185
+    IDENT_QUOTED                 shift, and goto state 15
+    IGNORE_SERVER_IDS_SYM        shift, and goto state 186
+    IMPORT                       shift, and goto state 188
+    INDEXES                      shift, and goto state 189
+    INITIAL_SIZE_SYM             shift, and goto state 190
+    INSERT_METHOD                shift, and goto state 195
+    INSTALL_SYM                  shift, and goto state 52
+    INSTANCE_SYM                 shift, and goto state 196
+    INVISIBLE_SYM                shift, and goto state 53
+    INVOKER_SYM                  shift, and goto state 187
+    IO_SYM                       shift, and goto state 191
+    IPC_SYM                      shift, and goto state 192
+    ISOLATION                    shift, and goto state 193
+    ISSUER_SYM                   shift, and goto state 194
+    JSON_SYM                     shift, and goto state 197
+    KEY_BLOCK_SIZE               shift, and goto state 198
+    LANGUAGE_SYM                 shift, and goto state 54
+    LAST_SYM                     shift, and goto state 199
+    LEAVES                       shift, and goto state 200
+    LESS_SYM                     shift, and goto state 201
+    LEVEL_SYM                    shift, and goto state 202
+    LINESTRING_SYM               shift, and goto state 203
+    LIST_SYM                     shift, and goto state 204
+    LOCAL_SYM                    shift, and goto state 205
+    LOCKS_SYM                    shift, and goto state 206
+    LOGFILE_SYM                  shift, and goto state 207
+    LOGS_SYM                     shift, and goto state 208
+    MASTER_AUTO_POSITION_SYM     shift, and goto state 231
+    MASTER_CONNECT_RETRY_SYM     shift, and goto state 219
+    MASTER_DELAY_SYM             shift, and goto state 221
+    MASTER_HEARTBEAT_PERIOD_SYM  shift, and goto state 211
+    MASTER_HOST_SYM              shift, and goto state 212
+    MASTER_LOG_FILE_SYM          shift, and goto state 214
+    MASTER_LOG_POS_SYM           shift, and goto state 215
+    MASTER_PASSWORD_SYM          shift, and goto state 217
+    MASTER_PORT_SYM              shift, and goto state 213
+    MASTER_RETRY_COUNT_SYM       shift, and goto state 220
+    MASTER_SERVER_ID_SYM         shift, and goto state 218
+    MASTER_SSL_CAPATH_SYM        shift, and goto state 224
+    MASTER_SSL_CA_SYM            shift, and goto state 223
+    MASTER_SSL_CERT_SYM          shift, and goto state 226
+    MASTER_SSL_CIPHER_SYM        shift, and goto state 227
+    MASTER_SSL_CRLPATH_SYM       shift, and goto state 229
+    MASTER_SSL_CRL_SYM           shift, and goto state 228
+    MASTER_SSL_KEY_SYM           shift, and goto state 230
+    MASTER_SSL_SYM               shift, and goto state 222
+    MASTER_SYM                   shift, and goto state 210
+    MASTER_TLS_VERSION_SYM       shift, and goto state 225
+    MASTER_USER_SYM              shift, and goto state 216
+    MAX_CONNECTIONS_PER_HOUR     shift, and goto state 232
+    MAX_QUERIES_PER_HOUR         shift, and goto state 233
+    MAX_ROWS                     shift, and goto state 209
+    MAX_SIZE_SYM                 shift, and goto state 234
+    MAX_UPDATES_PER_HOUR         shift, and goto state 235
+    MAX_USER_CONNECTIONS_SYM     shift, and goto state 236
+    MEDIUM_SYM                   shift, and goto state 237
+    MEMORY_SYM                   shift, and goto state 238
+    MERGE_SYM                    shift, and goto state 239
+    MESSAGE_TEXT_SYM             shift, and goto state 240
+    MICROSECOND_SYM              shift, and goto state 241
+    MIGRATE_SYM                  shift, and goto state 242
+    MINUTE_SYM                   shift, and goto state 243
+    MIN_ROWS                     shift, and goto state 244
+    MODE_SYM                     shift, and goto state 246
+    MODIFY_SYM                   shift, and goto state 245
+    MONTH_SYM                    shift, and goto state 247
+    MULTILINESTRING_SYM          shift, and goto state 248
+    MULTIPOINT_SYM               shift, and goto state 249
+    MULTIPOLYGON_SYM             shift, and goto state 250
+    MUTEX_SYM                    shift, and goto state 251
+    MYSQL_ERRNO_SYM              shift, and goto state 252
+    NAMES_SYM                    shift, and goto state 254
+    NAME_SYM                     shift, and goto state 253
+    NATIONAL_SYM                 shift, and goto state 255
+    NCHAR_SYM                    shift, and goto state 256
+    NDBCLUSTER_SYM               shift, and goto state 257
+    NEVER_SYM                    shift, and goto state 258
+    NEW_SYM                      shift, and goto state 260
+    NEXT_SYM                     shift, and goto state 259
+    NODEGROUP_SYM                shift, and goto state 262
+    NONE_SYM                     shift, and goto state 23
+    NO_SYM                       shift, and goto state 55
+    NO_WAIT_SYM                  shift, and goto state 261
+    NUMBER_SYM                   shift, and goto state 263
+    NVARCHAR_SYM                 shift, and goto state 264
+    OFFSET_SYM                   shift, and goto state 265
+    ONE_SYM                      shift, and goto state 266
+    ONLY_SYM                     shift, and goto state 267
+    OPEN_SYM                     shift, and goto state 56
+    OPTIONS_SYM                  shift, and goto state 57
+    OWNER_SYM                    shift, and goto state 58
+    PACK_KEYS_SYM                shift, and goto state 268
+    PAGE_SYM                     shift, and goto state 269
+    PARSER_SYM                   shift, and goto state 59
+    PARTIAL                      shift, and goto state 270
+    PARTITIONING_SYM             shift, and goto state 271
+    PARTITIONS_SYM               shift, and goto state 272
+    PASSWORD                     shift, and goto state 273
+    PHASE_SYM                    shift, and goto state 274
+    PLUGINS_SYM                  shift, and goto state 277
+    PLUGIN_DIR_SYM               shift, and goto state 275
+    PLUGIN_SYM                   shift, and goto state 276
+    POINT_SYM                    shift, and goto state 278
+    POLYGON_SYM                  shift, and goto state 279
+    PORT_SYM                     shift, and goto state 60
+    PRECEDES_SYM                 shift, and goto state 61
+    PREPARE_SYM                  shift, and goto state 62
+    PRESERVE_SYM                 shift, and goto state 280
+    PREV_SYM                     shift, and goto state 281
+    PRIVILEGES                   shift, and goto state 282
+    PROCESS                      shift, and goto state 24
+    PROCESSLIST_SYM              shift, and goto state 283
+    PROFILES_SYM                 shift, and goto state 285
+    PROFILE_SYM                  shift, and goto state 284
+    PROXY_SYM                    shift, and goto state 25
+    QUARTER_SYM                  shift, and goto state 286
+    QUERY_SYM                    shift, and goto state 287
+    QUICK                        shift, and goto state 288
+    READ_ONLY_SYM                shift, and goto state 289
+    REBUILD_SYM                  shift, and goto state 290
+    RECOVER_SYM                  shift, and goto state 291
+    REDOFILE_SYM                 shift, and goto state 293
+    REDO_BUFFER_SIZE_SYM         shift, and goto state 292
+    REDUNDANT_SYM                shift, and goto state 294
+    RELAY                        shift, and goto state 295
+    RELAYLOG_SYM                 shift, and goto state 296
+    RELAY_LOG_FILE_SYM           shift, and goto state 297
+    RELAY_LOG_POS_SYM            shift, and goto state 298
+    RELAY_THREAD                 shift, and goto state 299
+    RELOAD                       shift, and goto state 26
+    REMOVE_SYM                   shift, and goto state 63
+    REORGANIZE_SYM               shift, and goto state 300
+    REPAIR                       shift, and goto state 64
+    REPEATABLE_SYM               shift, and goto state 301
+    REPLICATE_DO_DB              shift, and goto state 302
+    REPLICATE_DO_TABLE           shift, and goto state 304
+    REPLICATE_IGNORE_DB          shift, and goto state 303
+    REPLICATE_IGNORE_TABLE       shift, and goto state 305
+    REPLICATE_REWRITE_DB         shift, and goto state 308
+    REPLICATE_WILD_DO_TABLE      shift, and goto state 306
+    REPLICATE_WILD_IGNORE_TABLE  shift, and goto state 307
+    REPLICATION                  shift, and goto state 27
+    RESET_SYM                    shift, and goto state 65
+    RESOURCES                    shift, and goto state 309
+    RESTORE_SYM                  shift, and goto state 66
+    RESUME_SYM                   shift, and goto state 310
+    RETURNED_SQLSTATE_SYM        shift, and goto state 311
+    RETURNS_SYM                  shift, and goto state 312
+    REVERSE_SYM                  shift, and goto state 313
+    ROLLBACK_SYM                 shift, and goto state 67
+    ROLLUP_SYM                   shift, and goto state 314
+    ROTATE_SYM                   shift, and goto state 315
+    ROUTINE_SYM                  shift, and goto state 316
+    ROWS_SYM                     shift, and goto state 317
+    ROW_COUNT_SYM                shift, and goto state 318
+    ROW_FORMAT_SYM               shift, and goto state 319
+    ROW_SYM                      shift, and goto state 320
+    RTREE_SYM                    shift, and goto state 321
+    SAVEPOINT_SYM                shift, and goto state 68
+    SCHEDULE_SYM                 shift, and goto state 322
+    SCHEMA_NAME_SYM              shift, and goto state 323
+    SECOND_SYM                   shift, and goto state 324
+    SECURITY_SYM                 shift, and goto state 69
+    SERIALIZABLE_SYM             shift, and goto state 326
+    SERIAL_SYM                   shift, and goto state 325
+    SERVER_SYM                   shift, and goto state 70
+    SESSION_SYM                  shift, and goto state 327
+    SHARE_SYM                    shift, and goto state 329
+    SHUTDOWN                     shift, and goto state 19
+    SIGNED_SYM                   shift, and goto state 71
+    SIMPLE_SYM                   shift, and goto state 328
+    SLAVE                        shift, and goto state 73
+    SLOW                         shift, and goto state 330
+    SNAPSHOT_SYM                 shift, and goto state 331
+    SOCKET_SYM                   shift, and goto state 72
+    SONAME_SYM                   shift, and goto state 74
+    SOUNDS_SYM                   shift, and goto state 332
+    SOURCE_SYM                   shift, and goto state 333
+    SQL_AFTER_GTIDS              shift, and goto state 334
+    SQL_AFTER_MTS_GAPS           shift, and goto state 335
+    SQL_BEFORE_GTIDS             shift, and goto state 336
+    SQL_BUFFER_RESULT            shift, and goto state 338
+    SQL_CACHE_SYM                shift, and goto state 337
+    SQL_NO_CACHE_SYM             shift, and goto state 339
+    SQL_THREAD                   shift, and goto state 340
+    STACKED_SYM                  shift, and goto state 341
+    STARTS_SYM                   shift, and goto state 342
+    START_SYM                    shift, and goto state 75
+    STATS_AUTO_RECALC_SYM        shift, and goto state 343
+    STATS_PERSISTENT_SYM         shift, and goto state 344
+    STATS_SAMPLE_PAGES_SYM       shift, and goto state 345
+    STATUS_SYM                   shift, and goto state 346
+    STOP_SYM                     shift, and goto state 76
+    STORAGE_SYM                  shift, and goto state 347
+    STRING_SYM                   shift, and goto state 348
+    SUBCLASS_ORIGIN_SYM          shift, and goto state 349
+    SUBDATE_SYM                  shift, and goto state 350
+    SUBJECT_SYM                  shift, and goto state 351
+    SUBPARTITIONS_SYM            shift, and goto state 353
+    SUBPARTITION_SYM             shift, and goto state 352
+    SUPER_SYM                    shift, and goto state 28
+    SUSPEND_SYM                  shift, and goto state 354
+    SWAPS_SYM                    shift, and goto state 355
+    SWITCHES_SYM                 shift, and goto state 356
+    TABLES                       shift, and goto state 358
+    TABLESPACE_SYM               shift, and goto state 360
+    TABLE_CHECKSUM_SYM           shift, and goto state 359
+    TABLE_NAME_SYM               shift, and goto state 357
+    TEMPORARY                    shift, and goto state 361
+    TEMPTABLE_SYM                shift, and goto state 362
+    TEXT_SYM                     shift, and goto state 363
+    THAN_SYM                     shift, and goto state 364
+    TIMESTAMP_ADD                shift, and goto state 368
+    TIMESTAMP_DIFF               shift, and goto state 369
+    TIMESTAMP_SYM                shift, and goto state 367
+    TIME_SYM                     shift, and goto state 370
+    TRANSACTION_SYM              shift, and goto state 365
+    TRIGGERS_SYM                 shift, and goto state 366
+    TRUNCATE_SYM                 shift, and goto state 77
+    TYPES_SYM                    shift, and goto state 371
+    TYPE_SYM                     shift, and goto state 372
+    UDF_RETURNS_SYM              shift, and goto state 373
+    UNCOMMITTED_SYM              shift, and goto state 375
+    UNDEFINED_SYM                shift, and goto state 376
+    UNDOFILE_SYM                 shift, and goto state 378
+    UNDO_BUFFER_SIZE_SYM         shift, and goto state 377
+    UNICODE_SYM                  shift, and goto state 79
+    UNINSTALL_SYM                shift, and goto state 80
+    UNKNOWN_SYM                  shift, and goto state 379
+    UNTIL_SYM                    shift, and goto state 380
+    UPGRADE_SYM                  shift, and goto state 83
+    USER                         shift, and goto state 381
+    USE_FRM                      shift, and goto state 382
+    VALIDATION_SYM               shift, and goto state 383
+    VALUE_SYM                    shift, and goto state 386
+    VARIABLES                    shift, and goto state 384
+    VIEW_SYM                     shift, and goto state 385
+    VISIBLE_SYM                  shift, and goto state 78
+    WAIT_SYM                     shift, and goto state 388
+    WARNINGS                     shift, and goto state 387
+    WEEK_SYM                     shift, and goto state 389
+    WEIGHT_STRING_SYM            shift, and goto state 392
+    WITHOUT_SYM                  shift, and goto state 390
+    WORK_SYM                     shift, and goto state 391
+    WRAPPER_SYM                  shift, and goto state 81
+    X509_SYM                     shift, and goto state 393
+    XA_SYM                       shift, and goto state 82
+    XID_SYM                      shift, and goto state 394
+    XML_SYM                      shift, and goto state 395
+    YEAR_SYM                     shift, and goto state 396
+
+    IDENT_sys              goto state 12
+    ident                  goto state 10
+    ident_keyword          goto state 13
+    label_keyword          goto state 16
+    role_or_ident_keyword  goto state 17
+    role_or_label_keyword  goto state 20
+    table_ident            goto state 9
+
+state 9 // ALTER TABLE_SYM ACCOUNT_SYM [';']
+
+   10 alter: ALTER TABLE_SYM table_ident .  [';', END_OF_INPUT]
+
+    ';'           reduce using rule 10 (alter)
+    END_OF_INPUT  reduce using rule 10 (alter)
+
+state 10 // ALTER TABLE_SYM ACCOUNT_SYM ['.']
+
+   11 table_ident: ident .  [';', END_OF_INPUT]
+   12 table_ident: ident . '.' ident
+
+    '.'           shift, and goto state 398
+    ';'           reduce using rule 11 (table_ident)
+    END_OF_INPUT  reduce using rule 11 (table_ident)
+
+state 11 // ALTER TABLE_SYM '.'
+
+   13 table_ident: '.' . ident
+
+    ACCOUNT_SYM                  shift, and goto state 29
+    ACTION                       shift, and goto state 84
+    ADDDATE_SYM                  shift, and goto state 85
+    AFTER_SYM                    shift, and goto state 86
+    AGAINST                      shift, and goto state 87
+    AGGREGATE_SYM                shift, and goto state 88
+    ALGORITHM_SYM                shift, and goto state 89
+    ALWAYS_SYM                   shift, and goto state 31
+    ANALYSE_SYM                  shift, and goto state 90
+    ANY_SYM                      shift, and goto state 91
+    ASCII_SYM                    shift, and goto state 30
+    AT_SYM                       shift, and goto state 92
+    AUTOEXTEND_SIZE_SYM          shift, and goto state 94
+    AUTO_INC                     shift, and goto state 93
+    AVG_ROW_LENGTH               shift, and goto state 95
+    AVG_SYM                      shift, and goto state 96
+    BACKUP_SYM                   shift, and goto state 32
+    BEGIN_SYM                    shift, and goto state 33
+    BINLOG_SYM                   shift, and goto state 97
+    BIT_SYM                      shift, and goto state 98
+    BLOCK_SYM                    shift, and goto state 99
+    BOOLEAN_SYM                  shift, and goto state 101
+    BOOL_SYM                     shift, and goto state 100
+    BTREE_SYM                    shift, and goto state 102
+    BYTE_SYM                     shift, and goto state 34
+    CACHE_SYM                    shift, and goto state 35
+    CASCADED                     shift, and goto state 103
+    CATALOG_NAME_SYM             shift, and goto state 104
+    CHAIN_SYM                    shift, and goto state 105
+    CHANGED                      shift, and goto state 106
+    CHANNEL_SYM                  shift, and goto state 107
+    CHARSET                      shift, and goto state 36
+    CHECKSUM_SYM                 shift, and goto state 37
+    CIPHER_SYM                   shift, and goto state 108
+    CLASS_ORIGIN_SYM             shift, and goto state 110
+    CLIENT_SYM                   shift, and goto state 109
+    CLOSE_SYM                    shift, and goto state 38
+    COALESCE                     shift, and goto state 111
+    CODE_SYM                     shift, and goto state 112
+    COLLATION_SYM                shift, and goto state 113
+    COLUMNS                      shift, and goto state 116
+    COLUMN_FORMAT_SYM            shift, and goto state 115
+    COLUMN_NAME_SYM              shift, and goto state 114
+    COMMENT_SYM                  shift, and goto state 39
+    COMMITTED_SYM                shift, and goto state 117
+    COMMIT_SYM                   shift, and goto state 40
+    COMPACT_SYM                  shift, and goto state 118
+    COMPLETION_SYM               shift, and goto state 119
+    COMPONENT_SYM                shift, and goto state 120
+    COMPRESSED_SYM               shift, and goto state 121
+    COMPRESSION_SYM              shift, and goto state 122
+    CONCURRENT                   shift, and goto state 124
+    CONNECTION_SYM               shift, and goto state 125
+    CONSISTENT_SYM               shift, and goto state 126
+    CONSTRAINT_CATALOG_SYM       shift, and goto state 127
+    CONSTRAINT_NAME_SYM          shift, and goto state 129
+    CONSTRAINT_SCHEMA_SYM        shift, and goto state 128
+    CONTAINS_SYM                 shift, and goto state 41
+    CONTEXT_SYM                  shift, and goto state 130
+    CPU_SYM                      shift, and goto state 131
+    CUBE_SYM                     shift, and goto state 132
+    CURRENT_SYM                  shift, and goto state 133
+    CURSOR_NAME_SYM              shift, and goto state 134
+    DATAFILE_SYM                 shift, and goto state 136
+    DATA_SYM                     shift, and goto state 135
+    DATETIME_SYM                 shift, and goto state 137
+    DATE_SYM                     shift, and goto state 138
+    DAY_SYM                      shift, and goto state 139
+    DEALLOCATE_SYM               shift, and goto state 42
+    DEFAULT_AUTH_SYM             shift, and goto state 140
+    DEFINER_SYM                  shift, and goto state 141
+    DELAY_KEY_WRITE_SYM          shift, and goto state 142
+    DES_KEY_FILE                 shift, and goto state 143
+    DIAGNOSTICS_SYM              shift, and goto state 144
+    DIRECTORY_SYM                shift, and goto state 145
+    DISABLE_SYM                  shift, and goto state 146
+    DISCARD                      shift, and goto state 147
+    DISK_SYM                     shift, and goto state 148
+    DO_SYM                       shift, and goto state 43
+    DUMPFILE                     shift, and goto state 149
+    DUPLICATE_SYM                shift, and goto state 150
+    DYNAMIC_SYM                  shift, and goto state 151
+    ENABLE_SYM                   shift, and goto state 170
+    ENCRYPTION_SYM               shift, and goto state 123
+    END                          shift, and goto state 44
+    ENDS_SYM                     shift, and goto state 152
+    ENGINES_SYM                  shift, and goto state 155
+    ENGINE_SYM                   shift, and goto state 154
+    ENUM_SYM                     shift, and goto state 153
+    ERRORS                       shift, and goto state 157
+    ERROR_SYM                    shift, and goto state 156
+    ESCAPE_SYM                   shift, and goto state 158
+    EVENTS_SYM                   shift, and goto state 159
+    EVENT_SYM                    shift, and goto state 21
+    EVERY_SYM                    shift, and goto state 160
+    EXCHANGE_SYM                 shift, and goto state 161
+    EXECUTE_SYM                  shift, and goto state 18
+    EXPANSION_SYM                shift, and goto state 162
+    EXPIRE_SYM                   shift, and goto state 163
+    EXPORT_SYM                   shift, and goto state 164
+    EXTENDED_SYM                 shift, and goto state 165
+    EXTENT_SIZE_SYM              shift, and goto state 166
+    FAST_SYM                     shift, and goto state 168
+    FAULTS_SYM                   shift, and goto state 167
+    FILE_BLOCK_SIZE_SYM          shift, and goto state 172
+    FILE_SYM                     shift, and goto state 22
+    FILTER_SYM                   shift, and goto state 173
+    FIRST_SYM                    shift, and goto state 174
+    FIXED_SYM                    shift, and goto state 175
+    FLUSH_SYM                    shift, and goto state 45
+    FOLLOWS_SYM                  shift, and goto state 46
+    FORMAT_SYM                   shift, and goto state 47
+    FOUND_SYM                    shift, and goto state 169
+    FULL                         shift, and goto state 171
+    FUNCTION_SYM                 shift, and goto state 374
+    GENERAL                      shift, and goto state 176
+    GEOMETRYCOLLECTION_SYM       shift, and goto state 178
+    GEOMETRY_SYM                 shift, and goto state 177
+    GET_FORMAT                   shift, and goto state 179
+    GLOBAL_SYM                   shift, and goto state 181
+    GRANTS                       shift, and goto state 180
+    GROUP_REPLICATION            shift, and goto state 48
+    HANDLER_SYM                  shift, and goto state 49
+    HASH_SYM                     shift, and goto state 182
+    HELP_SYM                     shift, and goto state 50
+    HOSTS_SYM                    shift, and goto state 183
+    HOST_SYM                     shift, and goto state 51
+    HOUR_SYM                     shift, and goto state 184
+    IDENT                        shift, and goto state 14
+    IDENTIFIED_SYM               shift, and goto state 185
+    IDENT_QUOTED                 shift, and goto state 15
+    IGNORE_SERVER_IDS_SYM        shift, and goto state 186
+    IMPORT                       shift, and goto state 188
+    INDEXES                      shift, and goto state 189
+    INITIAL_SIZE_SYM             shift, and goto state 190
+    INSERT_METHOD                shift, and goto state 195
+    INSTALL_SYM                  shift, and goto state 52
+    INSTANCE_SYM                 shift, and goto state 196
+    INVISIBLE_SYM                shift, and goto state 53
+    INVOKER_SYM                  shift, and goto state 187
+    IO_SYM                       shift, and goto state 191
+    IPC_SYM                      shift, and goto state 192
+    ISOLATION                    shift, and goto state 193
+    ISSUER_SYM                   shift, and goto state 194
+    JSON_SYM                     shift, and goto state 197
+    KEY_BLOCK_SIZE               shift, and goto state 198
+    LANGUAGE_SYM                 shift, and goto state 54
+    LAST_SYM                     shift, and goto state 199
+    LEAVES                       shift, and goto state 200
+    LESS_SYM                     shift, and goto state 201
+    LEVEL_SYM                    shift, and goto state 202
+    LINESTRING_SYM               shift, and goto state 203
+    LIST_SYM                     shift, and goto state 204
+    LOCAL_SYM                    shift, and goto state 205
+    LOCKS_SYM                    shift, and goto state 206
+    LOGFILE_SYM                  shift, and goto state 207
+    LOGS_SYM                     shift, and goto state 208
+    MASTER_AUTO_POSITION_SYM     shift, and goto state 231
+    MASTER_CONNECT_RETRY_SYM     shift, and goto state 219
+    MASTER_DELAY_SYM             shift, and goto state 221
+    MASTER_HEARTBEAT_PERIOD_SYM  shift, and goto state 211
+    MASTER_HOST_SYM              shift, and goto state 212
+    MASTER_LOG_FILE_SYM          shift, and goto state 214
+    MASTER_LOG_POS_SYM           shift, and goto state 215
+    MASTER_PASSWORD_SYM          shift, and goto state 217
+    MASTER_PORT_SYM              shift, and goto state 213
+    MASTER_RETRY_COUNT_SYM       shift, and goto state 220
+    MASTER_SERVER_ID_SYM         shift, and goto state 218
+    MASTER_SSL_CAPATH_SYM        shift, and goto state 224
+    MASTER_SSL_CA_SYM            shift, and goto state 223
+    MASTER_SSL_CERT_SYM          shift, and goto state 226
+    MASTER_SSL_CIPHER_SYM        shift, and goto state 227
+    MASTER_SSL_CRLPATH_SYM       shift, and goto state 229
+    MASTER_SSL_CRL_SYM           shift, and goto state 228
+    MASTER_SSL_KEY_SYM           shift, and goto state 230
+    MASTER_SSL_SYM               shift, and goto state 222
+    MASTER_SYM                   shift, and goto state 210
+    MASTER_TLS_VERSION_SYM       shift, and goto state 225
+    MASTER_USER_SYM              shift, and goto state 216
+    MAX_CONNECTIONS_PER_HOUR     shift, and goto state 232
+    MAX_QUERIES_PER_HOUR         shift, and goto state 233
+    MAX_ROWS                     shift, and goto state 209
+    MAX_SIZE_SYM                 shift, and goto state 234
+    MAX_UPDATES_PER_HOUR         shift, and goto state 235
+    MAX_USER_CONNECTIONS_SYM     shift, and goto state 236
+    MEDIUM_SYM                   shift, and goto state 237
+    MEMORY_SYM                   shift, and goto state 238
+    MERGE_SYM                    shift, and goto state 239
+    MESSAGE_TEXT_SYM             shift, and goto state 240
+    MICROSECOND_SYM              shift, and goto state 241
+    MIGRATE_SYM                  shift, and goto state 242
+    MINUTE_SYM                   shift, and goto state 243
+    MIN_ROWS                     shift, and goto state 244
+    MODE_SYM                     shift, and goto state 246
+    MODIFY_SYM                   shift, and goto state 245
+    MONTH_SYM                    shift, and goto state 247
+    MULTILINESTRING_SYM          shift, and goto state 248
+    MULTIPOINT_SYM               shift, and goto state 249
+    MULTIPOLYGON_SYM             shift, and goto state 250
+    MUTEX_SYM                    shift, and goto state 251
+    MYSQL_ERRNO_SYM              shift, and goto state 252
+    NAMES_SYM                    shift, and goto state 254
+    NAME_SYM                     shift, and goto state 253
+    NATIONAL_SYM                 shift, and goto state 255
+    NCHAR_SYM                    shift, and goto state 256
+    NDBCLUSTER_SYM               shift, and goto state 257
+    NEVER_SYM                    shift, and goto state 258
+    NEW_SYM                      shift, and goto state 260
+    NEXT_SYM                     shift, and goto state 259
+    NODEGROUP_SYM                shift, and goto state 262
+    NONE_SYM                     shift, and goto state 23
+    NO_SYM                       shift, and goto state 55
+    NO_WAIT_SYM                  shift, and goto state 261
+    NUMBER_SYM                   shift, and goto state 263
+    NVARCHAR_SYM                 shift, and goto state 264
+    OFFSET_SYM                   shift, and goto state 265
+    ONE_SYM                      shift, and goto state 266
+    ONLY_SYM                     shift, and goto state 267
+    OPEN_SYM                     shift, and goto state 56
+    OPTIONS_SYM                  shift, and goto state 57
+    OWNER_SYM                    shift, and goto state 58
+    PACK_KEYS_SYM                shift, and goto state 268
+    PAGE_SYM                     shift, and goto state 269
+    PARSER_SYM                   shift, and goto state 59
+    PARTIAL                      shift, and goto state 270
+    PARTITIONING_SYM             shift, and goto state 271
+    PARTITIONS_SYM               shift, and goto state 272
+    PASSWORD                     shift, and goto state 273
+    PHASE_SYM                    shift, and goto state 274
+    PLUGINS_SYM                  shift, and goto state 277
+    PLUGIN_DIR_SYM               shift, and goto state 275
+    PLUGIN_SYM                   shift, and goto state 276
+    POINT_SYM                    shift, and goto state 278
+    POLYGON_SYM                  shift, and goto state 279
+    PORT_SYM                     shift, and goto state 60
+    PRECEDES_SYM                 shift, and goto state 61
+    PREPARE_SYM                  shift, and goto state 62
+    PRESERVE_SYM                 shift, and goto state 280
+    PREV_SYM                     shift, and goto state 281
+    PRIVILEGES                   shift, and goto state 282
+    PROCESS                      shift, and goto state 24
+    PROCESSLIST_SYM              shift, and goto state 283
+    PROFILES_SYM                 shift, and goto state 285
+    PROFILE_SYM                  shift, and goto state 284
+    PROXY_SYM                    shift, and goto state 25
+    QUARTER_SYM                  shift, and goto state 286
+    QUERY_SYM                    shift, and goto state 287
+    QUICK                        shift, and goto state 288
+    READ_ONLY_SYM                shift, and goto state 289
+    REBUILD_SYM                  shift, and goto state 290
+    RECOVER_SYM                  shift, and goto state 291
+    REDOFILE_SYM                 shift, and goto state 293
+    REDO_BUFFER_SIZE_SYM         shift, and goto state 292
+    REDUNDANT_SYM                shift, and goto state 294
+    RELAY                        shift, and goto state 295
+    RELAYLOG_SYM                 shift, and goto state 296
+    RELAY_LOG_FILE_SYM           shift, and goto state 297
+    RELAY_LOG_POS_SYM            shift, and goto state 298
+    RELAY_THREAD                 shift, and goto state 299
+    RELOAD                       shift, and goto state 26
+    REMOVE_SYM                   shift, and goto state 63
+    REORGANIZE_SYM               shift, and goto state 300
+    REPAIR                       shift, and goto state 64
+    REPEATABLE_SYM               shift, and goto state 301
+    REPLICATE_DO_DB              shift, and goto state 302
+    REPLICATE_DO_TABLE           shift, and goto state 304
+    REPLICATE_IGNORE_DB          shift, and goto state 303
+    REPLICATE_IGNORE_TABLE       shift, and goto state 305
+    REPLICATE_REWRITE_DB         shift, and goto state 308
+    REPLICATE_WILD_DO_TABLE      shift, and goto state 306
+    REPLICATE_WILD_IGNORE_TABLE  shift, and goto state 307
+    REPLICATION                  shift, and goto state 27
+    RESET_SYM                    shift, and goto state 65
+    RESOURCES                    shift, and goto state 309
+    RESTORE_SYM                  shift, and goto state 66
+    RESUME_SYM                   shift, and goto state 310
+    RETURNED_SQLSTATE_SYM        shift, and goto state 311
+    RETURNS_SYM                  shift, and goto state 312
+    REVERSE_SYM                  shift, and goto state 313
+    ROLLBACK_SYM                 shift, and goto state 67
+    ROLLUP_SYM                   shift, and goto state 314
+    ROTATE_SYM                   shift, and goto state 315
+    ROUTINE_SYM                  shift, and goto state 316
+    ROWS_SYM                     shift, and goto state 317
+    ROW_COUNT_SYM                shift, and goto state 318
+    ROW_FORMAT_SYM               shift, and goto state 319
+    ROW_SYM                      shift, and goto state 320
+    RTREE_SYM                    shift, and goto state 321
+    SAVEPOINT_SYM                shift, and goto state 68
+    SCHEDULE_SYM                 shift, and goto state 322
+    SCHEMA_NAME_SYM              shift, and goto state 323
+    SECOND_SYM                   shift, and goto state 324
+    SECURITY_SYM                 shift, and goto state 69
+    SERIALIZABLE_SYM             shift, and goto state 326
+    SERIAL_SYM                   shift, and goto state 325
+    SERVER_SYM                   shift, and goto state 70
+    SESSION_SYM                  shift, and goto state 327
+    SHARE_SYM                    shift, and goto state 329
+    SHUTDOWN                     shift, and goto state 19
+    SIGNED_SYM                   shift, and goto state 71
+    SIMPLE_SYM                   shift, and goto state 328
+    SLAVE                        shift, and goto state 73
+    SLOW                         shift, and goto state 330
+    SNAPSHOT_SYM                 shift, and goto state 331
+    SOCKET_SYM                   shift, and goto state 72
+    SONAME_SYM                   shift, and goto state 74
+    SOUNDS_SYM                   shift, and goto state 332
+    SOURCE_SYM                   shift, and goto state 333
+    SQL_AFTER_GTIDS              shift, and goto state 334
+    SQL_AFTER_MTS_GAPS           shift, and goto state 335
+    SQL_BEFORE_GTIDS             shift, and goto state 336
+    SQL_BUFFER_RESULT            shift, and goto state 338
+    SQL_CACHE_SYM                shift, and goto state 337
+    SQL_NO_CACHE_SYM             shift, and goto state 339
+    SQL_THREAD                   shift, and goto state 340
+    STACKED_SYM                  shift, and goto state 341
+    STARTS_SYM                   shift, and goto state 342
+    START_SYM                    shift, and goto state 75
+    STATS_AUTO_RECALC_SYM        shift, and goto state 343
+    STATS_PERSISTENT_SYM         shift, and goto state 344
+    STATS_SAMPLE_PAGES_SYM       shift, and goto state 345
+    STATUS_SYM                   shift, and goto state 346
+    STOP_SYM                     shift, and goto state 76
+    STORAGE_SYM                  shift, and goto state 347
+    STRING_SYM                   shift, and goto state 348
+    SUBCLASS_ORIGIN_SYM          shift, and goto state 349
+    SUBDATE_SYM                  shift, and goto state 350
+    SUBJECT_SYM                  shift, and goto state 351
+    SUBPARTITIONS_SYM            shift, and goto state 353
+    SUBPARTITION_SYM             shift, and goto state 352
+    SUPER_SYM                    shift, and goto state 28
+    SUSPEND_SYM                  shift, and goto state 354
+    SWAPS_SYM                    shift, and goto state 355
+    SWITCHES_SYM                 shift, and goto state 356
+    TABLES                       shift, and goto state 358
+    TABLESPACE_SYM               shift, and goto state 360
+    TABLE_CHECKSUM_SYM           shift, and goto state 359
+    TABLE_NAME_SYM               shift, and goto state 357
+    TEMPORARY                    shift, and goto state 361
+    TEMPTABLE_SYM                shift, and goto state 362
+    TEXT_SYM                     shift, and goto state 363
+    THAN_SYM                     shift, and goto state 364
+    TIMESTAMP_ADD                shift, and goto state 368
+    TIMESTAMP_DIFF               shift, and goto state 369
+    TIMESTAMP_SYM                shift, and goto state 367
+    TIME_SYM                     shift, and goto state 370
+    TRANSACTION_SYM              shift, and goto state 365
+    TRIGGERS_SYM                 shift, and goto state 366
+    TRUNCATE_SYM                 shift, and goto state 77
+    TYPES_SYM                    shift, and goto state 371
+    TYPE_SYM                     shift, and goto state 372
+    UDF_RETURNS_SYM              shift, and goto state 373
+    UNCOMMITTED_SYM              shift, and goto state 375
+    UNDEFINED_SYM                shift, and goto state 376
+    UNDOFILE_SYM                 shift, and goto state 378
+    UNDO_BUFFER_SIZE_SYM         shift, and goto state 377
+    UNICODE_SYM                  shift, and goto state 79
+    UNINSTALL_SYM                shift, and goto state 80
+    UNKNOWN_SYM                  shift, and goto state 379
+    UNTIL_SYM                    shift, and goto state 380
+    UPGRADE_SYM                  shift, and goto state 83
+    USER                         shift, and goto state 381
+    USE_FRM                      shift, and goto state 382
+    VALIDATION_SYM               shift, and goto state 383
+    VALUE_SYM                    shift, and goto state 386
+    VARIABLES                    shift, and goto state 384
+    VIEW_SYM                     shift, and goto state 385
+    VISIBLE_SYM                  shift, and goto state 78
+    WAIT_SYM                     shift, and goto state 388
+    WARNINGS                     shift, and goto state 387
+    WEEK_SYM                     shift, and goto state 389
+    WEIGHT_STRING_SYM            shift, and goto state 392
+    WITHOUT_SYM                  shift, and goto state 390
+    WORK_SYM                     shift, and goto state 391
+    WRAPPER_SYM                  shift, and goto state 81
+    X509_SYM                     shift, and goto state 393
+    XA_SYM                       shift, and goto state 82
+    XID_SYM                      shift, and goto state 394
+    XML_SYM                      shift, and goto state 395
+    YEAR_SYM                     shift, and goto state 396
+
+    IDENT_sys              goto state 12
+    ident                  goto state 397
+    ident_keyword          goto state 13
+    label_keyword          goto state 16
+    role_or_ident_keyword  goto state 17
+    role_or_label_keyword  goto state 20
+
+state 12 // ALTER TABLE_SYM IDENT ['.']
+
+   14 ident: IDENT_sys .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 14 (ident)
+    ';'           reduce using rule 14 (ident)
+    END_OF_INPUT  reduce using rule 14 (ident)
+
+state 13 // ALTER TABLE_SYM ACCOUNT_SYM ['.']
+
+   15 ident: ident_keyword .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 15 (ident)
+    ';'           reduce using rule 15 (ident)
+    END_OF_INPUT  reduce using rule 15 (ident)
+
+state 14 // ALTER TABLE_SYM IDENT
+
+   16 IDENT_sys: IDENT .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 16 (IDENT_sys)
+    ';'           reduce using rule 16 (IDENT_sys)
+    END_OF_INPUT  reduce using rule 16 (IDENT_sys)
+
+state 15 // ALTER TABLE_SYM IDENT_QUOTED
+
+   17 IDENT_sys: IDENT_QUOTED .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 17 (IDENT_sys)
+    ';'           reduce using rule 17 (IDENT_sys)
+    END_OF_INPUT  reduce using rule 17 (IDENT_sys)
+
+state 16 // ALTER TABLE_SYM ACTION ['.']
+
+   18 ident_keyword: label_keyword .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 18 (ident_keyword)
+    ';'           reduce using rule 18 (ident_keyword)
+    END_OF_INPUT  reduce using rule 18 (ident_keyword)
+
+state 17 // ALTER TABLE_SYM ACCOUNT_SYM ['.']
+
+   19 ident_keyword: role_or_ident_keyword .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 19 (ident_keyword)
+    ';'           reduce using rule 19 (ident_keyword)
+    END_OF_INPUT  reduce using rule 19 (ident_keyword)
+
+state 18 // ALTER TABLE_SYM EXECUTE_SYM
+
+   20 ident_keyword: EXECUTE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 20 (ident_keyword)
+    ';'           reduce using rule 20 (ident_keyword)
+    END_OF_INPUT  reduce using rule 20 (ident_keyword)
+
+state 19 // ALTER TABLE_SYM SHUTDOWN
+
+   21 ident_keyword: SHUTDOWN .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 21 (ident_keyword)
+    ';'           reduce using rule 21 (ident_keyword)
+    END_OF_INPUT  reduce using rule 21 (ident_keyword)
+
+state 20 // ALTER TABLE_SYM ACTION ['.']
+
+   22 label_keyword: role_or_label_keyword .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 22 (label_keyword)
+    ';'           reduce using rule 22 (label_keyword)
+    END_OF_INPUT  reduce using rule 22 (label_keyword)
+
+state 21 // ALTER TABLE_SYM EVENT_SYM
+
+   23 label_keyword: EVENT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 23 (label_keyword)
+    ';'           reduce using rule 23 (label_keyword)
+    END_OF_INPUT  reduce using rule 23 (label_keyword)
+
+state 22 // ALTER TABLE_SYM FILE_SYM
+
+   24 label_keyword: FILE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 24 (label_keyword)
+    ';'           reduce using rule 24 (label_keyword)
+    END_OF_INPUT  reduce using rule 24 (label_keyword)
+
+state 23 // ALTER TABLE_SYM NONE_SYM
+
+   25 label_keyword: NONE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 25 (label_keyword)
+    ';'           reduce using rule 25 (label_keyword)
+    END_OF_INPUT  reduce using rule 25 (label_keyword)
+
+state 24 // ALTER TABLE_SYM PROCESS
+
+   26 label_keyword: PROCESS .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 26 (label_keyword)
+    ';'           reduce using rule 26 (label_keyword)
+    END_OF_INPUT  reduce using rule 26 (label_keyword)
+
+state 25 // ALTER TABLE_SYM PROXY_SYM
+
+   27 label_keyword: PROXY_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 27 (label_keyword)
+    ';'           reduce using rule 27 (label_keyword)
+    END_OF_INPUT  reduce using rule 27 (label_keyword)
+
+state 26 // ALTER TABLE_SYM RELOAD
+
+   28 label_keyword: RELOAD .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 28 (label_keyword)
+    ';'           reduce using rule 28 (label_keyword)
+    END_OF_INPUT  reduce using rule 28 (label_keyword)
+
+state 27 // ALTER TABLE_SYM REPLICATION
+
+   29 label_keyword: REPLICATION .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 29 (label_keyword)
+    ';'           reduce using rule 29 (label_keyword)
+    END_OF_INPUT  reduce using rule 29 (label_keyword)
+
+state 28 // ALTER TABLE_SYM SUPER_SYM
+
+   30 label_keyword: SUPER_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 30 (label_keyword)
+    ';'           reduce using rule 30 (label_keyword)
+    END_OF_INPUT  reduce using rule 30 (label_keyword)
+
+state 29 // ALTER TABLE_SYM ACCOUNT_SYM
+
+   31 role_or_ident_keyword: ACCOUNT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 31 (role_or_ident_keyword)
+    ';'           reduce using rule 31 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 31 (role_or_ident_keyword)
+
+state 30 // ALTER TABLE_SYM ASCII_SYM
+
+   32 role_or_ident_keyword: ASCII_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 32 (role_or_ident_keyword)
+    ';'           reduce using rule 32 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 32 (role_or_ident_keyword)
+
+state 31 // ALTER TABLE_SYM ALWAYS_SYM
+
+   33 role_or_ident_keyword: ALWAYS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 33 (role_or_ident_keyword)
+    ';'           reduce using rule 33 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 33 (role_or_ident_keyword)
+
+state 32 // ALTER TABLE_SYM BACKUP_SYM
+
+   34 role_or_ident_keyword: BACKUP_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 34 (role_or_ident_keyword)
+    ';'           reduce using rule 34 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 34 (role_or_ident_keyword)
+
+state 33 // ALTER TABLE_SYM BEGIN_SYM
+
+   35 role_or_ident_keyword: BEGIN_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 35 (role_or_ident_keyword)
+    ';'           reduce using rule 35 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 35 (role_or_ident_keyword)
+
+state 34 // ALTER TABLE_SYM BYTE_SYM
+
+   36 role_or_ident_keyword: BYTE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 36 (role_or_ident_keyword)
+    ';'           reduce using rule 36 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 36 (role_or_ident_keyword)
+
+state 35 // ALTER TABLE_SYM CACHE_SYM
+
+   37 role_or_ident_keyword: CACHE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 37 (role_or_ident_keyword)
+    ';'           reduce using rule 37 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 37 (role_or_ident_keyword)
+
+state 36 // ALTER TABLE_SYM CHARSET
+
+   38 role_or_ident_keyword: CHARSET .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 38 (role_or_ident_keyword)
+    ';'           reduce using rule 38 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 38 (role_or_ident_keyword)
+
+state 37 // ALTER TABLE_SYM CHECKSUM_SYM
+
+   39 role_or_ident_keyword: CHECKSUM_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 39 (role_or_ident_keyword)
+    ';'           reduce using rule 39 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 39 (role_or_ident_keyword)
+
+state 38 // ALTER TABLE_SYM CLOSE_SYM
+
+   40 role_or_ident_keyword: CLOSE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 40 (role_or_ident_keyword)
+    ';'           reduce using rule 40 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 40 (role_or_ident_keyword)
+
+state 39 // ALTER TABLE_SYM COMMENT_SYM
+
+   41 role_or_ident_keyword: COMMENT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 41 (role_or_ident_keyword)
+    ';'           reduce using rule 41 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 41 (role_or_ident_keyword)
+
+state 40 // ALTER TABLE_SYM COMMIT_SYM
+
+   42 role_or_ident_keyword: COMMIT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 42 (role_or_ident_keyword)
+    ';'           reduce using rule 42 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 42 (role_or_ident_keyword)
+
+state 41 // ALTER TABLE_SYM CONTAINS_SYM
+
+   43 role_or_ident_keyword: CONTAINS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 43 (role_or_ident_keyword)
+    ';'           reduce using rule 43 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 43 (role_or_ident_keyword)
+
+state 42 // ALTER TABLE_SYM DEALLOCATE_SYM
+
+   44 role_or_ident_keyword: DEALLOCATE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 44 (role_or_ident_keyword)
+    ';'           reduce using rule 44 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 44 (role_or_ident_keyword)
+
+state 43 // ALTER TABLE_SYM DO_SYM
+
+   45 role_or_ident_keyword: DO_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 45 (role_or_ident_keyword)
+    ';'           reduce using rule 45 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 45 (role_or_ident_keyword)
+
+state 44 // ALTER TABLE_SYM END
+
+   46 role_or_ident_keyword: END .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 46 (role_or_ident_keyword)
+    ';'           reduce using rule 46 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 46 (role_or_ident_keyword)
+
+state 45 // ALTER TABLE_SYM FLUSH_SYM
+
+   47 role_or_ident_keyword: FLUSH_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 47 (role_or_ident_keyword)
+    ';'           reduce using rule 47 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 47 (role_or_ident_keyword)
+
+state 46 // ALTER TABLE_SYM FOLLOWS_SYM
+
+   48 role_or_ident_keyword: FOLLOWS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 48 (role_or_ident_keyword)
+    ';'           reduce using rule 48 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 48 (role_or_ident_keyword)
+
+state 47 // ALTER TABLE_SYM FORMAT_SYM
+
+   49 role_or_ident_keyword: FORMAT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 49 (role_or_ident_keyword)
+    ';'           reduce using rule 49 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 49 (role_or_ident_keyword)
+
+state 48 // ALTER TABLE_SYM GROUP_REPLICATION
+
+   50 role_or_ident_keyword: GROUP_REPLICATION .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 50 (role_or_ident_keyword)
+    ';'           reduce using rule 50 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 50 (role_or_ident_keyword)
+
+state 49 // ALTER TABLE_SYM HANDLER_SYM
+
+   51 role_or_ident_keyword: HANDLER_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 51 (role_or_ident_keyword)
+    ';'           reduce using rule 51 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 51 (role_or_ident_keyword)
+
+state 50 // ALTER TABLE_SYM HELP_SYM
+
+   52 role_or_ident_keyword: HELP_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 52 (role_or_ident_keyword)
+    ';'           reduce using rule 52 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 52 (role_or_ident_keyword)
+
+state 51 // ALTER TABLE_SYM HOST_SYM
+
+   53 role_or_ident_keyword: HOST_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 53 (role_or_ident_keyword)
+    ';'           reduce using rule 53 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 53 (role_or_ident_keyword)
+
+state 52 // ALTER TABLE_SYM INSTALL_SYM
+
+   54 role_or_ident_keyword: INSTALL_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 54 (role_or_ident_keyword)
+    ';'           reduce using rule 54 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 54 (role_or_ident_keyword)
+
+state 53 // ALTER TABLE_SYM INVISIBLE_SYM
+
+   55 role_or_ident_keyword: INVISIBLE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 55 (role_or_ident_keyword)
+    ';'           reduce using rule 55 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 55 (role_or_ident_keyword)
+
+state 54 // ALTER TABLE_SYM LANGUAGE_SYM
+
+   56 role_or_ident_keyword: LANGUAGE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 56 (role_or_ident_keyword)
+    ';'           reduce using rule 56 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 56 (role_or_ident_keyword)
+
+state 55 // ALTER TABLE_SYM NO_SYM
+
+   57 role_or_ident_keyword: NO_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 57 (role_or_ident_keyword)
+    ';'           reduce using rule 57 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 57 (role_or_ident_keyword)
+
+state 56 // ALTER TABLE_SYM OPEN_SYM
+
+   58 role_or_ident_keyword: OPEN_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 58 (role_or_ident_keyword)
+    ';'           reduce using rule 58 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 58 (role_or_ident_keyword)
+
+state 57 // ALTER TABLE_SYM OPTIONS_SYM
+
+   59 role_or_ident_keyword: OPTIONS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 59 (role_or_ident_keyword)
+    ';'           reduce using rule 59 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 59 (role_or_ident_keyword)
+
+state 58 // ALTER TABLE_SYM OWNER_SYM
+
+   60 role_or_ident_keyword: OWNER_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 60 (role_or_ident_keyword)
+    ';'           reduce using rule 60 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 60 (role_or_ident_keyword)
+
+state 59 // ALTER TABLE_SYM PARSER_SYM
+
+   61 role_or_ident_keyword: PARSER_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 61 (role_or_ident_keyword)
+    ';'           reduce using rule 61 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 61 (role_or_ident_keyword)
+
+state 60 // ALTER TABLE_SYM PORT_SYM
+
+   62 role_or_ident_keyword: PORT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 62 (role_or_ident_keyword)
+    ';'           reduce using rule 62 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 62 (role_or_ident_keyword)
+
+state 61 // ALTER TABLE_SYM PRECEDES_SYM
+
+   63 role_or_ident_keyword: PRECEDES_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 63 (role_or_ident_keyword)
+    ';'           reduce using rule 63 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 63 (role_or_ident_keyword)
+
+state 62 // ALTER TABLE_SYM PREPARE_SYM
+
+   64 role_or_ident_keyword: PREPARE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 64 (role_or_ident_keyword)
+    ';'           reduce using rule 64 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 64 (role_or_ident_keyword)
+
+state 63 // ALTER TABLE_SYM REMOVE_SYM
+
+   65 role_or_ident_keyword: REMOVE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 65 (role_or_ident_keyword)
+    ';'           reduce using rule 65 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 65 (role_or_ident_keyword)
+
+state 64 // ALTER TABLE_SYM REPAIR
+
+   66 role_or_ident_keyword: REPAIR .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 66 (role_or_ident_keyword)
+    ';'           reduce using rule 66 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 66 (role_or_ident_keyword)
+
+state 65 // ALTER TABLE_SYM RESET_SYM
+
+   67 role_or_ident_keyword: RESET_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 67 (role_or_ident_keyword)
+    ';'           reduce using rule 67 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 67 (role_or_ident_keyword)
+
+state 66 // ALTER TABLE_SYM RESTORE_SYM
+
+   68 role_or_ident_keyword: RESTORE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 68 (role_or_ident_keyword)
+    ';'           reduce using rule 68 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 68 (role_or_ident_keyword)
+
+state 67 // ALTER TABLE_SYM ROLLBACK_SYM
+
+   69 role_or_ident_keyword: ROLLBACK_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 69 (role_or_ident_keyword)
+    ';'           reduce using rule 69 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 69 (role_or_ident_keyword)
+
+state 68 // ALTER TABLE_SYM SAVEPOINT_SYM
+
+   70 role_or_ident_keyword: SAVEPOINT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 70 (role_or_ident_keyword)
+    ';'           reduce using rule 70 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 70 (role_or_ident_keyword)
+
+state 69 // ALTER TABLE_SYM SECURITY_SYM
+
+   71 role_or_ident_keyword: SECURITY_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 71 (role_or_ident_keyword)
+    ';'           reduce using rule 71 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 71 (role_or_ident_keyword)
+
+state 70 // ALTER TABLE_SYM SERVER_SYM
+
+   72 role_or_ident_keyword: SERVER_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 72 (role_or_ident_keyword)
+    ';'           reduce using rule 72 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 72 (role_or_ident_keyword)
+
+state 71 // ALTER TABLE_SYM SIGNED_SYM
+
+   73 role_or_ident_keyword: SIGNED_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 73 (role_or_ident_keyword)
+    ';'           reduce using rule 73 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 73 (role_or_ident_keyword)
+
+state 72 // ALTER TABLE_SYM SOCKET_SYM
+
+   74 role_or_ident_keyword: SOCKET_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 74 (role_or_ident_keyword)
+    ';'           reduce using rule 74 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 74 (role_or_ident_keyword)
+
+state 73 // ALTER TABLE_SYM SLAVE
+
+   75 role_or_ident_keyword: SLAVE .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 75 (role_or_ident_keyword)
+    ';'           reduce using rule 75 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 75 (role_or_ident_keyword)
+
+state 74 // ALTER TABLE_SYM SONAME_SYM
+
+   76 role_or_ident_keyword: SONAME_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 76 (role_or_ident_keyword)
+    ';'           reduce using rule 76 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 76 (role_or_ident_keyword)
+
+state 75 // ALTER TABLE_SYM START_SYM
+
+   77 role_or_ident_keyword: START_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 77 (role_or_ident_keyword)
+    ';'           reduce using rule 77 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 77 (role_or_ident_keyword)
+
+state 76 // ALTER TABLE_SYM STOP_SYM
+
+   78 role_or_ident_keyword: STOP_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 78 (role_or_ident_keyword)
+    ';'           reduce using rule 78 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 78 (role_or_ident_keyword)
+
+state 77 // ALTER TABLE_SYM TRUNCATE_SYM
+
+   79 role_or_ident_keyword: TRUNCATE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 79 (role_or_ident_keyword)
+    ';'           reduce using rule 79 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 79 (role_or_ident_keyword)
+
+state 78 // ALTER TABLE_SYM VISIBLE_SYM
+
+   80 role_or_ident_keyword: VISIBLE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 80 (role_or_ident_keyword)
+    ';'           reduce using rule 80 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 80 (role_or_ident_keyword)
+
+state 79 // ALTER TABLE_SYM UNICODE_SYM
+
+   81 role_or_ident_keyword: UNICODE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 81 (role_or_ident_keyword)
+    ';'           reduce using rule 81 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 81 (role_or_ident_keyword)
+
+state 80 // ALTER TABLE_SYM UNINSTALL_SYM
+
+   82 role_or_ident_keyword: UNINSTALL_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 82 (role_or_ident_keyword)
+    ';'           reduce using rule 82 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 82 (role_or_ident_keyword)
+
+state 81 // ALTER TABLE_SYM WRAPPER_SYM
+
+   83 role_or_ident_keyword: WRAPPER_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 83 (role_or_ident_keyword)
+    ';'           reduce using rule 83 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 83 (role_or_ident_keyword)
+
+state 82 // ALTER TABLE_SYM XA_SYM
+
+   84 role_or_ident_keyword: XA_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 84 (role_or_ident_keyword)
+    ';'           reduce using rule 84 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 84 (role_or_ident_keyword)
+
+state 83 // ALTER TABLE_SYM UPGRADE_SYM
+
+   85 role_or_ident_keyword: UPGRADE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 85 (role_or_ident_keyword)
+    ';'           reduce using rule 85 (role_or_ident_keyword)
+    END_OF_INPUT  reduce using rule 85 (role_or_ident_keyword)
+
+state 84 // ALTER TABLE_SYM ACTION
+
+   86 role_or_label_keyword: ACTION .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 86 (role_or_label_keyword)
+    ';'           reduce using rule 86 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 86 (role_or_label_keyword)
+
+state 85 // ALTER TABLE_SYM ADDDATE_SYM
+
+   87 role_or_label_keyword: ADDDATE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 87 (role_or_label_keyword)
+    ';'           reduce using rule 87 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 87 (role_or_label_keyword)
+
+state 86 // ALTER TABLE_SYM AFTER_SYM
+
+   88 role_or_label_keyword: AFTER_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 88 (role_or_label_keyword)
+    ';'           reduce using rule 88 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 88 (role_or_label_keyword)
+
+state 87 // ALTER TABLE_SYM AGAINST
+
+   89 role_or_label_keyword: AGAINST .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 89 (role_or_label_keyword)
+    ';'           reduce using rule 89 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 89 (role_or_label_keyword)
+
+state 88 // ALTER TABLE_SYM AGGREGATE_SYM
+
+   90 role_or_label_keyword: AGGREGATE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 90 (role_or_label_keyword)
+    ';'           reduce using rule 90 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 90 (role_or_label_keyword)
+
+state 89 // ALTER TABLE_SYM ALGORITHM_SYM
+
+   91 role_or_label_keyword: ALGORITHM_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 91 (role_or_label_keyword)
+    ';'           reduce using rule 91 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 91 (role_or_label_keyword)
+
+state 90 // ALTER TABLE_SYM ANALYSE_SYM
+
+   92 role_or_label_keyword: ANALYSE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 92 (role_or_label_keyword)
+    ';'           reduce using rule 92 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 92 (role_or_label_keyword)
+
+state 91 // ALTER TABLE_SYM ANY_SYM
+
+   93 role_or_label_keyword: ANY_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 93 (role_or_label_keyword)
+    ';'           reduce using rule 93 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 93 (role_or_label_keyword)
+
+state 92 // ALTER TABLE_SYM AT_SYM
+
+   94 role_or_label_keyword: AT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 94 (role_or_label_keyword)
+    ';'           reduce using rule 94 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 94 (role_or_label_keyword)
+
+state 93 // ALTER TABLE_SYM AUTO_INC
+
+   95 role_or_label_keyword: AUTO_INC .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 95 (role_or_label_keyword)
+    ';'           reduce using rule 95 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 95 (role_or_label_keyword)
+
+state 94 // ALTER TABLE_SYM AUTOEXTEND_SIZE_SYM
+
+   96 role_or_label_keyword: AUTOEXTEND_SIZE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 96 (role_or_label_keyword)
+    ';'           reduce using rule 96 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 96 (role_or_label_keyword)
+
+state 95 // ALTER TABLE_SYM AVG_ROW_LENGTH
+
+   97 role_or_label_keyword: AVG_ROW_LENGTH .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 97 (role_or_label_keyword)
+    ';'           reduce using rule 97 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 97 (role_or_label_keyword)
+
+state 96 // ALTER TABLE_SYM AVG_SYM
+
+   98 role_or_label_keyword: AVG_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 98 (role_or_label_keyword)
+    ';'           reduce using rule 98 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 98 (role_or_label_keyword)
+
+state 97 // ALTER TABLE_SYM BINLOG_SYM
+
+   99 role_or_label_keyword: BINLOG_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 99 (role_or_label_keyword)
+    ';'           reduce using rule 99 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 99 (role_or_label_keyword)
+
+state 98 // ALTER TABLE_SYM BIT_SYM
+
+  100 role_or_label_keyword: BIT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 100 (role_or_label_keyword)
+    ';'           reduce using rule 100 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 100 (role_or_label_keyword)
+
+state 99 // ALTER TABLE_SYM BLOCK_SYM
+
+  101 role_or_label_keyword: BLOCK_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 101 (role_or_label_keyword)
+    ';'           reduce using rule 101 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 101 (role_or_label_keyword)
+
+state 100 // ALTER TABLE_SYM BOOL_SYM
+
+  102 role_or_label_keyword: BOOL_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 102 (role_or_label_keyword)
+    ';'           reduce using rule 102 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 102 (role_or_label_keyword)
+
+state 101 // ALTER TABLE_SYM BOOLEAN_SYM
+
+  103 role_or_label_keyword: BOOLEAN_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 103 (role_or_label_keyword)
+    ';'           reduce using rule 103 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 103 (role_or_label_keyword)
+
+state 102 // ALTER TABLE_SYM BTREE_SYM
+
+  104 role_or_label_keyword: BTREE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 104 (role_or_label_keyword)
+    ';'           reduce using rule 104 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 104 (role_or_label_keyword)
+
+state 103 // ALTER TABLE_SYM CASCADED
+
+  105 role_or_label_keyword: CASCADED .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 105 (role_or_label_keyword)
+    ';'           reduce using rule 105 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 105 (role_or_label_keyword)
+
+state 104 // ALTER TABLE_SYM CATALOG_NAME_SYM
+
+  106 role_or_label_keyword: CATALOG_NAME_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 106 (role_or_label_keyword)
+    ';'           reduce using rule 106 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 106 (role_or_label_keyword)
+
+state 105 // ALTER TABLE_SYM CHAIN_SYM
+
+  107 role_or_label_keyword: CHAIN_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 107 (role_or_label_keyword)
+    ';'           reduce using rule 107 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 107 (role_or_label_keyword)
+
+state 106 // ALTER TABLE_SYM CHANGED
+
+  108 role_or_label_keyword: CHANGED .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 108 (role_or_label_keyword)
+    ';'           reduce using rule 108 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 108 (role_or_label_keyword)
+
+state 107 // ALTER TABLE_SYM CHANNEL_SYM
+
+  109 role_or_label_keyword: CHANNEL_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 109 (role_or_label_keyword)
+    ';'           reduce using rule 109 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 109 (role_or_label_keyword)
+
+state 108 // ALTER TABLE_SYM CIPHER_SYM
+
+  110 role_or_label_keyword: CIPHER_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 110 (role_or_label_keyword)
+    ';'           reduce using rule 110 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 110 (role_or_label_keyword)
+
+state 109 // ALTER TABLE_SYM CLIENT_SYM
+
+  111 role_or_label_keyword: CLIENT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 111 (role_or_label_keyword)
+    ';'           reduce using rule 111 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 111 (role_or_label_keyword)
+
+state 110 // ALTER TABLE_SYM CLASS_ORIGIN_SYM
+
+  112 role_or_label_keyword: CLASS_ORIGIN_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 112 (role_or_label_keyword)
+    ';'           reduce using rule 112 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 112 (role_or_label_keyword)
+
+state 111 // ALTER TABLE_SYM COALESCE
+
+  113 role_or_label_keyword: COALESCE .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 113 (role_or_label_keyword)
+    ';'           reduce using rule 113 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 113 (role_or_label_keyword)
+
+state 112 // ALTER TABLE_SYM CODE_SYM
+
+  114 role_or_label_keyword: CODE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 114 (role_or_label_keyword)
+    ';'           reduce using rule 114 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 114 (role_or_label_keyword)
+
+state 113 // ALTER TABLE_SYM COLLATION_SYM
+
+  115 role_or_label_keyword: COLLATION_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 115 (role_or_label_keyword)
+    ';'           reduce using rule 115 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 115 (role_or_label_keyword)
+
+state 114 // ALTER TABLE_SYM COLUMN_NAME_SYM
+
+  116 role_or_label_keyword: COLUMN_NAME_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 116 (role_or_label_keyword)
+    ';'           reduce using rule 116 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 116 (role_or_label_keyword)
+
+state 115 // ALTER TABLE_SYM COLUMN_FORMAT_SYM
+
+  117 role_or_label_keyword: COLUMN_FORMAT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 117 (role_or_label_keyword)
+    ';'           reduce using rule 117 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 117 (role_or_label_keyword)
+
+state 116 // ALTER TABLE_SYM COLUMNS
+
+  118 role_or_label_keyword: COLUMNS .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 118 (role_or_label_keyword)
+    ';'           reduce using rule 118 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 118 (role_or_label_keyword)
+
+state 117 // ALTER TABLE_SYM COMMITTED_SYM
+
+  119 role_or_label_keyword: COMMITTED_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 119 (role_or_label_keyword)
+    ';'           reduce using rule 119 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 119 (role_or_label_keyword)
+
+state 118 // ALTER TABLE_SYM COMPACT_SYM
+
+  120 role_or_label_keyword: COMPACT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 120 (role_or_label_keyword)
+    ';'           reduce using rule 120 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 120 (role_or_label_keyword)
+
+state 119 // ALTER TABLE_SYM COMPLETION_SYM
+
+  121 role_or_label_keyword: COMPLETION_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 121 (role_or_label_keyword)
+    ';'           reduce using rule 121 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 121 (role_or_label_keyword)
+
+state 120 // ALTER TABLE_SYM COMPONENT_SYM
+
+  122 role_or_label_keyword: COMPONENT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 122 (role_or_label_keyword)
+    ';'           reduce using rule 122 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 122 (role_or_label_keyword)
+
+state 121 // ALTER TABLE_SYM COMPRESSED_SYM
+
+  123 role_or_label_keyword: COMPRESSED_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 123 (role_or_label_keyword)
+    ';'           reduce using rule 123 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 123 (role_or_label_keyword)
+
+state 122 // ALTER TABLE_SYM COMPRESSION_SYM
+
+  124 role_or_label_keyword: COMPRESSION_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 124 (role_or_label_keyword)
+    ';'           reduce using rule 124 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 124 (role_or_label_keyword)
+
+state 123 // ALTER TABLE_SYM ENCRYPTION_SYM
+
+  125 role_or_label_keyword: ENCRYPTION_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 125 (role_or_label_keyword)
+    ';'           reduce using rule 125 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 125 (role_or_label_keyword)
+
+state 124 // ALTER TABLE_SYM CONCURRENT
+
+  126 role_or_label_keyword: CONCURRENT .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 126 (role_or_label_keyword)
+    ';'           reduce using rule 126 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 126 (role_or_label_keyword)
+
+state 125 // ALTER TABLE_SYM CONNECTION_SYM
+
+  127 role_or_label_keyword: CONNECTION_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 127 (role_or_label_keyword)
+    ';'           reduce using rule 127 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 127 (role_or_label_keyword)
+
+state 126 // ALTER TABLE_SYM CONSISTENT_SYM
+
+  128 role_or_label_keyword: CONSISTENT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 128 (role_or_label_keyword)
+    ';'           reduce using rule 128 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 128 (role_or_label_keyword)
+
+state 127 // ALTER TABLE_SYM CONSTRAINT_CATALOG_SYM
+
+  129 role_or_label_keyword: CONSTRAINT_CATALOG_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 129 (role_or_label_keyword)
+    ';'           reduce using rule 129 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 129 (role_or_label_keyword)
+
+state 128 // ALTER TABLE_SYM CONSTRAINT_SCHEMA_SYM
+
+  130 role_or_label_keyword: CONSTRAINT_SCHEMA_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 130 (role_or_label_keyword)
+    ';'           reduce using rule 130 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 130 (role_or_label_keyword)
+
+state 129 // ALTER TABLE_SYM CONSTRAINT_NAME_SYM
+
+  131 role_or_label_keyword: CONSTRAINT_NAME_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 131 (role_or_label_keyword)
+    ';'           reduce using rule 131 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 131 (role_or_label_keyword)
+
+state 130 // ALTER TABLE_SYM CONTEXT_SYM
+
+  132 role_or_label_keyword: CONTEXT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 132 (role_or_label_keyword)
+    ';'           reduce using rule 132 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 132 (role_or_label_keyword)
+
+state 131 // ALTER TABLE_SYM CPU_SYM
+
+  133 role_or_label_keyword: CPU_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 133 (role_or_label_keyword)
+    ';'           reduce using rule 133 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 133 (role_or_label_keyword)
+
+state 132 // ALTER TABLE_SYM CUBE_SYM
+
+  134 role_or_label_keyword: CUBE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 134 (role_or_label_keyword)
+    ';'           reduce using rule 134 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 134 (role_or_label_keyword)
+
+state 133 // ALTER TABLE_SYM CURRENT_SYM
+
+  135 role_or_label_keyword: CURRENT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 135 (role_or_label_keyword)
+    ';'           reduce using rule 135 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 135 (role_or_label_keyword)
+
+state 134 // ALTER TABLE_SYM CURSOR_NAME_SYM
+
+  136 role_or_label_keyword: CURSOR_NAME_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 136 (role_or_label_keyword)
+    ';'           reduce using rule 136 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 136 (role_or_label_keyword)
+
+state 135 // ALTER TABLE_SYM DATA_SYM
+
+  137 role_or_label_keyword: DATA_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 137 (role_or_label_keyword)
+    ';'           reduce using rule 137 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 137 (role_or_label_keyword)
+
+state 136 // ALTER TABLE_SYM DATAFILE_SYM
+
+  138 role_or_label_keyword: DATAFILE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 138 (role_or_label_keyword)
+    ';'           reduce using rule 138 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 138 (role_or_label_keyword)
+
+state 137 // ALTER TABLE_SYM DATETIME_SYM
+
+  139 role_or_label_keyword: DATETIME_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 139 (role_or_label_keyword)
+    ';'           reduce using rule 139 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 139 (role_or_label_keyword)
+
+state 138 // ALTER TABLE_SYM DATE_SYM
+
+  140 role_or_label_keyword: DATE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 140 (role_or_label_keyword)
+    ';'           reduce using rule 140 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 140 (role_or_label_keyword)
+
+state 139 // ALTER TABLE_SYM DAY_SYM
+
+  141 role_or_label_keyword: DAY_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 141 (role_or_label_keyword)
+    ';'           reduce using rule 141 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 141 (role_or_label_keyword)
+
+state 140 // ALTER TABLE_SYM DEFAULT_AUTH_SYM
+
+  142 role_or_label_keyword: DEFAULT_AUTH_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 142 (role_or_label_keyword)
+    ';'           reduce using rule 142 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 142 (role_or_label_keyword)
+
+state 141 // ALTER TABLE_SYM DEFINER_SYM
+
+  143 role_or_label_keyword: DEFINER_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 143 (role_or_label_keyword)
+    ';'           reduce using rule 143 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 143 (role_or_label_keyword)
+
+state 142 // ALTER TABLE_SYM DELAY_KEY_WRITE_SYM
+
+  144 role_or_label_keyword: DELAY_KEY_WRITE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 144 (role_or_label_keyword)
+    ';'           reduce using rule 144 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 144 (role_or_label_keyword)
+
+state 143 // ALTER TABLE_SYM DES_KEY_FILE
+
+  145 role_or_label_keyword: DES_KEY_FILE .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 145 (role_or_label_keyword)
+    ';'           reduce using rule 145 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 145 (role_or_label_keyword)
+
+state 144 // ALTER TABLE_SYM DIAGNOSTICS_SYM
+
+  146 role_or_label_keyword: DIAGNOSTICS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 146 (role_or_label_keyword)
+    ';'           reduce using rule 146 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 146 (role_or_label_keyword)
+
+state 145 // ALTER TABLE_SYM DIRECTORY_SYM
+
+  147 role_or_label_keyword: DIRECTORY_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 147 (role_or_label_keyword)
+    ';'           reduce using rule 147 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 147 (role_or_label_keyword)
+
+state 146 // ALTER TABLE_SYM DISABLE_SYM
+
+  148 role_or_label_keyword: DISABLE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 148 (role_or_label_keyword)
+    ';'           reduce using rule 148 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 148 (role_or_label_keyword)
+
+state 147 // ALTER TABLE_SYM DISCARD
+
+  149 role_or_label_keyword: DISCARD .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 149 (role_or_label_keyword)
+    ';'           reduce using rule 149 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 149 (role_or_label_keyword)
+
+state 148 // ALTER TABLE_SYM DISK_SYM
+
+  150 role_or_label_keyword: DISK_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 150 (role_or_label_keyword)
+    ';'           reduce using rule 150 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 150 (role_or_label_keyword)
+
+state 149 // ALTER TABLE_SYM DUMPFILE
+
+  151 role_or_label_keyword: DUMPFILE .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 151 (role_or_label_keyword)
+    ';'           reduce using rule 151 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 151 (role_or_label_keyword)
+
+state 150 // ALTER TABLE_SYM DUPLICATE_SYM
+
+  152 role_or_label_keyword: DUPLICATE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 152 (role_or_label_keyword)
+    ';'           reduce using rule 152 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 152 (role_or_label_keyword)
+
+state 151 // ALTER TABLE_SYM DYNAMIC_SYM
+
+  153 role_or_label_keyword: DYNAMIC_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 153 (role_or_label_keyword)
+    ';'           reduce using rule 153 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 153 (role_or_label_keyword)
+
+state 152 // ALTER TABLE_SYM ENDS_SYM
+
+  154 role_or_label_keyword: ENDS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 154 (role_or_label_keyword)
+    ';'           reduce using rule 154 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 154 (role_or_label_keyword)
+
+state 153 // ALTER TABLE_SYM ENUM_SYM
+
+  155 role_or_label_keyword: ENUM_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 155 (role_or_label_keyword)
+    ';'           reduce using rule 155 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 155 (role_or_label_keyword)
+
+state 154 // ALTER TABLE_SYM ENGINE_SYM
+
+  156 role_or_label_keyword: ENGINE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 156 (role_or_label_keyword)
+    ';'           reduce using rule 156 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 156 (role_or_label_keyword)
+
+state 155 // ALTER TABLE_SYM ENGINES_SYM
+
+  157 role_or_label_keyword: ENGINES_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 157 (role_or_label_keyword)
+    ';'           reduce using rule 157 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 157 (role_or_label_keyword)
+
+state 156 // ALTER TABLE_SYM ERROR_SYM
+
+  158 role_or_label_keyword: ERROR_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 158 (role_or_label_keyword)
+    ';'           reduce using rule 158 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 158 (role_or_label_keyword)
+
+state 157 // ALTER TABLE_SYM ERRORS
+
+  159 role_or_label_keyword: ERRORS .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 159 (role_or_label_keyword)
+    ';'           reduce using rule 159 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 159 (role_or_label_keyword)
+
+state 158 // ALTER TABLE_SYM ESCAPE_SYM
+
+  160 role_or_label_keyword: ESCAPE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 160 (role_or_label_keyword)
+    ';'           reduce using rule 160 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 160 (role_or_label_keyword)
+
+state 159 // ALTER TABLE_SYM EVENTS_SYM
+
+  161 role_or_label_keyword: EVENTS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 161 (role_or_label_keyword)
+    ';'           reduce using rule 161 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 161 (role_or_label_keyword)
+
+state 160 // ALTER TABLE_SYM EVERY_SYM
+
+  162 role_or_label_keyword: EVERY_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 162 (role_or_label_keyword)
+    ';'           reduce using rule 162 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 162 (role_or_label_keyword)
+
+state 161 // ALTER TABLE_SYM EXCHANGE_SYM
+
+  163 role_or_label_keyword: EXCHANGE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 163 (role_or_label_keyword)
+    ';'           reduce using rule 163 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 163 (role_or_label_keyword)
+
+state 162 // ALTER TABLE_SYM EXPANSION_SYM
+
+  164 role_or_label_keyword: EXPANSION_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 164 (role_or_label_keyword)
+    ';'           reduce using rule 164 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 164 (role_or_label_keyword)
+
+state 163 // ALTER TABLE_SYM EXPIRE_SYM
+
+  165 role_or_label_keyword: EXPIRE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 165 (role_or_label_keyword)
+    ';'           reduce using rule 165 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 165 (role_or_label_keyword)
+
+state 164 // ALTER TABLE_SYM EXPORT_SYM
+
+  166 role_or_label_keyword: EXPORT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 166 (role_or_label_keyword)
+    ';'           reduce using rule 166 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 166 (role_or_label_keyword)
+
+state 165 // ALTER TABLE_SYM EXTENDED_SYM
+
+  167 role_or_label_keyword: EXTENDED_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 167 (role_or_label_keyword)
+    ';'           reduce using rule 167 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 167 (role_or_label_keyword)
+
+state 166 // ALTER TABLE_SYM EXTENT_SIZE_SYM
+
+  168 role_or_label_keyword: EXTENT_SIZE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 168 (role_or_label_keyword)
+    ';'           reduce using rule 168 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 168 (role_or_label_keyword)
+
+state 167 // ALTER TABLE_SYM FAULTS_SYM
+
+  169 role_or_label_keyword: FAULTS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 169 (role_or_label_keyword)
+    ';'           reduce using rule 169 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 169 (role_or_label_keyword)
+
+state 168 // ALTER TABLE_SYM FAST_SYM
+
+  170 role_or_label_keyword: FAST_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 170 (role_or_label_keyword)
+    ';'           reduce using rule 170 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 170 (role_or_label_keyword)
+
+state 169 // ALTER TABLE_SYM FOUND_SYM
+
+  171 role_or_label_keyword: FOUND_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 171 (role_or_label_keyword)
+    ';'           reduce using rule 171 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 171 (role_or_label_keyword)
+
+state 170 // ALTER TABLE_SYM ENABLE_SYM
+
+  172 role_or_label_keyword: ENABLE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 172 (role_or_label_keyword)
+    ';'           reduce using rule 172 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 172 (role_or_label_keyword)
+
+state 171 // ALTER TABLE_SYM FULL
+
+  173 role_or_label_keyword: FULL .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 173 (role_or_label_keyword)
+    ';'           reduce using rule 173 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 173 (role_or_label_keyword)
+
+state 172 // ALTER TABLE_SYM FILE_BLOCK_SIZE_SYM
+
+  174 role_or_label_keyword: FILE_BLOCK_SIZE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 174 (role_or_label_keyword)
+    ';'           reduce using rule 174 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 174 (role_or_label_keyword)
+
+state 173 // ALTER TABLE_SYM FILTER_SYM
+
+  175 role_or_label_keyword: FILTER_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 175 (role_or_label_keyword)
+    ';'           reduce using rule 175 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 175 (role_or_label_keyword)
+
+state 174 // ALTER TABLE_SYM FIRST_SYM
+
+  176 role_or_label_keyword: FIRST_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 176 (role_or_label_keyword)
+    ';'           reduce using rule 176 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 176 (role_or_label_keyword)
+
+state 175 // ALTER TABLE_SYM FIXED_SYM
+
+  177 role_or_label_keyword: FIXED_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 177 (role_or_label_keyword)
+    ';'           reduce using rule 177 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 177 (role_or_label_keyword)
+
+state 176 // ALTER TABLE_SYM GENERAL
+
+  178 role_or_label_keyword: GENERAL .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 178 (role_or_label_keyword)
+    ';'           reduce using rule 178 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 178 (role_or_label_keyword)
+
+state 177 // ALTER TABLE_SYM GEOMETRY_SYM
+
+  179 role_or_label_keyword: GEOMETRY_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 179 (role_or_label_keyword)
+    ';'           reduce using rule 179 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 179 (role_or_label_keyword)
+
+state 178 // ALTER TABLE_SYM GEOMETRYCOLLECTION_SYM
+
+  180 role_or_label_keyword: GEOMETRYCOLLECTION_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 180 (role_or_label_keyword)
+    ';'           reduce using rule 180 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 180 (role_or_label_keyword)
+
+state 179 // ALTER TABLE_SYM GET_FORMAT
+
+  181 role_or_label_keyword: GET_FORMAT .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 181 (role_or_label_keyword)
+    ';'           reduce using rule 181 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 181 (role_or_label_keyword)
+
+state 180 // ALTER TABLE_SYM GRANTS
+
+  182 role_or_label_keyword: GRANTS .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 182 (role_or_label_keyword)
+    ';'           reduce using rule 182 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 182 (role_or_label_keyword)
+
+state 181 // ALTER TABLE_SYM GLOBAL_SYM
+
+  183 role_or_label_keyword: GLOBAL_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 183 (role_or_label_keyword)
+    ';'           reduce using rule 183 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 183 (role_or_label_keyword)
+
+state 182 // ALTER TABLE_SYM HASH_SYM
+
+  184 role_or_label_keyword: HASH_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 184 (role_or_label_keyword)
+    ';'           reduce using rule 184 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 184 (role_or_label_keyword)
+
+state 183 // ALTER TABLE_SYM HOSTS_SYM
+
+  185 role_or_label_keyword: HOSTS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 185 (role_or_label_keyword)
+    ';'           reduce using rule 185 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 185 (role_or_label_keyword)
+
+state 184 // ALTER TABLE_SYM HOUR_SYM
+
+  186 role_or_label_keyword: HOUR_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 186 (role_or_label_keyword)
+    ';'           reduce using rule 186 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 186 (role_or_label_keyword)
+
+state 185 // ALTER TABLE_SYM IDENTIFIED_SYM
+
+  187 role_or_label_keyword: IDENTIFIED_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 187 (role_or_label_keyword)
+    ';'           reduce using rule 187 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 187 (role_or_label_keyword)
+
+state 186 // ALTER TABLE_SYM IGNORE_SERVER_IDS_SYM
+
+  188 role_or_label_keyword: IGNORE_SERVER_IDS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 188 (role_or_label_keyword)
+    ';'           reduce using rule 188 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 188 (role_or_label_keyword)
+
+state 187 // ALTER TABLE_SYM INVOKER_SYM
+
+  189 role_or_label_keyword: INVOKER_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 189 (role_or_label_keyword)
+    ';'           reduce using rule 189 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 189 (role_or_label_keyword)
+
+state 188 // ALTER TABLE_SYM IMPORT
+
+  190 role_or_label_keyword: IMPORT .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 190 (role_or_label_keyword)
+    ';'           reduce using rule 190 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 190 (role_or_label_keyword)
+
+state 189 // ALTER TABLE_SYM INDEXES
+
+  191 role_or_label_keyword: INDEXES .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 191 (role_or_label_keyword)
+    ';'           reduce using rule 191 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 191 (role_or_label_keyword)
+
+state 190 // ALTER TABLE_SYM INITIAL_SIZE_SYM
+
+  192 role_or_label_keyword: INITIAL_SIZE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 192 (role_or_label_keyword)
+    ';'           reduce using rule 192 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 192 (role_or_label_keyword)
+
+state 191 // ALTER TABLE_SYM IO_SYM
+
+  193 role_or_label_keyword: IO_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 193 (role_or_label_keyword)
+    ';'           reduce using rule 193 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 193 (role_or_label_keyword)
+
+state 192 // ALTER TABLE_SYM IPC_SYM
+
+  194 role_or_label_keyword: IPC_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 194 (role_or_label_keyword)
+    ';'           reduce using rule 194 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 194 (role_or_label_keyword)
+
+state 193 // ALTER TABLE_SYM ISOLATION
+
+  195 role_or_label_keyword: ISOLATION .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 195 (role_or_label_keyword)
+    ';'           reduce using rule 195 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 195 (role_or_label_keyword)
+
+state 194 // ALTER TABLE_SYM ISSUER_SYM
+
+  196 role_or_label_keyword: ISSUER_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 196 (role_or_label_keyword)
+    ';'           reduce using rule 196 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 196 (role_or_label_keyword)
+
+state 195 // ALTER TABLE_SYM INSERT_METHOD
+
+  197 role_or_label_keyword: INSERT_METHOD .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 197 (role_or_label_keyword)
+    ';'           reduce using rule 197 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 197 (role_or_label_keyword)
+
+state 196 // ALTER TABLE_SYM INSTANCE_SYM
+
+  198 role_or_label_keyword: INSTANCE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 198 (role_or_label_keyword)
+    ';'           reduce using rule 198 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 198 (role_or_label_keyword)
+
+state 197 // ALTER TABLE_SYM JSON_SYM
+
+  199 role_or_label_keyword: JSON_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 199 (role_or_label_keyword)
+    ';'           reduce using rule 199 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 199 (role_or_label_keyword)
+
+state 198 // ALTER TABLE_SYM KEY_BLOCK_SIZE
+
+  200 role_or_label_keyword: KEY_BLOCK_SIZE .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 200 (role_or_label_keyword)
+    ';'           reduce using rule 200 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 200 (role_or_label_keyword)
+
+state 199 // ALTER TABLE_SYM LAST_SYM
+
+  201 role_or_label_keyword: LAST_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 201 (role_or_label_keyword)
+    ';'           reduce using rule 201 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 201 (role_or_label_keyword)
+
+state 200 // ALTER TABLE_SYM LEAVES
+
+  202 role_or_label_keyword: LEAVES .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 202 (role_or_label_keyword)
+    ';'           reduce using rule 202 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 202 (role_or_label_keyword)
+
+state 201 // ALTER TABLE_SYM LESS_SYM
+
+  203 role_or_label_keyword: LESS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 203 (role_or_label_keyword)
+    ';'           reduce using rule 203 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 203 (role_or_label_keyword)
+
+state 202 // ALTER TABLE_SYM LEVEL_SYM
+
+  204 role_or_label_keyword: LEVEL_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 204 (role_or_label_keyword)
+    ';'           reduce using rule 204 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 204 (role_or_label_keyword)
+
+state 203 // ALTER TABLE_SYM LINESTRING_SYM
+
+  205 role_or_label_keyword: LINESTRING_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 205 (role_or_label_keyword)
+    ';'           reduce using rule 205 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 205 (role_or_label_keyword)
+
+state 204 // ALTER TABLE_SYM LIST_SYM
+
+  206 role_or_label_keyword: LIST_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 206 (role_or_label_keyword)
+    ';'           reduce using rule 206 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 206 (role_or_label_keyword)
+
+state 205 // ALTER TABLE_SYM LOCAL_SYM
+
+  207 role_or_label_keyword: LOCAL_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 207 (role_or_label_keyword)
+    ';'           reduce using rule 207 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 207 (role_or_label_keyword)
+
+state 206 // ALTER TABLE_SYM LOCKS_SYM
+
+  208 role_or_label_keyword: LOCKS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 208 (role_or_label_keyword)
+    ';'           reduce using rule 208 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 208 (role_or_label_keyword)
+
+state 207 // ALTER TABLE_SYM LOGFILE_SYM
+
+  209 role_or_label_keyword: LOGFILE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 209 (role_or_label_keyword)
+    ';'           reduce using rule 209 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 209 (role_or_label_keyword)
+
+state 208 // ALTER TABLE_SYM LOGS_SYM
+
+  210 role_or_label_keyword: LOGS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 210 (role_or_label_keyword)
+    ';'           reduce using rule 210 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 210 (role_or_label_keyword)
+
+state 209 // ALTER TABLE_SYM MAX_ROWS
+
+  211 role_or_label_keyword: MAX_ROWS .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 211 (role_or_label_keyword)
+    ';'           reduce using rule 211 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 211 (role_or_label_keyword)
+
+state 210 // ALTER TABLE_SYM MASTER_SYM
+
+  212 role_or_label_keyword: MASTER_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 212 (role_or_label_keyword)
+    ';'           reduce using rule 212 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 212 (role_or_label_keyword)
+
+state 211 // ALTER TABLE_SYM MASTER_HEARTBEAT_PERIOD_SYM
+
+  213 role_or_label_keyword: MASTER_HEARTBEAT_PERIOD_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 213 (role_or_label_keyword)
+    ';'           reduce using rule 213 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 213 (role_or_label_keyword)
+
+state 212 // ALTER TABLE_SYM MASTER_HOST_SYM
+
+  214 role_or_label_keyword: MASTER_HOST_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 214 (role_or_label_keyword)
+    ';'           reduce using rule 214 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 214 (role_or_label_keyword)
+
+state 213 // ALTER TABLE_SYM MASTER_PORT_SYM
+
+  215 role_or_label_keyword: MASTER_PORT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 215 (role_or_label_keyword)
+    ';'           reduce using rule 215 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 215 (role_or_label_keyword)
+
+state 214 // ALTER TABLE_SYM MASTER_LOG_FILE_SYM
+
+  216 role_or_label_keyword: MASTER_LOG_FILE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 216 (role_or_label_keyword)
+    ';'           reduce using rule 216 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 216 (role_or_label_keyword)
+
+state 215 // ALTER TABLE_SYM MASTER_LOG_POS_SYM
+
+  217 role_or_label_keyword: MASTER_LOG_POS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 217 (role_or_label_keyword)
+    ';'           reduce using rule 217 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 217 (role_or_label_keyword)
+
+state 216 // ALTER TABLE_SYM MASTER_USER_SYM
+
+  218 role_or_label_keyword: MASTER_USER_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 218 (role_or_label_keyword)
+    ';'           reduce using rule 218 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 218 (role_or_label_keyword)
+
+state 217 // ALTER TABLE_SYM MASTER_PASSWORD_SYM
+
+  219 role_or_label_keyword: MASTER_PASSWORD_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 219 (role_or_label_keyword)
+    ';'           reduce using rule 219 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 219 (role_or_label_keyword)
+
+state 218 // ALTER TABLE_SYM MASTER_SERVER_ID_SYM
+
+  220 role_or_label_keyword: MASTER_SERVER_ID_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 220 (role_or_label_keyword)
+    ';'           reduce using rule 220 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 220 (role_or_label_keyword)
+
+state 219 // ALTER TABLE_SYM MASTER_CONNECT_RETRY_SYM
+
+  221 role_or_label_keyword: MASTER_CONNECT_RETRY_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 221 (role_or_label_keyword)
+    ';'           reduce using rule 221 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 221 (role_or_label_keyword)
+
+state 220 // ALTER TABLE_SYM MASTER_RETRY_COUNT_SYM
+
+  222 role_or_label_keyword: MASTER_RETRY_COUNT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 222 (role_or_label_keyword)
+    ';'           reduce using rule 222 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 222 (role_or_label_keyword)
+
+state 221 // ALTER TABLE_SYM MASTER_DELAY_SYM
+
+  223 role_or_label_keyword: MASTER_DELAY_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 223 (role_or_label_keyword)
+    ';'           reduce using rule 223 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 223 (role_or_label_keyword)
+
+state 222 // ALTER TABLE_SYM MASTER_SSL_SYM
+
+  224 role_or_label_keyword: MASTER_SSL_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 224 (role_or_label_keyword)
+    ';'           reduce using rule 224 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 224 (role_or_label_keyword)
+
+state 223 // ALTER TABLE_SYM MASTER_SSL_CA_SYM
+
+  225 role_or_label_keyword: MASTER_SSL_CA_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 225 (role_or_label_keyword)
+    ';'           reduce using rule 225 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 225 (role_or_label_keyword)
+
+state 224 // ALTER TABLE_SYM MASTER_SSL_CAPATH_SYM
+
+  226 role_or_label_keyword: MASTER_SSL_CAPATH_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 226 (role_or_label_keyword)
+    ';'           reduce using rule 226 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 226 (role_or_label_keyword)
+
+state 225 // ALTER TABLE_SYM MASTER_TLS_VERSION_SYM
+
+  227 role_or_label_keyword: MASTER_TLS_VERSION_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 227 (role_or_label_keyword)
+    ';'           reduce using rule 227 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 227 (role_or_label_keyword)
+
+state 226 // ALTER TABLE_SYM MASTER_SSL_CERT_SYM
+
+  228 role_or_label_keyword: MASTER_SSL_CERT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 228 (role_or_label_keyword)
+    ';'           reduce using rule 228 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 228 (role_or_label_keyword)
+
+state 227 // ALTER TABLE_SYM MASTER_SSL_CIPHER_SYM
+
+  229 role_or_label_keyword: MASTER_SSL_CIPHER_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 229 (role_or_label_keyword)
+    ';'           reduce using rule 229 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 229 (role_or_label_keyword)
+
+state 228 // ALTER TABLE_SYM MASTER_SSL_CRL_SYM
+
+  230 role_or_label_keyword: MASTER_SSL_CRL_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 230 (role_or_label_keyword)
+    ';'           reduce using rule 230 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 230 (role_or_label_keyword)
+
+state 229 // ALTER TABLE_SYM MASTER_SSL_CRLPATH_SYM
+
+  231 role_or_label_keyword: MASTER_SSL_CRLPATH_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 231 (role_or_label_keyword)
+    ';'           reduce using rule 231 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 231 (role_or_label_keyword)
+
+state 230 // ALTER TABLE_SYM MASTER_SSL_KEY_SYM
+
+  232 role_or_label_keyword: MASTER_SSL_KEY_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 232 (role_or_label_keyword)
+    ';'           reduce using rule 232 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 232 (role_or_label_keyword)
+
+state 231 // ALTER TABLE_SYM MASTER_AUTO_POSITION_SYM
+
+  233 role_or_label_keyword: MASTER_AUTO_POSITION_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 233 (role_or_label_keyword)
+    ';'           reduce using rule 233 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 233 (role_or_label_keyword)
+
+state 232 // ALTER TABLE_SYM MAX_CONNECTIONS_PER_HOUR
+
+  234 role_or_label_keyword: MAX_CONNECTIONS_PER_HOUR .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 234 (role_or_label_keyword)
+    ';'           reduce using rule 234 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 234 (role_or_label_keyword)
+
+state 233 // ALTER TABLE_SYM MAX_QUERIES_PER_HOUR
+
+  235 role_or_label_keyword: MAX_QUERIES_PER_HOUR .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 235 (role_or_label_keyword)
+    ';'           reduce using rule 235 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 235 (role_or_label_keyword)
+
+state 234 // ALTER TABLE_SYM MAX_SIZE_SYM
+
+  236 role_or_label_keyword: MAX_SIZE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 236 (role_or_label_keyword)
+    ';'           reduce using rule 236 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 236 (role_or_label_keyword)
+
+state 235 // ALTER TABLE_SYM MAX_UPDATES_PER_HOUR
+
+  237 role_or_label_keyword: MAX_UPDATES_PER_HOUR .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 237 (role_or_label_keyword)
+    ';'           reduce using rule 237 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 237 (role_or_label_keyword)
+
+state 236 // ALTER TABLE_SYM MAX_USER_CONNECTIONS_SYM
+
+  238 role_or_label_keyword: MAX_USER_CONNECTIONS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 238 (role_or_label_keyword)
+    ';'           reduce using rule 238 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 238 (role_or_label_keyword)
+
+state 237 // ALTER TABLE_SYM MEDIUM_SYM
+
+  239 role_or_label_keyword: MEDIUM_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 239 (role_or_label_keyword)
+    ';'           reduce using rule 239 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 239 (role_or_label_keyword)
+
+state 238 // ALTER TABLE_SYM MEMORY_SYM
+
+  240 role_or_label_keyword: MEMORY_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 240 (role_or_label_keyword)
+    ';'           reduce using rule 240 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 240 (role_or_label_keyword)
+
+state 239 // ALTER TABLE_SYM MERGE_SYM
+
+  241 role_or_label_keyword: MERGE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 241 (role_or_label_keyword)
+    ';'           reduce using rule 241 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 241 (role_or_label_keyword)
+
+state 240 // ALTER TABLE_SYM MESSAGE_TEXT_SYM
+
+  242 role_or_label_keyword: MESSAGE_TEXT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 242 (role_or_label_keyword)
+    ';'           reduce using rule 242 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 242 (role_or_label_keyword)
+
+state 241 // ALTER TABLE_SYM MICROSECOND_SYM
+
+  243 role_or_label_keyword: MICROSECOND_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 243 (role_or_label_keyword)
+    ';'           reduce using rule 243 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 243 (role_or_label_keyword)
+
+state 242 // ALTER TABLE_SYM MIGRATE_SYM
+
+  244 role_or_label_keyword: MIGRATE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 244 (role_or_label_keyword)
+    ';'           reduce using rule 244 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 244 (role_or_label_keyword)
+
+state 243 // ALTER TABLE_SYM MINUTE_SYM
+
+  245 role_or_label_keyword: MINUTE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 245 (role_or_label_keyword)
+    ';'           reduce using rule 245 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 245 (role_or_label_keyword)
+
+state 244 // ALTER TABLE_SYM MIN_ROWS
+
+  246 role_or_label_keyword: MIN_ROWS .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 246 (role_or_label_keyword)
+    ';'           reduce using rule 246 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 246 (role_or_label_keyword)
+
+state 245 // ALTER TABLE_SYM MODIFY_SYM
+
+  247 role_or_label_keyword: MODIFY_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 247 (role_or_label_keyword)
+    ';'           reduce using rule 247 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 247 (role_or_label_keyword)
+
+state 246 // ALTER TABLE_SYM MODE_SYM
+
+  248 role_or_label_keyword: MODE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 248 (role_or_label_keyword)
+    ';'           reduce using rule 248 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 248 (role_or_label_keyword)
+
+state 247 // ALTER TABLE_SYM MONTH_SYM
+
+  249 role_or_label_keyword: MONTH_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 249 (role_or_label_keyword)
+    ';'           reduce using rule 249 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 249 (role_or_label_keyword)
+
+state 248 // ALTER TABLE_SYM MULTILINESTRING_SYM
+
+  250 role_or_label_keyword: MULTILINESTRING_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 250 (role_or_label_keyword)
+    ';'           reduce using rule 250 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 250 (role_or_label_keyword)
+
+state 249 // ALTER TABLE_SYM MULTIPOINT_SYM
+
+  251 role_or_label_keyword: MULTIPOINT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 251 (role_or_label_keyword)
+    ';'           reduce using rule 251 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 251 (role_or_label_keyword)
+
+state 250 // ALTER TABLE_SYM MULTIPOLYGON_SYM
+
+  252 role_or_label_keyword: MULTIPOLYGON_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 252 (role_or_label_keyword)
+    ';'           reduce using rule 252 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 252 (role_or_label_keyword)
+
+state 251 // ALTER TABLE_SYM MUTEX_SYM
+
+  253 role_or_label_keyword: MUTEX_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 253 (role_or_label_keyword)
+    ';'           reduce using rule 253 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 253 (role_or_label_keyword)
+
+state 252 // ALTER TABLE_SYM MYSQL_ERRNO_SYM
+
+  254 role_or_label_keyword: MYSQL_ERRNO_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 254 (role_or_label_keyword)
+    ';'           reduce using rule 254 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 254 (role_or_label_keyword)
+
+state 253 // ALTER TABLE_SYM NAME_SYM
+
+  255 role_or_label_keyword: NAME_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 255 (role_or_label_keyword)
+    ';'           reduce using rule 255 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 255 (role_or_label_keyword)
+
+state 254 // ALTER TABLE_SYM NAMES_SYM
+
+  256 role_or_label_keyword: NAMES_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 256 (role_or_label_keyword)
+    ';'           reduce using rule 256 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 256 (role_or_label_keyword)
+
+state 255 // ALTER TABLE_SYM NATIONAL_SYM
+
+  257 role_or_label_keyword: NATIONAL_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 257 (role_or_label_keyword)
+    ';'           reduce using rule 257 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 257 (role_or_label_keyword)
+
+state 256 // ALTER TABLE_SYM NCHAR_SYM
+
+  258 role_or_label_keyword: NCHAR_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 258 (role_or_label_keyword)
+    ';'           reduce using rule 258 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 258 (role_or_label_keyword)
+
+state 257 // ALTER TABLE_SYM NDBCLUSTER_SYM
+
+  259 role_or_label_keyword: NDBCLUSTER_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 259 (role_or_label_keyword)
+    ';'           reduce using rule 259 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 259 (role_or_label_keyword)
+
+state 258 // ALTER TABLE_SYM NEVER_SYM
+
+  260 role_or_label_keyword: NEVER_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 260 (role_or_label_keyword)
+    ';'           reduce using rule 260 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 260 (role_or_label_keyword)
+
+state 259 // ALTER TABLE_SYM NEXT_SYM
+
+  261 role_or_label_keyword: NEXT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 261 (role_or_label_keyword)
+    ';'           reduce using rule 261 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 261 (role_or_label_keyword)
+
+state 260 // ALTER TABLE_SYM NEW_SYM
+
+  262 role_or_label_keyword: NEW_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 262 (role_or_label_keyword)
+    ';'           reduce using rule 262 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 262 (role_or_label_keyword)
+
+state 261 // ALTER TABLE_SYM NO_WAIT_SYM
+
+  263 role_or_label_keyword: NO_WAIT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 263 (role_or_label_keyword)
+    ';'           reduce using rule 263 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 263 (role_or_label_keyword)
+
+state 262 // ALTER TABLE_SYM NODEGROUP_SYM
+
+  264 role_or_label_keyword: NODEGROUP_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 264 (role_or_label_keyword)
+    ';'           reduce using rule 264 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 264 (role_or_label_keyword)
+
+state 263 // ALTER TABLE_SYM NUMBER_SYM
+
+  265 role_or_label_keyword: NUMBER_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 265 (role_or_label_keyword)
+    ';'           reduce using rule 265 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 265 (role_or_label_keyword)
+
+state 264 // ALTER TABLE_SYM NVARCHAR_SYM
+
+  266 role_or_label_keyword: NVARCHAR_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 266 (role_or_label_keyword)
+    ';'           reduce using rule 266 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 266 (role_or_label_keyword)
+
+state 265 // ALTER TABLE_SYM OFFSET_SYM
+
+  267 role_or_label_keyword: OFFSET_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 267 (role_or_label_keyword)
+    ';'           reduce using rule 267 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 267 (role_or_label_keyword)
+
+state 266 // ALTER TABLE_SYM ONE_SYM
+
+  268 role_or_label_keyword: ONE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 268 (role_or_label_keyword)
+    ';'           reduce using rule 268 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 268 (role_or_label_keyword)
+
+state 267 // ALTER TABLE_SYM ONLY_SYM
+
+  269 role_or_label_keyword: ONLY_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 269 (role_or_label_keyword)
+    ';'           reduce using rule 269 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 269 (role_or_label_keyword)
+
+state 268 // ALTER TABLE_SYM PACK_KEYS_SYM
+
+  270 role_or_label_keyword: PACK_KEYS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 270 (role_or_label_keyword)
+    ';'           reduce using rule 270 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 270 (role_or_label_keyword)
+
+state 269 // ALTER TABLE_SYM PAGE_SYM
+
+  271 role_or_label_keyword: PAGE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 271 (role_or_label_keyword)
+    ';'           reduce using rule 271 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 271 (role_or_label_keyword)
+
+state 270 // ALTER TABLE_SYM PARTIAL
+
+  272 role_or_label_keyword: PARTIAL .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 272 (role_or_label_keyword)
+    ';'           reduce using rule 272 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 272 (role_or_label_keyword)
+
+state 271 // ALTER TABLE_SYM PARTITIONING_SYM
+
+  273 role_or_label_keyword: PARTITIONING_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 273 (role_or_label_keyword)
+    ';'           reduce using rule 273 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 273 (role_or_label_keyword)
+
+state 272 // ALTER TABLE_SYM PARTITIONS_SYM
+
+  274 role_or_label_keyword: PARTITIONS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 274 (role_or_label_keyword)
+    ';'           reduce using rule 274 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 274 (role_or_label_keyword)
+
+state 273 // ALTER TABLE_SYM PASSWORD
+
+  275 role_or_label_keyword: PASSWORD .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 275 (role_or_label_keyword)
+    ';'           reduce using rule 275 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 275 (role_or_label_keyword)
+
+state 274 // ALTER TABLE_SYM PHASE_SYM
+
+  276 role_or_label_keyword: PHASE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 276 (role_or_label_keyword)
+    ';'           reduce using rule 276 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 276 (role_or_label_keyword)
+
+state 275 // ALTER TABLE_SYM PLUGIN_DIR_SYM
+
+  277 role_or_label_keyword: PLUGIN_DIR_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 277 (role_or_label_keyword)
+    ';'           reduce using rule 277 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 277 (role_or_label_keyword)
+
+state 276 // ALTER TABLE_SYM PLUGIN_SYM
+
+  278 role_or_label_keyword: PLUGIN_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 278 (role_or_label_keyword)
+    ';'           reduce using rule 278 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 278 (role_or_label_keyword)
+
+state 277 // ALTER TABLE_SYM PLUGINS_SYM
+
+  279 role_or_label_keyword: PLUGINS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 279 (role_or_label_keyword)
+    ';'           reduce using rule 279 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 279 (role_or_label_keyword)
+
+state 278 // ALTER TABLE_SYM POINT_SYM
+
+  280 role_or_label_keyword: POINT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 280 (role_or_label_keyword)
+    ';'           reduce using rule 280 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 280 (role_or_label_keyword)
+
+state 279 // ALTER TABLE_SYM POLYGON_SYM
+
+  281 role_or_label_keyword: POLYGON_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 281 (role_or_label_keyword)
+    ';'           reduce using rule 281 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 281 (role_or_label_keyword)
+
+state 280 // ALTER TABLE_SYM PRESERVE_SYM
+
+  282 role_or_label_keyword: PRESERVE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 282 (role_or_label_keyword)
+    ';'           reduce using rule 282 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 282 (role_or_label_keyword)
+
+state 281 // ALTER TABLE_SYM PREV_SYM
+
+  283 role_or_label_keyword: PREV_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 283 (role_or_label_keyword)
+    ';'           reduce using rule 283 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 283 (role_or_label_keyword)
+
+state 282 // ALTER TABLE_SYM PRIVILEGES
+
+  284 role_or_label_keyword: PRIVILEGES .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 284 (role_or_label_keyword)
+    ';'           reduce using rule 284 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 284 (role_or_label_keyword)
+
+state 283 // ALTER TABLE_SYM PROCESSLIST_SYM
+
+  285 role_or_label_keyword: PROCESSLIST_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 285 (role_or_label_keyword)
+    ';'           reduce using rule 285 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 285 (role_or_label_keyword)
+
+state 284 // ALTER TABLE_SYM PROFILE_SYM
+
+  286 role_or_label_keyword: PROFILE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 286 (role_or_label_keyword)
+    ';'           reduce using rule 286 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 286 (role_or_label_keyword)
+
+state 285 // ALTER TABLE_SYM PROFILES_SYM
+
+  287 role_or_label_keyword: PROFILES_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 287 (role_or_label_keyword)
+    ';'           reduce using rule 287 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 287 (role_or_label_keyword)
+
+state 286 // ALTER TABLE_SYM QUARTER_SYM
+
+  288 role_or_label_keyword: QUARTER_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 288 (role_or_label_keyword)
+    ';'           reduce using rule 288 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 288 (role_or_label_keyword)
+
+state 287 // ALTER TABLE_SYM QUERY_SYM
+
+  289 role_or_label_keyword: QUERY_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 289 (role_or_label_keyword)
+    ';'           reduce using rule 289 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 289 (role_or_label_keyword)
+
+state 288 // ALTER TABLE_SYM QUICK
+
+  290 role_or_label_keyword: QUICK .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 290 (role_or_label_keyword)
+    ';'           reduce using rule 290 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 290 (role_or_label_keyword)
+
+state 289 // ALTER TABLE_SYM READ_ONLY_SYM
+
+  291 role_or_label_keyword: READ_ONLY_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 291 (role_or_label_keyword)
+    ';'           reduce using rule 291 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 291 (role_or_label_keyword)
+
+state 290 // ALTER TABLE_SYM REBUILD_SYM
+
+  292 role_or_label_keyword: REBUILD_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 292 (role_or_label_keyword)
+    ';'           reduce using rule 292 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 292 (role_or_label_keyword)
+
+state 291 // ALTER TABLE_SYM RECOVER_SYM
+
+  293 role_or_label_keyword: RECOVER_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 293 (role_or_label_keyword)
+    ';'           reduce using rule 293 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 293 (role_or_label_keyword)
+
+state 292 // ALTER TABLE_SYM REDO_BUFFER_SIZE_SYM
+
+  294 role_or_label_keyword: REDO_BUFFER_SIZE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 294 (role_or_label_keyword)
+    ';'           reduce using rule 294 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 294 (role_or_label_keyword)
+
+state 293 // ALTER TABLE_SYM REDOFILE_SYM
+
+  295 role_or_label_keyword: REDOFILE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 295 (role_or_label_keyword)
+    ';'           reduce using rule 295 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 295 (role_or_label_keyword)
+
+state 294 // ALTER TABLE_SYM REDUNDANT_SYM
+
+  296 role_or_label_keyword: REDUNDANT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 296 (role_or_label_keyword)
+    ';'           reduce using rule 296 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 296 (role_or_label_keyword)
+
+state 295 // ALTER TABLE_SYM RELAY
+
+  297 role_or_label_keyword: RELAY .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 297 (role_or_label_keyword)
+    ';'           reduce using rule 297 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 297 (role_or_label_keyword)
+
+state 296 // ALTER TABLE_SYM RELAYLOG_SYM
+
+  298 role_or_label_keyword: RELAYLOG_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 298 (role_or_label_keyword)
+    ';'           reduce using rule 298 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 298 (role_or_label_keyword)
+
+state 297 // ALTER TABLE_SYM RELAY_LOG_FILE_SYM
+
+  299 role_or_label_keyword: RELAY_LOG_FILE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 299 (role_or_label_keyword)
+    ';'           reduce using rule 299 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 299 (role_or_label_keyword)
+
+state 298 // ALTER TABLE_SYM RELAY_LOG_POS_SYM
+
+  300 role_or_label_keyword: RELAY_LOG_POS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 300 (role_or_label_keyword)
+    ';'           reduce using rule 300 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 300 (role_or_label_keyword)
+
+state 299 // ALTER TABLE_SYM RELAY_THREAD
+
+  301 role_or_label_keyword: RELAY_THREAD .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 301 (role_or_label_keyword)
+    ';'           reduce using rule 301 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 301 (role_or_label_keyword)
+
+state 300 // ALTER TABLE_SYM REORGANIZE_SYM
+
+  302 role_or_label_keyword: REORGANIZE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 302 (role_or_label_keyword)
+    ';'           reduce using rule 302 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 302 (role_or_label_keyword)
+
+state 301 // ALTER TABLE_SYM REPEATABLE_SYM
+
+  303 role_or_label_keyword: REPEATABLE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 303 (role_or_label_keyword)
+    ';'           reduce using rule 303 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 303 (role_or_label_keyword)
+
+state 302 // ALTER TABLE_SYM REPLICATE_DO_DB
+
+  304 role_or_label_keyword: REPLICATE_DO_DB .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 304 (role_or_label_keyword)
+    ';'           reduce using rule 304 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 304 (role_or_label_keyword)
+
+state 303 // ALTER TABLE_SYM REPLICATE_IGNORE_DB
+
+  305 role_or_label_keyword: REPLICATE_IGNORE_DB .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 305 (role_or_label_keyword)
+    ';'           reduce using rule 305 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 305 (role_or_label_keyword)
+
+state 304 // ALTER TABLE_SYM REPLICATE_DO_TABLE
+
+  306 role_or_label_keyword: REPLICATE_DO_TABLE .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 306 (role_or_label_keyword)
+    ';'           reduce using rule 306 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 306 (role_or_label_keyword)
+
+state 305 // ALTER TABLE_SYM REPLICATE_IGNORE_TABLE
+
+  307 role_or_label_keyword: REPLICATE_IGNORE_TABLE .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 307 (role_or_label_keyword)
+    ';'           reduce using rule 307 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 307 (role_or_label_keyword)
+
+state 306 // ALTER TABLE_SYM REPLICATE_WILD_DO_TABLE
+
+  308 role_or_label_keyword: REPLICATE_WILD_DO_TABLE .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 308 (role_or_label_keyword)
+    ';'           reduce using rule 308 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 308 (role_or_label_keyword)
+
+state 307 // ALTER TABLE_SYM REPLICATE_WILD_IGNORE_TABLE
+
+  309 role_or_label_keyword: REPLICATE_WILD_IGNORE_TABLE .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 309 (role_or_label_keyword)
+    ';'           reduce using rule 309 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 309 (role_or_label_keyword)
+
+state 308 // ALTER TABLE_SYM REPLICATE_REWRITE_DB
+
+  310 role_or_label_keyword: REPLICATE_REWRITE_DB .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 310 (role_or_label_keyword)
+    ';'           reduce using rule 310 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 310 (role_or_label_keyword)
+
+state 309 // ALTER TABLE_SYM RESOURCES
+
+  311 role_or_label_keyword: RESOURCES .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 311 (role_or_label_keyword)
+    ';'           reduce using rule 311 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 311 (role_or_label_keyword)
+
+state 310 // ALTER TABLE_SYM RESUME_SYM
+
+  312 role_or_label_keyword: RESUME_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 312 (role_or_label_keyword)
+    ';'           reduce using rule 312 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 312 (role_or_label_keyword)
+
+state 311 // ALTER TABLE_SYM RETURNED_SQLSTATE_SYM
+
+  313 role_or_label_keyword: RETURNED_SQLSTATE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 313 (role_or_label_keyword)
+    ';'           reduce using rule 313 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 313 (role_or_label_keyword)
+
+state 312 // ALTER TABLE_SYM RETURNS_SYM
+
+  314 role_or_label_keyword: RETURNS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 314 (role_or_label_keyword)
+    ';'           reduce using rule 314 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 314 (role_or_label_keyword)
+
+state 313 // ALTER TABLE_SYM REVERSE_SYM
+
+  315 role_or_label_keyword: REVERSE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 315 (role_or_label_keyword)
+    ';'           reduce using rule 315 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 315 (role_or_label_keyword)
+
+state 314 // ALTER TABLE_SYM ROLLUP_SYM
+
+  316 role_or_label_keyword: ROLLUP_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 316 (role_or_label_keyword)
+    ';'           reduce using rule 316 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 316 (role_or_label_keyword)
+
+state 315 // ALTER TABLE_SYM ROTATE_SYM
+
+  317 role_or_label_keyword: ROTATE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 317 (role_or_label_keyword)
+    ';'           reduce using rule 317 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 317 (role_or_label_keyword)
+
+state 316 // ALTER TABLE_SYM ROUTINE_SYM
+
+  318 role_or_label_keyword: ROUTINE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 318 (role_or_label_keyword)
+    ';'           reduce using rule 318 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 318 (role_or_label_keyword)
+
+state 317 // ALTER TABLE_SYM ROWS_SYM
+
+  319 role_or_label_keyword: ROWS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 319 (role_or_label_keyword)
+    ';'           reduce using rule 319 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 319 (role_or_label_keyword)
+
+state 318 // ALTER TABLE_SYM ROW_COUNT_SYM
+
+  320 role_or_label_keyword: ROW_COUNT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 320 (role_or_label_keyword)
+    ';'           reduce using rule 320 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 320 (role_or_label_keyword)
+
+state 319 // ALTER TABLE_SYM ROW_FORMAT_SYM
+
+  321 role_or_label_keyword: ROW_FORMAT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 321 (role_or_label_keyword)
+    ';'           reduce using rule 321 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 321 (role_or_label_keyword)
+
+state 320 // ALTER TABLE_SYM ROW_SYM
+
+  322 role_or_label_keyword: ROW_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 322 (role_or_label_keyword)
+    ';'           reduce using rule 322 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 322 (role_or_label_keyword)
+
+state 321 // ALTER TABLE_SYM RTREE_SYM
+
+  323 role_or_label_keyword: RTREE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 323 (role_or_label_keyword)
+    ';'           reduce using rule 323 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 323 (role_or_label_keyword)
+
+state 322 // ALTER TABLE_SYM SCHEDULE_SYM
+
+  324 role_or_label_keyword: SCHEDULE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 324 (role_or_label_keyword)
+    ';'           reduce using rule 324 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 324 (role_or_label_keyword)
+
+state 323 // ALTER TABLE_SYM SCHEMA_NAME_SYM
+
+  325 role_or_label_keyword: SCHEMA_NAME_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 325 (role_or_label_keyword)
+    ';'           reduce using rule 325 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 325 (role_or_label_keyword)
+
+state 324 // ALTER TABLE_SYM SECOND_SYM
+
+  326 role_or_label_keyword: SECOND_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 326 (role_or_label_keyword)
+    ';'           reduce using rule 326 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 326 (role_or_label_keyword)
+
+state 325 // ALTER TABLE_SYM SERIAL_SYM
+
+  327 role_or_label_keyword: SERIAL_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 327 (role_or_label_keyword)
+    ';'           reduce using rule 327 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 327 (role_or_label_keyword)
+
+state 326 // ALTER TABLE_SYM SERIALIZABLE_SYM
+
+  328 role_or_label_keyword: SERIALIZABLE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 328 (role_or_label_keyword)
+    ';'           reduce using rule 328 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 328 (role_or_label_keyword)
+
+state 327 // ALTER TABLE_SYM SESSION_SYM
+
+  329 role_or_label_keyword: SESSION_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 329 (role_or_label_keyword)
+    ';'           reduce using rule 329 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 329 (role_or_label_keyword)
+
+state 328 // ALTER TABLE_SYM SIMPLE_SYM
+
+  330 role_or_label_keyword: SIMPLE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 330 (role_or_label_keyword)
+    ';'           reduce using rule 330 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 330 (role_or_label_keyword)
+
+state 329 // ALTER TABLE_SYM SHARE_SYM
+
+  331 role_or_label_keyword: SHARE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 331 (role_or_label_keyword)
+    ';'           reduce using rule 331 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 331 (role_or_label_keyword)
+
+state 330 // ALTER TABLE_SYM SLOW
+
+  332 role_or_label_keyword: SLOW .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 332 (role_or_label_keyword)
+    ';'           reduce using rule 332 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 332 (role_or_label_keyword)
+
+state 331 // ALTER TABLE_SYM SNAPSHOT_SYM
+
+  333 role_or_label_keyword: SNAPSHOT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 333 (role_or_label_keyword)
+    ';'           reduce using rule 333 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 333 (role_or_label_keyword)
+
+state 332 // ALTER TABLE_SYM SOUNDS_SYM
+
+  334 role_or_label_keyword: SOUNDS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 334 (role_or_label_keyword)
+    ';'           reduce using rule 334 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 334 (role_or_label_keyword)
+
+state 333 // ALTER TABLE_SYM SOURCE_SYM
+
+  335 role_or_label_keyword: SOURCE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 335 (role_or_label_keyword)
+    ';'           reduce using rule 335 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 335 (role_or_label_keyword)
+
+state 334 // ALTER TABLE_SYM SQL_AFTER_GTIDS
+
+  336 role_or_label_keyword: SQL_AFTER_GTIDS .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 336 (role_or_label_keyword)
+    ';'           reduce using rule 336 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 336 (role_or_label_keyword)
+
+state 335 // ALTER TABLE_SYM SQL_AFTER_MTS_GAPS
+
+  337 role_or_label_keyword: SQL_AFTER_MTS_GAPS .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 337 (role_or_label_keyword)
+    ';'           reduce using rule 337 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 337 (role_or_label_keyword)
+
+state 336 // ALTER TABLE_SYM SQL_BEFORE_GTIDS
+
+  338 role_or_label_keyword: SQL_BEFORE_GTIDS .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 338 (role_or_label_keyword)
+    ';'           reduce using rule 338 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 338 (role_or_label_keyword)
+
+state 337 // ALTER TABLE_SYM SQL_CACHE_SYM
+
+  339 role_or_label_keyword: SQL_CACHE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 339 (role_or_label_keyword)
+    ';'           reduce using rule 339 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 339 (role_or_label_keyword)
+
+state 338 // ALTER TABLE_SYM SQL_BUFFER_RESULT
+
+  340 role_or_label_keyword: SQL_BUFFER_RESULT .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 340 (role_or_label_keyword)
+    ';'           reduce using rule 340 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 340 (role_or_label_keyword)
+
+state 339 // ALTER TABLE_SYM SQL_NO_CACHE_SYM
+
+  341 role_or_label_keyword: SQL_NO_CACHE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 341 (role_or_label_keyword)
+    ';'           reduce using rule 341 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 341 (role_or_label_keyword)
+
+state 340 // ALTER TABLE_SYM SQL_THREAD
+
+  342 role_or_label_keyword: SQL_THREAD .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 342 (role_or_label_keyword)
+    ';'           reduce using rule 342 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 342 (role_or_label_keyword)
+
+state 341 // ALTER TABLE_SYM STACKED_SYM
+
+  343 role_or_label_keyword: STACKED_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 343 (role_or_label_keyword)
+    ';'           reduce using rule 343 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 343 (role_or_label_keyword)
+
+state 342 // ALTER TABLE_SYM STARTS_SYM
+
+  344 role_or_label_keyword: STARTS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 344 (role_or_label_keyword)
+    ';'           reduce using rule 344 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 344 (role_or_label_keyword)
+
+state 343 // ALTER TABLE_SYM STATS_AUTO_RECALC_SYM
+
+  345 role_or_label_keyword: STATS_AUTO_RECALC_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 345 (role_or_label_keyword)
+    ';'           reduce using rule 345 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 345 (role_or_label_keyword)
+
+state 344 // ALTER TABLE_SYM STATS_PERSISTENT_SYM
+
+  346 role_or_label_keyword: STATS_PERSISTENT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 346 (role_or_label_keyword)
+    ';'           reduce using rule 346 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 346 (role_or_label_keyword)
+
+state 345 // ALTER TABLE_SYM STATS_SAMPLE_PAGES_SYM
+
+  347 role_or_label_keyword: STATS_SAMPLE_PAGES_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 347 (role_or_label_keyword)
+    ';'           reduce using rule 347 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 347 (role_or_label_keyword)
+
+state 346 // ALTER TABLE_SYM STATUS_SYM
+
+  348 role_or_label_keyword: STATUS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 348 (role_or_label_keyword)
+    ';'           reduce using rule 348 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 348 (role_or_label_keyword)
+
+state 347 // ALTER TABLE_SYM STORAGE_SYM
+
+  349 role_or_label_keyword: STORAGE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 349 (role_or_label_keyword)
+    ';'           reduce using rule 349 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 349 (role_or_label_keyword)
+
+state 348 // ALTER TABLE_SYM STRING_SYM
+
+  350 role_or_label_keyword: STRING_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 350 (role_or_label_keyword)
+    ';'           reduce using rule 350 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 350 (role_or_label_keyword)
+
+state 349 // ALTER TABLE_SYM SUBCLASS_ORIGIN_SYM
+
+  351 role_or_label_keyword: SUBCLASS_ORIGIN_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 351 (role_or_label_keyword)
+    ';'           reduce using rule 351 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 351 (role_or_label_keyword)
+
+state 350 // ALTER TABLE_SYM SUBDATE_SYM
+
+  352 role_or_label_keyword: SUBDATE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 352 (role_or_label_keyword)
+    ';'           reduce using rule 352 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 352 (role_or_label_keyword)
+
+state 351 // ALTER TABLE_SYM SUBJECT_SYM
+
+  353 role_or_label_keyword: SUBJECT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 353 (role_or_label_keyword)
+    ';'           reduce using rule 353 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 353 (role_or_label_keyword)
+
+state 352 // ALTER TABLE_SYM SUBPARTITION_SYM
+
+  354 role_or_label_keyword: SUBPARTITION_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 354 (role_or_label_keyword)
+    ';'           reduce using rule 354 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 354 (role_or_label_keyword)
+
+state 353 // ALTER TABLE_SYM SUBPARTITIONS_SYM
+
+  355 role_or_label_keyword: SUBPARTITIONS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 355 (role_or_label_keyword)
+    ';'           reduce using rule 355 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 355 (role_or_label_keyword)
+
+state 354 // ALTER TABLE_SYM SUSPEND_SYM
+
+  356 role_or_label_keyword: SUSPEND_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 356 (role_or_label_keyword)
+    ';'           reduce using rule 356 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 356 (role_or_label_keyword)
+
+state 355 // ALTER TABLE_SYM SWAPS_SYM
+
+  357 role_or_label_keyword: SWAPS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 357 (role_or_label_keyword)
+    ';'           reduce using rule 357 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 357 (role_or_label_keyword)
+
+state 356 // ALTER TABLE_SYM SWITCHES_SYM
+
+  358 role_or_label_keyword: SWITCHES_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 358 (role_or_label_keyword)
+    ';'           reduce using rule 358 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 358 (role_or_label_keyword)
+
+state 357 // ALTER TABLE_SYM TABLE_NAME_SYM
+
+  359 role_or_label_keyword: TABLE_NAME_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 359 (role_or_label_keyword)
+    ';'           reduce using rule 359 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 359 (role_or_label_keyword)
+
+state 358 // ALTER TABLE_SYM TABLES
+
+  360 role_or_label_keyword: TABLES .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 360 (role_or_label_keyword)
+    ';'           reduce using rule 360 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 360 (role_or_label_keyword)
+
+state 359 // ALTER TABLE_SYM TABLE_CHECKSUM_SYM
+
+  361 role_or_label_keyword: TABLE_CHECKSUM_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 361 (role_or_label_keyword)
+    ';'           reduce using rule 361 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 361 (role_or_label_keyword)
+
+state 360 // ALTER TABLE_SYM TABLESPACE_SYM
+
+  362 role_or_label_keyword: TABLESPACE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 362 (role_or_label_keyword)
+    ';'           reduce using rule 362 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 362 (role_or_label_keyword)
+
+state 361 // ALTER TABLE_SYM TEMPORARY
+
+  363 role_or_label_keyword: TEMPORARY .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 363 (role_or_label_keyword)
+    ';'           reduce using rule 363 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 363 (role_or_label_keyword)
+
+state 362 // ALTER TABLE_SYM TEMPTABLE_SYM
+
+  364 role_or_label_keyword: TEMPTABLE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 364 (role_or_label_keyword)
+    ';'           reduce using rule 364 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 364 (role_or_label_keyword)
+
+state 363 // ALTER TABLE_SYM TEXT_SYM
+
+  365 role_or_label_keyword: TEXT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 365 (role_or_label_keyword)
+    ';'           reduce using rule 365 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 365 (role_or_label_keyword)
+
+state 364 // ALTER TABLE_SYM THAN_SYM
+
+  366 role_or_label_keyword: THAN_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 366 (role_or_label_keyword)
+    ';'           reduce using rule 366 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 366 (role_or_label_keyword)
+
+state 365 // ALTER TABLE_SYM TRANSACTION_SYM
+
+  367 role_or_label_keyword: TRANSACTION_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 367 (role_or_label_keyword)
+    ';'           reduce using rule 367 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 367 (role_or_label_keyword)
+
+state 366 // ALTER TABLE_SYM TRIGGERS_SYM
+
+  368 role_or_label_keyword: TRIGGERS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 368 (role_or_label_keyword)
+    ';'           reduce using rule 368 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 368 (role_or_label_keyword)
+
+state 367 // ALTER TABLE_SYM TIMESTAMP_SYM
+
+  369 role_or_label_keyword: TIMESTAMP_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 369 (role_or_label_keyword)
+    ';'           reduce using rule 369 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 369 (role_or_label_keyword)
+
+state 368 // ALTER TABLE_SYM TIMESTAMP_ADD
+
+  370 role_or_label_keyword: TIMESTAMP_ADD .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 370 (role_or_label_keyword)
+    ';'           reduce using rule 370 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 370 (role_or_label_keyword)
+
+state 369 // ALTER TABLE_SYM TIMESTAMP_DIFF
+
+  371 role_or_label_keyword: TIMESTAMP_DIFF .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 371 (role_or_label_keyword)
+    ';'           reduce using rule 371 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 371 (role_or_label_keyword)
+
+state 370 // ALTER TABLE_SYM TIME_SYM
+
+  372 role_or_label_keyword: TIME_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 372 (role_or_label_keyword)
+    ';'           reduce using rule 372 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 372 (role_or_label_keyword)
+
+state 371 // ALTER TABLE_SYM TYPES_SYM
+
+  373 role_or_label_keyword: TYPES_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 373 (role_or_label_keyword)
+    ';'           reduce using rule 373 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 373 (role_or_label_keyword)
+
+state 372 // ALTER TABLE_SYM TYPE_SYM
+
+  374 role_or_label_keyword: TYPE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 374 (role_or_label_keyword)
+    ';'           reduce using rule 374 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 374 (role_or_label_keyword)
+
+state 373 // ALTER TABLE_SYM UDF_RETURNS_SYM
+
+  375 role_or_label_keyword: UDF_RETURNS_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 375 (role_or_label_keyword)
+    ';'           reduce using rule 375 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 375 (role_or_label_keyword)
+
+state 374 // ALTER TABLE_SYM FUNCTION_SYM
+
+  376 role_or_label_keyword: FUNCTION_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 376 (role_or_label_keyword)
+    ';'           reduce using rule 376 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 376 (role_or_label_keyword)
+
+state 375 // ALTER TABLE_SYM UNCOMMITTED_SYM
+
+  377 role_or_label_keyword: UNCOMMITTED_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 377 (role_or_label_keyword)
+    ';'           reduce using rule 377 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 377 (role_or_label_keyword)
+
+state 376 // ALTER TABLE_SYM UNDEFINED_SYM
+
+  378 role_or_label_keyword: UNDEFINED_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 378 (role_or_label_keyword)
+    ';'           reduce using rule 378 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 378 (role_or_label_keyword)
+
+state 377 // ALTER TABLE_SYM UNDO_BUFFER_SIZE_SYM
+
+  379 role_or_label_keyword: UNDO_BUFFER_SIZE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 379 (role_or_label_keyword)
+    ';'           reduce using rule 379 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 379 (role_or_label_keyword)
+
+state 378 // ALTER TABLE_SYM UNDOFILE_SYM
+
+  380 role_or_label_keyword: UNDOFILE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 380 (role_or_label_keyword)
+    ';'           reduce using rule 380 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 380 (role_or_label_keyword)
+
+state 379 // ALTER TABLE_SYM UNKNOWN_SYM
+
+  381 role_or_label_keyword: UNKNOWN_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 381 (role_or_label_keyword)
+    ';'           reduce using rule 381 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 381 (role_or_label_keyword)
+
+state 380 // ALTER TABLE_SYM UNTIL_SYM
+
+  382 role_or_label_keyword: UNTIL_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 382 (role_or_label_keyword)
+    ';'           reduce using rule 382 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 382 (role_or_label_keyword)
+
+state 381 // ALTER TABLE_SYM USER
+
+  383 role_or_label_keyword: USER .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 383 (role_or_label_keyword)
+    ';'           reduce using rule 383 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 383 (role_or_label_keyword)
+
+state 382 // ALTER TABLE_SYM USE_FRM
+
+  384 role_or_label_keyword: USE_FRM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 384 (role_or_label_keyword)
+    ';'           reduce using rule 384 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 384 (role_or_label_keyword)
+
+state 383 // ALTER TABLE_SYM VALIDATION_SYM
+
+  385 role_or_label_keyword: VALIDATION_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 385 (role_or_label_keyword)
+    ';'           reduce using rule 385 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 385 (role_or_label_keyword)
+
+state 384 // ALTER TABLE_SYM VARIABLES
+
+  386 role_or_label_keyword: VARIABLES .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 386 (role_or_label_keyword)
+    ';'           reduce using rule 386 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 386 (role_or_label_keyword)
+
+state 385 // ALTER TABLE_SYM VIEW_SYM
+
+  387 role_or_label_keyword: VIEW_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 387 (role_or_label_keyword)
+    ';'           reduce using rule 387 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 387 (role_or_label_keyword)
+
+state 386 // ALTER TABLE_SYM VALUE_SYM
+
+  388 role_or_label_keyword: VALUE_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 388 (role_or_label_keyword)
+    ';'           reduce using rule 388 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 388 (role_or_label_keyword)
+
+state 387 // ALTER TABLE_SYM WARNINGS
+
+  389 role_or_label_keyword: WARNINGS .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 389 (role_or_label_keyword)
+    ';'           reduce using rule 389 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 389 (role_or_label_keyword)
+
+state 388 // ALTER TABLE_SYM WAIT_SYM
+
+  390 role_or_label_keyword: WAIT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 390 (role_or_label_keyword)
+    ';'           reduce using rule 390 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 390 (role_or_label_keyword)
+
+state 389 // ALTER TABLE_SYM WEEK_SYM
+
+  391 role_or_label_keyword: WEEK_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 391 (role_or_label_keyword)
+    ';'           reduce using rule 391 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 391 (role_or_label_keyword)
+
+state 390 // ALTER TABLE_SYM WITHOUT_SYM
+
+  392 role_or_label_keyword: WITHOUT_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 392 (role_or_label_keyword)
+    ';'           reduce using rule 392 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 392 (role_or_label_keyword)
+
+state 391 // ALTER TABLE_SYM WORK_SYM
+
+  393 role_or_label_keyword: WORK_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 393 (role_or_label_keyword)
+    ';'           reduce using rule 393 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 393 (role_or_label_keyword)
+
+state 392 // ALTER TABLE_SYM WEIGHT_STRING_SYM
+
+  394 role_or_label_keyword: WEIGHT_STRING_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 394 (role_or_label_keyword)
+    ';'           reduce using rule 394 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 394 (role_or_label_keyword)
+
+state 393 // ALTER TABLE_SYM X509_SYM
+
+  395 role_or_label_keyword: X509_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 395 (role_or_label_keyword)
+    ';'           reduce using rule 395 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 395 (role_or_label_keyword)
+
+state 394 // ALTER TABLE_SYM XID_SYM
+
+  396 role_or_label_keyword: XID_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 396 (role_or_label_keyword)
+    ';'           reduce using rule 396 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 396 (role_or_label_keyword)
+
+state 395 // ALTER TABLE_SYM XML_SYM
+
+  397 role_or_label_keyword: XML_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 397 (role_or_label_keyword)
+    ';'           reduce using rule 397 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 397 (role_or_label_keyword)
+
+state 396 // ALTER TABLE_SYM YEAR_SYM
+
+  398 role_or_label_keyword: YEAR_SYM .  ['.', ';', END_OF_INPUT]
+
+    '.'           reduce using rule 398 (role_or_label_keyword)
+    ';'           reduce using rule 398 (role_or_label_keyword)
+    END_OF_INPUT  reduce using rule 398 (role_or_label_keyword)
+
+state 397 // ALTER TABLE_SYM '.' ACCOUNT_SYM [';']
+
+   13 table_ident: '.' ident .  [';', END_OF_INPUT]
+
+    ';'           reduce using rule 13 (table_ident)
+    END_OF_INPUT  reduce using rule 13 (table_ident)
+
+state 398 // ALTER TABLE_SYM ACCOUNT_SYM '.'
+
+   12 table_ident: ident '.' . ident
+
+    ACCOUNT_SYM                  shift, and goto state 29
+    ACTION                       shift, and goto state 84
+    ADDDATE_SYM                  shift, and goto state 85
+    AFTER_SYM                    shift, and goto state 86
+    AGAINST                      shift, and goto state 87
+    AGGREGATE_SYM                shift, and goto state 88
+    ALGORITHM_SYM                shift, and goto state 89
+    ALWAYS_SYM                   shift, and goto state 31
+    ANALYSE_SYM                  shift, and goto state 90
+    ANY_SYM                      shift, and goto state 91
+    ASCII_SYM                    shift, and goto state 30
+    AT_SYM                       shift, and goto state 92
+    AUTOEXTEND_SIZE_SYM          shift, and goto state 94
+    AUTO_INC                     shift, and goto state 93
+    AVG_ROW_LENGTH               shift, and goto state 95
+    AVG_SYM                      shift, and goto state 96
+    BACKUP_SYM                   shift, and goto state 32
+    BEGIN_SYM                    shift, and goto state 33
+    BINLOG_SYM                   shift, and goto state 97
+    BIT_SYM                      shift, and goto state 98
+    BLOCK_SYM                    shift, and goto state 99
+    BOOLEAN_SYM                  shift, and goto state 101
+    BOOL_SYM                     shift, and goto state 100
+    BTREE_SYM                    shift, and goto state 102
+    BYTE_SYM                     shift, and goto state 34
+    CACHE_SYM                    shift, and goto state 35
+    CASCADED                     shift, and goto state 103
+    CATALOG_NAME_SYM             shift, and goto state 104
+    CHAIN_SYM                    shift, and goto state 105
+    CHANGED                      shift, and goto state 106
+    CHANNEL_SYM                  shift, and goto state 107
+    CHARSET                      shift, and goto state 36
+    CHECKSUM_SYM                 shift, and goto state 37
+    CIPHER_SYM                   shift, and goto state 108
+    CLASS_ORIGIN_SYM             shift, and goto state 110
+    CLIENT_SYM                   shift, and goto state 109
+    CLOSE_SYM                    shift, and goto state 38
+    COALESCE                     shift, and goto state 111
+    CODE_SYM                     shift, and goto state 112
+    COLLATION_SYM                shift, and goto state 113
+    COLUMNS                      shift, and goto state 116
+    COLUMN_FORMAT_SYM            shift, and goto state 115
+    COLUMN_NAME_SYM              shift, and goto state 114
+    COMMENT_SYM                  shift, and goto state 39
+    COMMITTED_SYM                shift, and goto state 117
+    COMMIT_SYM                   shift, and goto state 40
+    COMPACT_SYM                  shift, and goto state 118
+    COMPLETION_SYM               shift, and goto state 119
+    COMPONENT_SYM                shift, and goto state 120
+    COMPRESSED_SYM               shift, and goto state 121
+    COMPRESSION_SYM              shift, and goto state 122
+    CONCURRENT                   shift, and goto state 124
+    CONNECTION_SYM               shift, and goto state 125
+    CONSISTENT_SYM               shift, and goto state 126
+    CONSTRAINT_CATALOG_SYM       shift, and goto state 127
+    CONSTRAINT_NAME_SYM          shift, and goto state 129
+    CONSTRAINT_SCHEMA_SYM        shift, and goto state 128
+    CONTAINS_SYM                 shift, and goto state 41
+    CONTEXT_SYM                  shift, and goto state 130
+    CPU_SYM                      shift, and goto state 131
+    CUBE_SYM                     shift, and goto state 132
+    CURRENT_SYM                  shift, and goto state 133
+    CURSOR_NAME_SYM              shift, and goto state 134
+    DATAFILE_SYM                 shift, and goto state 136
+    DATA_SYM                     shift, and goto state 135
+    DATETIME_SYM                 shift, and goto state 137
+    DATE_SYM                     shift, and goto state 138
+    DAY_SYM                      shift, and goto state 139
+    DEALLOCATE_SYM               shift, and goto state 42
+    DEFAULT_AUTH_SYM             shift, and goto state 140
+    DEFINER_SYM                  shift, and goto state 141
+    DELAY_KEY_WRITE_SYM          shift, and goto state 142
+    DES_KEY_FILE                 shift, and goto state 143
+    DIAGNOSTICS_SYM              shift, and goto state 144
+    DIRECTORY_SYM                shift, and goto state 145
+    DISABLE_SYM                  shift, and goto state 146
+    DISCARD                      shift, and goto state 147
+    DISK_SYM                     shift, and goto state 148
+    DO_SYM                       shift, and goto state 43
+    DUMPFILE                     shift, and goto state 149
+    DUPLICATE_SYM                shift, and goto state 150
+    DYNAMIC_SYM                  shift, and goto state 151
+    ENABLE_SYM                   shift, and goto state 170
+    ENCRYPTION_SYM               shift, and goto state 123
+    END                          shift, and goto state 44
+    ENDS_SYM                     shift, and goto state 152
+    ENGINES_SYM                  shift, and goto state 155
+    ENGINE_SYM                   shift, and goto state 154
+    ENUM_SYM                     shift, and goto state 153
+    ERRORS                       shift, and goto state 157
+    ERROR_SYM                    shift, and goto state 156
+    ESCAPE_SYM                   shift, and goto state 158
+    EVENTS_SYM                   shift, and goto state 159
+    EVENT_SYM                    shift, and goto state 21
+    EVERY_SYM                    shift, and goto state 160
+    EXCHANGE_SYM                 shift, and goto state 161
+    EXECUTE_SYM                  shift, and goto state 18
+    EXPANSION_SYM                shift, and goto state 162
+    EXPIRE_SYM                   shift, and goto state 163
+    EXPORT_SYM                   shift, and goto state 164
+    EXTENDED_SYM                 shift, and goto state 165
+    EXTENT_SIZE_SYM              shift, and goto state 166
+    FAST_SYM                     shift, and goto state 168
+    FAULTS_SYM                   shift, and goto state 167
+    FILE_BLOCK_SIZE_SYM          shift, and goto state 172
+    FILE_SYM                     shift, and goto state 22
+    FILTER_SYM                   shift, and goto state 173
+    FIRST_SYM                    shift, and goto state 174
+    FIXED_SYM                    shift, and goto state 175
+    FLUSH_SYM                    shift, and goto state 45
+    FOLLOWS_SYM                  shift, and goto state 46
+    FORMAT_SYM                   shift, and goto state 47
+    FOUND_SYM                    shift, and goto state 169
+    FULL                         shift, and goto state 171
+    FUNCTION_SYM                 shift, and goto state 374
+    GENERAL                      shift, and goto state 176
+    GEOMETRYCOLLECTION_SYM       shift, and goto state 178
+    GEOMETRY_SYM                 shift, and goto state 177
+    GET_FORMAT                   shift, and goto state 179
+    GLOBAL_SYM                   shift, and goto state 181
+    GRANTS                       shift, and goto state 180
+    GROUP_REPLICATION            shift, and goto state 48
+    HANDLER_SYM                  shift, and goto state 49
+    HASH_SYM                     shift, and goto state 182
+    HELP_SYM                     shift, and goto state 50
+    HOSTS_SYM                    shift, and goto state 183
+    HOST_SYM                     shift, and goto state 51
+    HOUR_SYM                     shift, and goto state 184
+    IDENT                        shift, and goto state 14
+    IDENTIFIED_SYM               shift, and goto state 185
+    IDENT_QUOTED                 shift, and goto state 15
+    IGNORE_SERVER_IDS_SYM        shift, and goto state 186
+    IMPORT                       shift, and goto state 188
+    INDEXES                      shift, and goto state 189
+    INITIAL_SIZE_SYM             shift, and goto state 190
+    INSERT_METHOD                shift, and goto state 195
+    INSTALL_SYM                  shift, and goto state 52
+    INSTANCE_SYM                 shift, and goto state 196
+    INVISIBLE_SYM                shift, and goto state 53
+    INVOKER_SYM                  shift, and goto state 187
+    IO_SYM                       shift, and goto state 191
+    IPC_SYM                      shift, and goto state 192
+    ISOLATION                    shift, and goto state 193
+    ISSUER_SYM                   shift, and goto state 194
+    JSON_SYM                     shift, and goto state 197
+    KEY_BLOCK_SIZE               shift, and goto state 198
+    LANGUAGE_SYM                 shift, and goto state 54
+    LAST_SYM                     shift, and goto state 199
+    LEAVES                       shift, and goto state 200
+    LESS_SYM                     shift, and goto state 201
+    LEVEL_SYM                    shift, and goto state 202
+    LINESTRING_SYM               shift, and goto state 203
+    LIST_SYM                     shift, and goto state 204
+    LOCAL_SYM                    shift, and goto state 205
+    LOCKS_SYM                    shift, and goto state 206
+    LOGFILE_SYM                  shift, and goto state 207
+    LOGS_SYM                     shift, and goto state 208
+    MASTER_AUTO_POSITION_SYM     shift, and goto state 231
+    MASTER_CONNECT_RETRY_SYM     shift, and goto state 219
+    MASTER_DELAY_SYM             shift, and goto state 221
+    MASTER_HEARTBEAT_PERIOD_SYM  shift, and goto state 211
+    MASTER_HOST_SYM              shift, and goto state 212
+    MASTER_LOG_FILE_SYM          shift, and goto state 214
+    MASTER_LOG_POS_SYM           shift, and goto state 215
+    MASTER_PASSWORD_SYM          shift, and goto state 217
+    MASTER_PORT_SYM              shift, and goto state 213
+    MASTER_RETRY_COUNT_SYM       shift, and goto state 220
+    MASTER_SERVER_ID_SYM         shift, and goto state 218
+    MASTER_SSL_CAPATH_SYM        shift, and goto state 224
+    MASTER_SSL_CA_SYM            shift, and goto state 223
+    MASTER_SSL_CERT_SYM          shift, and goto state 226
+    MASTER_SSL_CIPHER_SYM        shift, and goto state 227
+    MASTER_SSL_CRLPATH_SYM       shift, and goto state 229
+    MASTER_SSL_CRL_SYM           shift, and goto state 228
+    MASTER_SSL_KEY_SYM           shift, and goto state 230
+    MASTER_SSL_SYM               shift, and goto state 222
+    MASTER_SYM                   shift, and goto state 210
+    MASTER_TLS_VERSION_SYM       shift, and goto state 225
+    MASTER_USER_SYM              shift, and goto state 216
+    MAX_CONNECTIONS_PER_HOUR     shift, and goto state 232
+    MAX_QUERIES_PER_HOUR         shift, and goto state 233
+    MAX_ROWS                     shift, and goto state 209
+    MAX_SIZE_SYM                 shift, and goto state 234
+    MAX_UPDATES_PER_HOUR         shift, and goto state 235
+    MAX_USER_CONNECTIONS_SYM     shift, and goto state 236
+    MEDIUM_SYM                   shift, and goto state 237
+    MEMORY_SYM                   shift, and goto state 238
+    MERGE_SYM                    shift, and goto state 239
+    MESSAGE_TEXT_SYM             shift, and goto state 240
+    MICROSECOND_SYM              shift, and goto state 241
+    MIGRATE_SYM                  shift, and goto state 242
+    MINUTE_SYM                   shift, and goto state 243
+    MIN_ROWS                     shift, and goto state 244
+    MODE_SYM                     shift, and goto state 246
+    MODIFY_SYM                   shift, and goto state 245
+    MONTH_SYM                    shift, and goto state 247
+    MULTILINESTRING_SYM          shift, and goto state 248
+    MULTIPOINT_SYM               shift, and goto state 249
+    MULTIPOLYGON_SYM             shift, and goto state 250
+    MUTEX_SYM                    shift, and goto state 251
+    MYSQL_ERRNO_SYM              shift, and goto state 252
+    NAMES_SYM                    shift, and goto state 254
+    NAME_SYM                     shift, and goto state 253
+    NATIONAL_SYM                 shift, and goto state 255
+    NCHAR_SYM                    shift, and goto state 256
+    NDBCLUSTER_SYM               shift, and goto state 257
+    NEVER_SYM                    shift, and goto state 258
+    NEW_SYM                      shift, and goto state 260
+    NEXT_SYM                     shift, and goto state 259
+    NODEGROUP_SYM                shift, and goto state 262
+    NONE_SYM                     shift, and goto state 23
+    NO_SYM                       shift, and goto state 55
+    NO_WAIT_SYM                  shift, and goto state 261
+    NUMBER_SYM                   shift, and goto state 263
+    NVARCHAR_SYM                 shift, and goto state 264
+    OFFSET_SYM                   shift, and goto state 265
+    ONE_SYM                      shift, and goto state 266
+    ONLY_SYM                     shift, and goto state 267
+    OPEN_SYM                     shift, and goto state 56
+    OPTIONS_SYM                  shift, and goto state 57
+    OWNER_SYM                    shift, and goto state 58
+    PACK_KEYS_SYM                shift, and goto state 268
+    PAGE_SYM                     shift, and goto state 269
+    PARSER_SYM                   shift, and goto state 59
+    PARTIAL                      shift, and goto state 270
+    PARTITIONING_SYM             shift, and goto state 271
+    PARTITIONS_SYM               shift, and goto state 272
+    PASSWORD                     shift, and goto state 273
+    PHASE_SYM                    shift, and goto state 274
+    PLUGINS_SYM                  shift, and goto state 277
+    PLUGIN_DIR_SYM               shift, and goto state 275
+    PLUGIN_SYM                   shift, and goto state 276
+    POINT_SYM                    shift, and goto state 278
+    POLYGON_SYM                  shift, and goto state 279
+    PORT_SYM                     shift, and goto state 60
+    PRECEDES_SYM                 shift, and goto state 61
+    PREPARE_SYM                  shift, and goto state 62
+    PRESERVE_SYM                 shift, and goto state 280
+    PREV_SYM                     shift, and goto state 281
+    PRIVILEGES                   shift, and goto state 282
+    PROCESS                      shift, and goto state 24
+    PROCESSLIST_SYM              shift, and goto state 283
+    PROFILES_SYM                 shift, and goto state 285
+    PROFILE_SYM                  shift, and goto state 284
+    PROXY_SYM                    shift, and goto state 25
+    QUARTER_SYM                  shift, and goto state 286
+    QUERY_SYM                    shift, and goto state 287
+    QUICK                        shift, and goto state 288
+    READ_ONLY_SYM                shift, and goto state 289
+    REBUILD_SYM                  shift, and goto state 290
+    RECOVER_SYM                  shift, and goto state 291
+    REDOFILE_SYM                 shift, and goto state 293
+    REDO_BUFFER_SIZE_SYM         shift, and goto state 292
+    REDUNDANT_SYM                shift, and goto state 294
+    RELAY                        shift, and goto state 295
+    RELAYLOG_SYM                 shift, and goto state 296
+    RELAY_LOG_FILE_SYM           shift, and goto state 297
+    RELAY_LOG_POS_SYM            shift, and goto state 298
+    RELAY_THREAD                 shift, and goto state 299
+    RELOAD                       shift, and goto state 26
+    REMOVE_SYM                   shift, and goto state 63
+    REORGANIZE_SYM               shift, and goto state 300
+    REPAIR                       shift, and goto state 64
+    REPEATABLE_SYM               shift, and goto state 301
+    REPLICATE_DO_DB              shift, and goto state 302
+    REPLICATE_DO_TABLE           shift, and goto state 304
+    REPLICATE_IGNORE_DB          shift, and goto state 303
+    REPLICATE_IGNORE_TABLE       shift, and goto state 305
+    REPLICATE_REWRITE_DB         shift, and goto state 308
+    REPLICATE_WILD_DO_TABLE      shift, and goto state 306
+    REPLICATE_WILD_IGNORE_TABLE  shift, and goto state 307
+    REPLICATION                  shift, and goto state 27
+    RESET_SYM                    shift, and goto state 65
+    RESOURCES                    shift, and goto state 309
+    RESTORE_SYM                  shift, and goto state 66
+    RESUME_SYM                   shift, and goto state 310
+    RETURNED_SQLSTATE_SYM        shift, and goto state 311
+    RETURNS_SYM                  shift, and goto state 312
+    REVERSE_SYM                  shift, and goto state 313
+    ROLLBACK_SYM                 shift, and goto state 67
+    ROLLUP_SYM                   shift, and goto state 314
+    ROTATE_SYM                   shift, and goto state 315
+    ROUTINE_SYM                  shift, and goto state 316
+    ROWS_SYM                     shift, and goto state 317
+    ROW_COUNT_SYM                shift, and goto state 318
+    ROW_FORMAT_SYM               shift, and goto state 319
+    ROW_SYM                      shift, and goto state 320
+    RTREE_SYM                    shift, and goto state 321
+    SAVEPOINT_SYM                shift, and goto state 68
+    SCHEDULE_SYM                 shift, and goto state 322
+    SCHEMA_NAME_SYM              shift, and goto state 323
+    SECOND_SYM                   shift, and goto state 324
+    SECURITY_SYM                 shift, and goto state 69
+    SERIALIZABLE_SYM             shift, and goto state 326
+    SERIAL_SYM                   shift, and goto state 325
+    SERVER_SYM                   shift, and goto state 70
+    SESSION_SYM                  shift, and goto state 327
+    SHARE_SYM                    shift, and goto state 329
+    SHUTDOWN                     shift, and goto state 19
+    SIGNED_SYM                   shift, and goto state 71
+    SIMPLE_SYM                   shift, and goto state 328
+    SLAVE                        shift, and goto state 73
+    SLOW                         shift, and goto state 330
+    SNAPSHOT_SYM                 shift, and goto state 331
+    SOCKET_SYM                   shift, and goto state 72
+    SONAME_SYM                   shift, and goto state 74
+    SOUNDS_SYM                   shift, and goto state 332
+    SOURCE_SYM                   shift, and goto state 333
+    SQL_AFTER_GTIDS              shift, and goto state 334
+    SQL_AFTER_MTS_GAPS           shift, and goto state 335
+    SQL_BEFORE_GTIDS             shift, and goto state 336
+    SQL_BUFFER_RESULT            shift, and goto state 338
+    SQL_CACHE_SYM                shift, and goto state 337
+    SQL_NO_CACHE_SYM             shift, and goto state 339
+    SQL_THREAD                   shift, and goto state 340
+    STACKED_SYM                  shift, and goto state 341
+    STARTS_SYM                   shift, and goto state 342
+    START_SYM                    shift, and goto state 75
+    STATS_AUTO_RECALC_SYM        shift, and goto state 343
+    STATS_PERSISTENT_SYM         shift, and goto state 344
+    STATS_SAMPLE_PAGES_SYM       shift, and goto state 345
+    STATUS_SYM                   shift, and goto state 346
+    STOP_SYM                     shift, and goto state 76
+    STORAGE_SYM                  shift, and goto state 347
+    STRING_SYM                   shift, and goto state 348
+    SUBCLASS_ORIGIN_SYM          shift, and goto state 349
+    SUBDATE_SYM                  shift, and goto state 350
+    SUBJECT_SYM                  shift, and goto state 351
+    SUBPARTITIONS_SYM            shift, and goto state 353
+    SUBPARTITION_SYM             shift, and goto state 352
+    SUPER_SYM                    shift, and goto state 28
+    SUSPEND_SYM                  shift, and goto state 354
+    SWAPS_SYM                    shift, and goto state 355
+    SWITCHES_SYM                 shift, and goto state 356
+    TABLES                       shift, and goto state 358
+    TABLESPACE_SYM               shift, and goto state 360
+    TABLE_CHECKSUM_SYM           shift, and goto state 359
+    TABLE_NAME_SYM               shift, and goto state 357
+    TEMPORARY                    shift, and goto state 361
+    TEMPTABLE_SYM                shift, and goto state 362
+    TEXT_SYM                     shift, and goto state 363
+    THAN_SYM                     shift, and goto state 364
+    TIMESTAMP_ADD                shift, and goto state 368
+    TIMESTAMP_DIFF               shift, and goto state 369
+    TIMESTAMP_SYM                shift, and goto state 367
+    TIME_SYM                     shift, and goto state 370
+    TRANSACTION_SYM              shift, and goto state 365
+    TRIGGERS_SYM                 shift, and goto state 366
+    TRUNCATE_SYM                 shift, and goto state 77
+    TYPES_SYM                    shift, and goto state 371
+    TYPE_SYM                     shift, and goto state 372
+    UDF_RETURNS_SYM              shift, and goto state 373
+    UNCOMMITTED_SYM              shift, and goto state 375
+    UNDEFINED_SYM                shift, and goto state 376
+    UNDOFILE_SYM                 shift, and goto state 378
+    UNDO_BUFFER_SIZE_SYM         shift, and goto state 377
+    UNICODE_SYM                  shift, and goto state 79
+    UNINSTALL_SYM                shift, and goto state 80
+    UNKNOWN_SYM                  shift, and goto state 379
+    UNTIL_SYM                    shift, and goto state 380
+    UPGRADE_SYM                  shift, and goto state 83
+    USER                         shift, and goto state 381
+    USE_FRM                      shift, and goto state 382
+    VALIDATION_SYM               shift, and goto state 383
+    VALUE_SYM                    shift, and goto state 386
+    VARIABLES                    shift, and goto state 384
+    VIEW_SYM                     shift, and goto state 385
+    VISIBLE_SYM                  shift, and goto state 78
+    WAIT_SYM                     shift, and goto state 388
+    WARNINGS                     shift, and goto state 387
+    WEEK_SYM                     shift, and goto state 389
+    WEIGHT_STRING_SYM            shift, and goto state 392
+    WITHOUT_SYM                  shift, and goto state 390
+    WORK_SYM                     shift, and goto state 391
+    WRAPPER_SYM                  shift, and goto state 81
+    X509_SYM                     shift, and goto state 393
+    XA_SYM                       shift, and goto state 82
+    XID_SYM                      shift, and goto state 394
+    XML_SYM                      shift, and goto state 395
+    YEAR_SYM                     shift, and goto state 396
+
+    IDENT_sys              goto state 12
+    ident                  goto state 399
+    ident_keyword          goto state 13
+    label_keyword          goto state 16
+    role_or_ident_keyword  goto state 17
+    role_or_label_keyword  goto state 20
+
+state 399 // ALTER TABLE_SYM ACCOUNT_SYM '.' ACCOUNT_SYM [';']
+
+   12 table_ident: ident '.' ident .  [';', END_OF_INPUT]
+
+    ';'           reduce using rule 12 (table_ident)
+    END_OF_INPUT  reduce using rule 12 (table_ident)
+
+state 400 // ALTER TABLE_SYM ACCOUNT_SYM [';']
+
+    4 sql_statement: simple_statement_or_begin $@1 . ';' opt_end_of_input
+
+    ';'  shift, and goto state 402
+
+state 401 // ALTER TABLE_SYM ACCOUNT_SYM END_OF_INPUT
+
+    5 sql_statement: simple_statement_or_begin END_OF_INPUT .  [$end]
+
+    $end  reduce using rule 5 (sql_statement)
+
+state 402 // ALTER TABLE_SYM ACCOUNT_SYM ';'
+
+    4 sql_statement: simple_statement_or_begin $@1 ';' . opt_end_of_input
+    6 opt_end_of_input: .  [$end]
+
+    $end          reduce using rule 6 (opt_end_of_input)
+    END_OF_INPUT  shift, and goto state 404
+
+    opt_end_of_input  goto state 403
+
+state 403 // ALTER TABLE_SYM ACCOUNT_SYM ';' [$end]
+
+    4 sql_statement: simple_statement_or_begin $@1 ';' opt_end_of_input .  [$end]
+
+    $end  reduce using rule 4 (sql_statement)
+
+state 404 // ALTER TABLE_SYM ACCOUNT_SYM ';' END_OF_INPUT
+
+    7 opt_end_of_input: END_OF_INPUT .  [$end]
+
+    $end  reduce using rule 7 (opt_end_of_input)
+

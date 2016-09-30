@@ -1,20 +1,12 @@
 %{
     package sql
+    import ()
 %}
-
 
 %union {
    bytes []byte
-   query_expression QueryExpression
-   SelectStmt  SelectStmt
-   expr        Expr
-   boolexpr BoolExpr
-   valexpr ValExpr
-   str string
-   table       Table
-   table_reference_list TableRefs
-   table_reference    TableRef
-
+   statement Statement
+   table     Table
 }
 
 
@@ -68,8 +60,7 @@
 %token<bytes>  CACHE_SYM
 %token<bytes>  CALL_SYM                      /* SQL-2003-R */
 %token<bytes>  CASCADE                       /* SQL-2003-N */
-%token<bytes>  CASCADED                      /* SQL-2003-R */
-%token<bytes>  CASE_SYM                      /* SQL-2003-R */
+%token<bytes>  CASCADED                      /* SQL-2003-R */ %token<bytes>  CASE_SYM                      /* SQL-2003-R */
 %token<bytes>  CAST_SYM                      /* SQL-2003-R */
 %token<bytes>  CATALOG_NAME_SYM              /* SQL-2003-N */
 %token<bytes>  CHAIN_SYM                     /* SQL-2003-N */
@@ -683,265 +674,130 @@
 %token<bytes>  GRAMMAR_SELECTOR_GCOL       /* synthetic token: starts generated col. */
 %token<bytes>  GRAMMAR_SELECTOR_PART      /* synthetic token: starts partition expr. */
 
+%right UNIQUE_SYM KEY_SYM
+
+%left CONDITIONLESS_JOIN
+%left   JOIN_SYM INNER_SYM CROSS STRAIGHT_JOIN NATURAL LEFT RIGHT ON_SYM USING
+%left   SET_VAR
+%left   OR_OR_SYM OR_SYM OR2_SYM
+%left   XOR
+%left   AND_SYM AND_AND_SYM
+%left   BETWEEN_SYM CASE_SYM WHEN_SYM THEN_SYM ELSE
+%left   EQ EQUAL_SYM GE GT_SYM LE LT NE IS LIKE REGEXP IN_SYM
 %left   '|'
 %left   '&'
+%left   SHIFT_LEFT SHIFT_RIGHT
 %left   '-' '+'
 %left   '*' '/' '%' DIV_SYM MOD_SYM
 %left   '^'
 %left   NEG '~'
+%right  NOT_SYM NOT2_SYM
+%right  BINARY_SYM COLLATE_SYM
+%left  INTERVAL_SYM
+%left SUBQUERY_AS_EXPR
+%left '(' ')'
+
 %left EMPTY_FROM_CLAUSE
-%type <bytes> charset_name charset_name_or_default ident ident_or_text IDENT_sys ident_keyword role_or_ident_keyword role_or_label_keyword TEXT_STRING_sys label_keyword
-%type <query_expression> query_expression
-%type <expr> expr
-%type <boolexpr> bool_pri
-%type <SelectStmt> select_stmt
-%type <str> comp_op
-%type <table> table_ident
-%type <valexpr> predicate
-%left   EQ EQUAL_SYM GE GT_SYM LE LT NE IS LIKE REGEXP IN_SYM
+%right INTO
+
+%type <statement> simple_statement_or_begin simple_statement 
+%type <statement> alter
+%type <table>  table_ident
+%type <bytes> ident IDENT_sys ident_keyword role_or_label_keyword role_or_ident_keyword label_keyword ident_or_text TEXT_STRING_sys
+
 
 %%
 
-
-charset:
-       CHAR_SYM SET_SYM
-       | CHARSET
-       ;
-
-charset_name:
-            ident_or_text { $$ = $1 }
-            | BINARY_SYM { $$ = $1 };
-
-charset_name_or_default:
-                       charset_name { $$ = $1 }
-                       | DEFAULT_SYM { $$ = $1 }
-expr:
-    expr or expr %prec OR_SYM
-    { $$ = &OrExpr{Left: $1, Right: $3} }
-    |expr XOR expr %prec XOR
-    { $$ = &XorExpr{Left: $1, Right: $3} }
-    |expr and expr %prec AND_SYM
-    { $$ = &AndExpr{Left: $1, Right: $3} }
-    |NOT_SYM expr %prec NOT_SYM
-    { $$ = &NotExpr{Expr: $2} }
-    |bool_pri IS TRUE_SYM %prec IS
-    { $$ = &TrueExpr{Expr:$2} }
-    | bool_pri IS not TRUE_SYM %prec IS
-    { $$ = &NotTrueExpr{Expr:$2} }
-    | bool_pri IS FALSE_SYM %prec IS
-    { $$ = &FalseExpr{Expr:$2} }
-    | bool_pri IS not FALSE_SYM %prec IS
-    { $$ = &NotFalseExpr{Expr:$2} }
-    | bool_pri IS UNKNOWN_SYM %prec IS
-    { $$ = &NullExpr{Expr:$2} }
-    | bool_pri IS not UNKNOWN_SYM %prec IS
-    { $$ = &NOtNullExpr{Expr:$2}}
-    | bool_pri
-    { $$ = $1 }
-    ;
-
-
-comp_op:
-         EQ { $$ = OP_EQ }
-         | GE { $$ = OP_GE }
-         | GT_SYM { $$ = OP_GT }
-         | LE { $$ = OP_LE }
-         | LT { $$ = OP_LT }
-         | NE { $$ = OP_NE };
-
-all_or_any:
-         ALL
-        | ANY_SYM
-         ;
-
-bool_pri:
-        bool_pri IS NULL_SYM %prec IS
-        {
-            $$ = &NullExpr{Expr:$2}
-        }
-        | bool_pri IS not NULL_SYM %prec IS
-        {
-            $$ = &NOtNullExpr{Expr:$2}
-        }
-        | bool_pri comp_op predicate
-        {
-         $$ = &CompareExpr{Left: $1, Operator: $2, Right: $3}
-        }
-        | bool_pri comp_op all_or_any table_subquery %prec EQ
-        {
-          $$= &CompareAllExpr{Left:$1,Operator:$2,All:$3,} 
-        }
-        | predicate
-        { $$ = &Predicate{Expr: $1} }
-        ;
-
-predicate:
-         bit_expr IN_SYM table_subquery
-         {
-          $$ = &InCond{Left: $1, Right: Exprs{$3}} 
-         }
-         | bit_expr not IN_SYM table_subquer
-         {
-          $$ = &NotInCond{Left:$1,Right:Exprs{$4}}
-         }
-         | bit_expr IN_SYM '(' expr ')' 
-         {
-          $$ = &InCond{Left: $1, Right: Exprs{$4}} 
-         }
-         | bit_expr IN_SYM '(' expr ',' expr_list ')'
-         {
-          $$ = &InCond{Left: $1,  Right: append(Exprs{$4}, $6...)}
-         }
-         | bit_expr not IN_SYM '(' expr ')'
-         {
-          $$ = &NotInCond{Left:$1,Right:Exprs{$5}}
-         }
-         |bit_expr not IN_SYM '(' expr ',' expr_list ')'
-         {
-          $$ = &NotInCond{Left:$1,Right: append(Exprs{$5},$7...)}
-         }
-         | bit_expr BETWEEN_SYM bit_expr AND_SYM predicate
-         {
-            $$=&BetweenCond{Left:$1,From: $3, To: $5}
-         }
-         | bit_expr not BETWEEN_SYM bit_expr AND_SYM predicate
-         {
-            $$=&NotBetweenCond{Left:$1,From: $3, To: $5}
-         }
-         | bit_expr SOUNDS_SYM LIKE bit_expr
-         {
-            $$=&SoundsCond{Left:$1,Right:$4}
-         }
-         | bit_expr LIKE simple_expr opt_escape
-         {
-           $$= &LikeCond{Left: $1, Right: $3}
-         }
-         | bit_expr not LIKE simple_expr opt_escape
-         {
-           $$= &NotLikeCond{Left: $1, Right: $4}
-         }
-         |bit_expr REGEXP bit_expr
-         {
-           $$= &RegxpCond{Left:$1,Right:$3}
-         }
-         bit_expr not REGEXP bit_expr
-         {
-            $$=&NotRegxpCond{Left:$1,Right:$3}
-         }
-        | bit_expr
-        { $$ = $1 }
-        ;
-
-bit_expr:
-        bit_expr '|' bit_expr %prec '|'
-        {
-            $$ = &BinaryOrExpr{Left: $1,Right: $3}
-        }
-        bit_expr '&' bit_expr %prec '&'
-        {
-            $$ = &BinaryAndExpr{Left: $1,Right: $3}
-        }
-        | bit_expr SHIFT_LEFT bit_expr %prec SHIFT_LEFT
-        {
-           $$ = &BinarySLExpr{Left: $1,Right: $3}
-        }
-        |bit_expr SHIFT_RIGHT bit_expr %prec SHIFT_RIGHT
-        {
-          $$ = &BinarySRExpr{Left: $1,Right: $3}
-        }
-        | bit_expr '+' bit_expr %prec '+'
-        {
-         $$=&BinaryPlusExpr{Left: $1,Right: $3}
-        }
-        |bit_expr '-' bit_expr %prec '-'
-        {
-          $$=&BinaryMinusExpr{Left: $1,Right: $3}
-        }
-        | bit_expr '+' INTERVAL_SYM expr interval %prec '+'
-        {
-            $$=&BinaryPlusExpr{Left: $1,Right: &IntervalExpr{Expr: $4, Interval: $5}}
-        }
-        | bit_expr '-' INTERVAL_SYM expr interval %prec '-'
-        {
-            $$=&BinaryMinusExpr{Left: $1,Right: &IntervalExpr{Expr: $4, Interval: $5}}
-        }
-        | bit_expr '*' bit_expr %prec '*'
-        {
-          $$=&BinaryMultExpr{Left: $1,Right: $3}
-        }
-        | bit_expr '/' bit_expr %prec '/'
-        {
-           $$=&BinaryDivExpr{Left: $1,Right: $3}
-        }
-        | bit_expr '%' bit_expr %prec '%'
-        {
-         $$=&BinaryModExpr{Left: $1,Right: $3}
-        }
-        |bit_expr DIV_SYM bit_expr %prec DIV_SYM
-        {
-           $$=&BinaryDivExpr{Left: $1,Right: $3}
-        }
-        |bit_expr MOD_SYM bit_expr %prec MOD_SYM
-        {
-         $$=&BinaryModExpr{Left: $1,Right: $3}
-        }
-        | simple_expr
-        { $$ = $1 }
-        ;
-
-table_subquery:
-              subquery
-              ;
-
-or:
-  OR_SYM
-  | OR2_SYM
-  ;
-
-and:
-   AND_SYM
-   | AND_AND_SYM
-   ;
-
-not:
-   NOT_SYM
-   | NOT2_SYM
-   ;
-
-not2:
-    '!'
-    | NOT2_SYM
-    ;
-
-
-field_term_list:
-               field_term_list field_term
-               | field_term;
-
-
-field_term_list:
-                 field_term_list field_term
-                 | field_term;
-
-field_term:
-            TERMINATED BY text_string
-            | OPTIONALLY ENCLOSED BY text_string
-            | ENCLOSED BY text_string
-            | ESCAPED BY text_string;
-
-from_clause:
-           FROM from_tables
+start_entry:
+           sql_statement
            ;
 
-from_tables:
-           DUAL_SYM
-           | table_reference_list
+sql_statement:
+             END_OF_INPUT
+             {
+                setParseTree(yylex, nil)
+             }
+             | simple_statement_or_begin
+             {
+                setParseTree(yylex, $1)
+             }
+             ';'
+             opt_end_of_input
+             |simple_statement_or_begin END_OF_INPUT
+             {
+                setParseTree(yylex, $1)
+             }
+             ;
+
+opt_end_of_input:
+                /* empty */
+                | END_OF_INPUT
+                ;
+
+simple_statement_or_begin:
+                         simple_statement { $$ = $1}
+                         ;
+
+simple_statement:
+                alter {$$ = $1}
+                ;
+
+
+/*
+** Alter table
+*/
+
+alter:
+     ALTER TABLE_SYM table_ident
+     {
+         $$ = &AlterTableStmt{Table: $3}
+     }
+     ;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+table_ident:
+           ident
+           {
+             $$ = &TableIdent{Name:$1}; 
+           }
+           | ident '.' ident
+           {
+             $$ = &TableIdent{Schema:$1,  Name:$3}; 
+           }
+           |'.' ident
+           {
+             $$  = &TableIdent{Name:$2}; 
+           }
            ;
+
 
 ident:
-       IDENT_sys { $$ = $1 }
-       | ident_keyword { $$ = $1 };
+     IDENT_sys { $$ = $1 }
+     |  ident_keyword { $$ = $1 }
+     ;
 
+
+IDENT_sys:
+         IDENT { $$ = $1 }
+         | IDENT_QUOTED { $$ = $1 }
+         ;
 
 ident_keyword:
              label_keyword         { $$ = $1}
@@ -949,40 +805,6 @@ ident_keyword:
              | EXECUTE_SYM           {$$ = $1}
              | SHUTDOWN              {$$ = $1}
              ;
-
-
-
-IDENT_sys:
-         IDENT { $$ = $1 }
-         | IDENT_QUOTED { $$ = $1 };
-
-into_clause:
-           INTO into_destination
-           ;
-into_destination:
-                OUTFILE TEXT_STRING_filesystem
-                opt_load_data_charset
-                opt_field_term opt_line_term
-                | DUMPFILE TEXT_STRING_filesystem
-                | select_var_list
-                ;
-
-select_var_list:
-                 select_var_list ',' select_var_ident
-                 | select_var_ident;
-
-select_var_ident:
-                  '@' ident_or_text
-                  | ident_or_text;
-
-
-ident_or_text:
-             ident           { $$=$1 }
-             | TEXT_STRING_sys { $$=$1 }
-             | LEX_HOSTNAME { $$=$1 }
-             ;
-
-
 label_keyword:
              role_or_label_keyword    { $$=$1 }
              | EVENT_SYM                { $$=$1 }
@@ -994,88 +816,6 @@ label_keyword:
              | REPLICATION              { $$=$1 }
              | SUPER_SYM                { $$=$1 }
              ;
-
-
-
-opt_field_term:
-              | COLUMNS field_term_list;
-
-opt_from_clause:
-               %prec EMPTY_FROM_CLAUSE
-               | from_clause
-               ;
-
-opt_load_data_charset:
-                     | charset charset_name_or_default;
-
-opt_line_term:
-             | LINES line_term_list;
-
-
-opt_order_clause:
-                | order_clause;
-order_clause:
-            ORDER_SYM BY order_list;
-
-order_list:
-         order_list ',' order_expr
-         |order_expr
-         ;
-
-order_expr:
-          expr order_dir;
-
-order_dir:
-         | ASC
-         | DESC;
-
-
-line_term_list:
-              line_term_list line_term
-              | line_term;
-line_term:
-           TERMINATED BY text_string
-           | STARTING BY text_string
-
-query_expression:
-                query_expression_body
-                opt_order_clause
-                opt_limit_clause
-                opt_procedure_analyse_clause
-                opt_select_lock_type
-                {
-                
-                };
-
-query_expression_body:
-                     query_primary
-                     {
-                     
-                     };
-query_primary:
-             SELECT_SYM
-             select_options
-             select_item_list
-             into_clause
-             opt_from_clause
-             opt_where_clause
-             opt_group_clause
-             opt_having_clause
-             {
-             
-             }
-             ;
-
-query_spec_option:
-                 STRAIGHT_JOIN
-                 | HIGH_PRIORITY
-                 | DISTINCT
-                 | SQL_SMALL_RESULT
-                 | SQL_BIG_RESULT
-                 | SQL_BUFFER_RESULT
-                 | SQL_CALC_FOUND_ROWS
-                 | ALL
-                 ;
 role_or_ident_keyword:
           ACCOUNT_SYM           { $$=$1 }
         | ASCII_SYM             { $$=$1 }
@@ -1132,9 +872,7 @@ role_or_ident_keyword:
         | WRAPPER_SYM           { $$=$1 }
         | XA_SYM                { $$=$1 }
         | UPGRADE_SYM           { $$=$1 }
-        ;                                                                     
-
-
+        ;
 role_or_label_keyword:
           ACTION                   { $$=$1 }
         | ADDDATE_SYM              { $$=$1 }
@@ -1454,74 +1192,16 @@ role_or_label_keyword:
         | XML_SYM                  { $$=$1 }
         | YEAR_SYM                 { $$=$1 }
         ;
-select_item:
-           table_wild
-           ;
 
-select_item_list:
-                select_item_list ',' select_item
-                | select_item
-                | '*';
 
-select_option:
-             query_spec_option
-             |SQL_NO_CACHE_SYM
-             |SQL_CACHE_SYM
+
+
+ident_or_text:
+             ident           { $$=$1}
+             | TEXT_STRING_sys { $$=$1}
+             | LEX_HOSTNAME { $$=$1;}
              ;
 
-
-select_options:
-              | select_option_list
-              ;
-
-select_option_list:
-                  select_option_list select_option
-                  | select_option
-                  ;
-
-
-
-select_stmt:
-           query_expression
-           {
-                $$ = &Select{$1};
-           }
-           ;
-
-text_string:
-           TEXT_STRING_literal
-           | HEX_NUM
-           | BIN_NUM
-           ;
-
-table_ident:
-           ident
-           {
-                $$ = &TableName{Name:$1};
-           }
-           | ident '.' ident
-           {
-                $$ = &TableName{Schema:$1,  Name:$3};
-           }
-           | '.' ident
-           {
-               $$  = &TableName{Name:$2};
-           }
-           ;
-
-table_wild:
-            ident '.' '*'
-            | ident '.' ident '.' '*'
-            ;
-
-table_reference_list:
-                   table_reference
-                   | table_reference_list ',' table_reference
-                   ;
-TEXT_STRING_filesystem:
-                      TEXT_STRING
-                      ;
-
 TEXT_STRING_sys:
-               TEXT_STRING { $$ = $1}
+               TEXT_STRING { $$ = $1} 
                ;

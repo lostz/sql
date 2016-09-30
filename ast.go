@@ -1,6 +1,10 @@
 package sql
 
-type TableRef interface {
+type Statement interface {
+	IsDDL() bool
+	IsDML() bool
 }
 
-type TableRefs []TableRef
+func setParseTree(yylex interface{}, stmt Statement) {
+	yylex.(*Lexer).ParseTree = stmt
+}

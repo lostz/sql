@@ -2,22 +2,19 @@ package sql
 
 import (
 	"bufio"
+	"bytes"
+	"fmt"
 	"strconv"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/lostz/sql/charset"
 )
 
-const NAMES_SEP_CHAR byte = '\377'
-const MYSQL_VERSION_ID = 50109
-
-type lex struct {
+type Lexer struct {
 	reader    *bufio.Reader
 	buf       []byte
 	pos       int
 	lastPos   int
-	state     uint
 	nextState uint
 	tokStart  int
 	charset   *charset.CharsetInfo
@@ -28,55 +25,56 @@ type lex struct {
 }
 
 type mode struct {
-	MODE_ANSI_QUOTES          bool
-	MODE_HIGH_NOT_PRECEDENCE  bool
-	MODE_PIPES_AS_CONCAT      bool
-	MODE_NO_BACKSLASH_ESCAPES bool
-	MODE_IGNORE_SPACE         bool
+	ModeAnsiQuotes         bool
+	ModeHighNotPrecedence  bool
+	ModePipesAsConcat      bool
+	ModeNoBackslashEscapes bool
+	ModeIgnoreSpace        bool
 }
 
-func NewLexer(sql string) *lex {
-	s := &lex{
-		reader:  bufio.NewReader(strings.NewReader(sql)),
-		buf:     []byte(sql),
-		state:   MY_LEX_START,
-		charset: charset.CSUtf8GeneralCli,
+func NewLexer(sql string) *Lexer {
+	s := &Lexer{
+		reader:    bufio.NewReader(strings.NewReader(sql)),
+		buf:       []byte(sql),
+		nextState: MyLexStart,
+		charset:   charset.CSUtf8GeneralCli,
 	}
 	return s
 }
 
-func (s *lex) Lex(lval *MySQLSymType) (retstate int) {
+func (s *Lexer) Lex(lval *MySQLSymType) (retstate int) {
 	var resultState int
 	var c byte
 	var length int
-	state := s.state
+	state := s.nextState
 	cs := s.charset
 	stateMap := cs.StateMap
 	identMap := cs.IdentMap
+	s.nextState = MyLexOperatorOrIdent
 	for {
 		switch state {
-		case MY_LEX_OPERATOR_OR_IDENT, MY_LEX_START:
-			for c = s.next(); stateMap[c] == MY_LEX_SKIP; c = s.next() {
+		case MyLexOperatorOrIdent, MyLexStart:
+			for c = s.next(); stateMap[c] == MyLexSkip; c = s.next() {
 
 			}
 			s.tokStart = s.pos - 1
 			state = stateMap[c]
-		case MY_LEX_ESCAPE:
+		case MyLexEscape:
 			if s.next() == 'N' {
 				retstate = NULL_SYM
 				return
 			}
 			fallthrough
-		case MY_LEX_CHAR, MY_LEX_SKIP:
+		case MyLexChar, MyLexSkip:
 			if c == '-' && s.peek(0) == '-' && (cs.IsSpace(s.peek(1)) || cs.IsCntrl(s.peek(1))) {
-				state = MY_LEX_COMMENT
+				state = MyLexComment
 				break
 			}
 			s.pos = s.tokStart
 
 			c = s.next()
 			if c != ')' {
-				s.nextState = MY_LEX_START
+				s.nextState = MyLexStart
 			}
 
 			if c == ',' {
@@ -87,39 +85,39 @@ func (s *lex) Lex(lval *MySQLSymType) (retstate int) {
 			}
 			retstate = int(c)
 			return
-		case MY_LEX_IDENT_OR_NCHAR:
+		case MyLexIdentOrNchar:
 			if s.peek(0) != '\'' {
-				state = MY_LEX_IDENT
+				state = MyLexIdent
 				break
 			}
 
 			retstate, c = s.scanChar(lval)
 			return
-		case MY_LEX_IDENT_OR_HEX:
+		case MyLexIdentOrHex:
 			if s.peek(0) == '\'' {
-				state = MY_LEX_HEX_NUMBER
+				state = MyLexHexNumber
 				break
 			}
 			fallthrough
-		case MY_LEX_IDENT_OR_BIN:
+		case MyLexIdentOrBin:
 			if s.peek(0) == '\'' {
-				state = MY_LEX_BIN_NUMBER
+				state = MyLexBinNumber
 				break
 			}
 			fallthrough
-		case MY_LEX_IDENT:
+		case MyLexIdent:
 			retstate, lval.bytes = s.scanIdentifier()
 			return
-		case MY_LEX_IDENT_SEP: // Found ident before
+		case MyLexIdentSep: // Found ident before
 			// And Now '.'
 			c = s.next()
-			s.nextState = MY_LEX_IDENT_START
+			s.nextState = MyLexIdentStart
 			if identMap[s.peek(0)] == 0 {
-				s.nextState = MY_LEX_START
+				s.nextState = MyLexStart
 			}
 			retstate = int(c)
 			return
-		case MY_LEX_NUMBER_IDENT: // number or ident which num-start
+		case MyLexNumberIdent: // number or ident which num-start
 			for cs.IsDigit(s.peek(0)) {
 				c = s.next()
 			}
@@ -127,7 +125,7 @@ func (s *lex) Lex(lval *MySQLSymType) (retstate int) {
 
 			if identMap[c] == 0 {
 				// Can't be identifier
-				state = MY_LEX_INT_OR_REAL
+				state = MyLexIntOrReal
 				break
 			}
 
@@ -162,14 +160,14 @@ func (s *lex) Lex(lval *MySQLSymType) (retstate int) {
 				s.back()
 			}
 			fallthrough
-		case MY_LEX_IDENT_START:
+		case MyLexIdentStart:
 			retstate, lval.bytes = s.getPureIdentifier()
 			return
-		case MY_LEX_USER_VARIABLE_DELIMITER:
+		case MyLexUserVariableDelimiter:
 			quoteChar := c
 
 			for c = s.next(); c != EOF; c = s.next() {
-				if c == NAMES_SEP_CHAR {
+				if c == NamesSepChar {
 					break
 				}
 
@@ -183,19 +181,19 @@ func (s *lex) Lex(lval *MySQLSymType) (retstate int) {
 				return
 			}
 
-			s.nextState = MY_LEX_START
+			s.nextState = MyLexStart
 			lval.bytes = s.buf[s.tokStart:s.pos]
 			retstate = IDENT_QUOTED
 			return
 
-		case MY_LEX_INT_OR_REAL:
+		case MyLexIntOrReal:
 			if c != '.' {
 				retstate = s.scanInt(lval)
 				return
 			}
 			s.next()
 			fallthrough
-		case MY_LEX_REAL:
+		case MyLexReal:
 			for cs.IsDigit(s.peek(0)) {
 				c = s.next()
 			}
@@ -208,14 +206,14 @@ func (s *lex) Lex(lval *MySQLSymType) (retstate int) {
 					return
 				}
 
-				state = MY_LEX_CHAR
+				state = MyLexChar
 				break
 			}
 
 			lval.bytes = s.buf[s.tokStart:s.pos]
 			retstate = DECIMAL_NUM
 			return
-		case MY_LEX_HEX_NUMBER:
+		case MyLexHexNumber:
 			s.next() // skip '
 			for c = s.next(); cs.IsXdigit(c); c = s.next() {
 			}
@@ -231,7 +229,7 @@ func (s *lex) Lex(lval *MySQLSymType) (retstate int) {
 			retstate = HEX_NUM
 			return
 
-		case MY_LEX_BIN_NUMBER:
+		case MyLexBinNumber:
 			s.next()
 			for c = s.next(); c == '0' || c == '1'; c = s.next() {
 			}
@@ -246,50 +244,50 @@ func (s *lex) Lex(lval *MySQLSymType) (retstate int) {
 
 			retstate = BIN_NUM
 			return
-		case MY_LEX_CMP_OP:
-			if stateMap[s.peek(0)] == MY_LEX_CMP_OP || stateMap[s.peek(0)] == MY_LEX_LONG_CMP_OP {
+		case MyLexCmpOp:
+			if stateMap[s.peek(0)] == MyLexCmpOp || stateMap[s.peek(0)] == MyLexLongCmpOp {
 				s.next()
 			}
 
 			var ok bool
 			if retstate, ok = findKeywords(s.buf[s.tokStart:s.pos], false); ok {
-				s.nextState = MY_LEX_START
+				s.nextState = MyLexStart
 				return
 			}
-			state = MY_LEX_CHAR
+			state = MyLexChar
 
-		case MY_LEX_LONG_CMP_OP:
-			if stateMap[s.peek(0)] == MY_LEX_CMP_OP || stateMap[s.peek(0)] == MY_LEX_LONG_CMP_OP {
+		case MyLexLongCmpOp:
+			if stateMap[s.peek(0)] == MyLexCmpOp || stateMap[s.peek(0)] == MyLexLongCmpOp {
 				s.next()
-				if stateMap[s.peek(0)] == MY_LEX_CMP_OP {
+				if stateMap[s.peek(0)] == MyLexCmpOp {
 					s.next()
 				}
 			}
 
 			var ok bool
 			if retstate, ok = findKeywords(s.buf[s.tokStart:s.pos], false); ok {
-				s.nextState = MY_LEX_START
+				s.nextState = MyLexStart
 				return
 			}
-			state = MY_LEX_CHAR
+			state = MyLexChar
 
-		case MY_LEX_BOOL:
+		case MyLexBool:
 			if c != s.peek(0) {
-				state = MY_LEX_CHAR
+				state = MyLexChar
 			} else {
 				s.next()
 				retstate, _ = findKeywords(s.buf[s.tokStart:s.tokStart+2], false)
-				s.nextState = MY_LEX_START
+				s.nextState = MyLexStart
 				return
 			}
 
-		case MY_LEX_STRING_OR_DELIMITER:
-			if s.mode.MODE_ANSI_QUOTES {
-				state = MY_LEX_USER_VARIABLE_DELIMITER
+		case MyLexStringOrDelimiter:
+			if s.mode.ModeAnsiQuotes {
+				state = MyLexUserVariableDelimiter
 				break
 			}
 			fallthrough
-		case MY_LEX_STRING:
+		case MyLexString:
 			b, err := s.scanText()
 			if err != nil {
 				s.Error(err.Error())
@@ -299,7 +297,7 @@ func (s *lex) Lex(lval *MySQLSymType) (retstate int) {
 				retstate = TEXT_STRING
 			}
 			return
-		case MY_LEX_COMMENT:
+		case MyLexComment:
 			c = s.next()
 			n := s.peek(0)
 			for c != '\n' && !(c == '\r' && n != '\n') {
@@ -308,18 +306,18 @@ func (s *lex) Lex(lval *MySQLSymType) (retstate int) {
 			}
 
 			s.back() // Safety against eof
-			state = MY_LEX_START
-		case MY_LEX_LONG_COMMENT:
+			state = MyLexStart
+		case MyLexLongComment:
 			if s.peek(0) != '*' {
-				state = MY_LEX_CHAR
+				state = MyLexChar
 				break
 			}
 
 			s.next() // skip '*'
 			if s.peek(0) == '!' {
-				version := MYSQL_VERSION_ID
+				version := MysqlVersionID
 				s.next() // skip '!'
-				state = MY_LEX_START
+				state = MyLexStart
 				if cs.IsDigit(s.peek(0)) {
 					start := s.pos
 					s.next() // skip first digit
@@ -327,15 +325,15 @@ func (s *lex) Lex(lval *MySQLSymType) (retstate int) {
 						s.next()
 					}
 
-					if i, err := strconv.Atoi(string(s.buf[start:s.pos])); err != nil {
+					i, err := strconv.Atoi(string(s.buf[start:s.pos]))
+					if err != nil {
 						s.Error(err.Error())
 						return ABORT_SYM
-					} else {
-						version = i
 					}
+					version = i
 				}
 
-				if version <= MYSQL_VERSION_ID {
+				if version <= MysqlVersionID {
 					s.inComment = 1
 					break
 				}
@@ -349,81 +347,80 @@ func (s *lex) Lex(lval *MySQLSymType) (retstate int) {
 				s.next() // skip for '*/'
 			}
 
-			state = MY_LEX_START
+			state = MyLexStart
 
-		case MY_LEX_END_LONG_COMMENT:
+		case MyLexEndLongComment:
 			if s.inComment != 0 && s.peek(0) == '/' {
 				s.next()
 				s.inComment = 0
-				state = MY_LEX_START
+				state = MyLexStart
 			} else {
-				state = MY_LEX_CHAR
+				state = MyLexChar
 			}
-		case MY_LEX_SET_VAR:
+		case MyLexSetVar:
 			if s.peek(0) != '=' {
-				state = MY_LEX_CHAR
+				state = MyLexChar
 			} else {
 				s.next()
 				retstate = SET_VAR
 				return
 			}
 
-		case MY_LEX_SEMICOLON:
+		case MyLexSemicolon:
 			if s.peek(0) != 0 {
-				state = MY_LEX_CHAR
+				state = MyLexChar
 				break
 			}
 			fallthrough
-		case MY_LEX_EOL:
+		case MyLexEol:
 			if s.pos >= len(s.buf) {
-				s.nextState = MY_LEX_END
+				s.nextState = MyLexEnd
 				retstate = END_OF_INPUT
 				return
 			}
 
-			state = MY_LEX_CHAR
-		case MY_LEX_END:
-			s.nextState = MY_LEX_END
+			state = MyLexChar
+		case MyLexEnd:
+			s.nextState = MyLexEnd
 			retstate = 0
 			return
-		case MY_LEX_REAL_OR_POINT:
+		case MyLexRealOrPoint:
 			if cs.IsDigit(s.peek(0)) {
-				state = MY_LEX_REAL
+				state = MyLexReal
 			} else {
-				state = MY_LEX_IDENT_SEP
+				state = MyLexIdentSep
 				s.back()
 			}
-		case MY_LEX_USER_END: // end '@' of user@hostname
+		case MyLexUserEnd: // end '@' of user@hostname
 			switch stateMap[s.peek(0)] {
-			case MY_LEX_STRING, MY_LEX_USER_VARIABLE_DELIMITER, MY_LEX_STRING_OR_DELIMITER:
-			case MY_LEX_USER_END:
-				s.nextState = MY_LEX_SYSTEM_VAR
+			case MyLexString, MyLexUserVariableDelimiter, MyLexStringOrDelimiter:
+			case MyLexUserEnd:
+				s.nextState = MyLexSystemVar
 			default:
-				s.nextState = MY_LEX_HOSTNAME
+				s.nextState = MyLexHostname
 			}
 
 			retstate = int('@')
 			return
 
-		case MY_LEX_HOSTNAME:
+		case MyLexHostname:
 			for c = s.next(); cs.IsAlnum(c) || c == '.' || c == '_' || c == '$'; c = s.next() {
 			}
 
 			retstate = LEX_HOSTNAME
 			return
-		case MY_LEX_SYSTEM_VAR:
+		case MyLexSystemVar:
 			s.next()
 			s.nextState = func() uint {
-				if stateMap[s.peek(0)] == MY_LEX_USER_VARIABLE_DELIMITER {
-					return MY_LEX_OPERATOR_OR_IDENT
-				} else {
-					return MY_LEX_IDENT_OR_KEYWORD
+				if stateMap[s.peek(0)] == MyLexUserVariableDelimiter {
+					return MyLexOperatorOrIdent
 				}
+				return MyLexIdentOrKeyword
 			}()
 
 			retstate = int('@')
 			return
-		case MY_LEX_IDENT_OR_KEYWORD:
+		case MyLexIdentOrKeyword:
 			resultState = 0
 			c = s.next()
 			for identMap[c] != 0 {
@@ -438,7 +435,7 @@ func (s *lex) Lex(lval *MySQLSymType) (retstate int) {
 			}
 
 			if c == '.' {
-				s.nextState = MY_LEX_IDENT_SEP
+				s.nextState = MyLexIdentSep
 			}
 
 			length = s.pos - s.tokStart - 1
@@ -463,7 +460,7 @@ func (s *lex) Lex(lval *MySQLSymType) (retstate int) {
 	return
 }
 
-func (s *lex) next() (b byte) {
+func (s *Lexer) next() (b byte) {
 	if s.pos < len(s.buf) {
 		b = s.buf[s.pos]
 		s.pos++
@@ -473,9 +470,9 @@ func (s *lex) next() (b byte) {
 	return
 }
 
-func (s *lex) peek(pos int) (b byte) {
+func (s *Lexer) peek(pos int) (b byte) {
 	if s.pos+pos < len(s.buf) {
-		b = s.buf[s.pos+1]
+		b = s.buf[s.pos+pos]
 	} else {
 		b = EOF
 	}
@@ -483,15 +480,15 @@ func (s *lex) peek(pos int) (b byte) {
 
 }
 
-func (s *lex) back() {
-	s.pos -= 1
+func (s *Lexer) back() {
+	s.pos--
 }
 
-func (s *lex) head() (b byte) {
+func (s *Lexer) head() (b byte) {
 	return s.buf[s.pos-1]
 }
 
-func (s *lex) scanChar(lval *MySQLSymType) (int, byte) {
+func (s *Lexer) scanChar(lval *MySQLSymType) (int, byte) {
 	s.next()
 
 	var c byte
@@ -508,9 +505,8 @@ func (s *lex) scanChar(lval *MySQLSymType) (int, byte) {
 
 }
 
-func (s *lex) scanIdentifier() (int, []byte) {
+func (s *Lexer) scanIdentifier() (int, []byte) {
 	identMap := s.charset.IdentMap
-	log.WithFields(log.Fields{"identMap": identMap, "buf": s.buf}).Info()
 	c := s.peek(0)
 	rs := int(c)
 	for identMap[s.peek(0)] != 0 {
@@ -527,9 +523,9 @@ func (s *lex) scanIdentifier() (int, []byte) {
 
 	c = s.peek(0)
 	if start == s.pos && s.peek(0) == '.' && identMap[int(s.peek(0))] != 0 {
-		s.nextState = MY_LEX_IDENT_SEP
+		s.nextState = MyLexIdentSep
 	} else if ret, ok := findKeywords(idc, c == '('); ok {
-		s.nextState = MY_LEX_START
+		s.nextState = MyLexStart
 		return ret, idc
 	}
 
@@ -541,32 +537,32 @@ func (s *lex) scanIdentifier() (int, []byte) {
 
 }
 
-func (s *lex) scanInt(lval *MySQLSymType) int {
+func (s *Lexer) scanInt(lval *MySQLSymType) int {
 	length := s.pos - s.tokStart
 	lval.bytes = s.buf[s.tokStart:s.pos]
 
-	if length < LONG_LEN {
+	if length < LongLen {
 		return NUM
 	}
 
 	neg := false
 	start := s.tokStart
 	if s.buf[start] == '+' {
-		start += 1
-		length -= 1
+		start++
+		length--
 	} else if s.buf[start] == '-' {
-		start += 1
-		length -= 1
+		start++
+		length--
 		neg = true
 	}
 
 	// ignore any '0' character
 	for start < s.pos && s.buf[start] == '0' {
-		start += 1
-		length -= 1
+		start++
+		length--
 	}
 
-	if length < LONG_LEN {
+	if length < LongLen {
 		return NUM
 	}
 
@@ -574,35 +570,34 @@ func (s *lex) scanInt(lval *MySQLSymType) int {
 	var smaller int
 	var bigger int
 	if neg {
-		if length == LONG_LEN {
-			cmp = SIGNED_LONG[1:len(SIGNED_LONG)]
+		if length == LongLen {
+			cmp = SignedLong[1:len(SignedLong)]
 			smaller = NUM
 			bigger = LONG_NUM
-		} else if length < SIGNED_LONGLONG_LEN {
+		} else if length < SignedLonglongLen {
 			return LONG_NUM
-		} else if length > SIGNED_LONGLONG_LEN {
+		} else if length > SignedLonglongLen {
 			return DECIMAL_NUM
-		} else {
-			cmp = SIGNED_LONGLONG[1:len(SIGNED_LONGLONG)]
-			smaller = LONG_NUM
-			bigger = DECIMAL_NUM
 		}
+		cmp = SignedLonglong[1:len(SignedLonglong)]
+		smaller = LONG_NUM
+		bigger = DECIMAL_NUM
 	} else {
-		if length == LONG_LEN {
-			cmp = LONG
+		if length == LongLen {
+			cmp = Long
 			smaller = NUM
 			bigger = LONG_NUM
-		} else if length < LONGLONG_LEN {
+		} else if length < LonglongLen {
 			return LONG_NUM
-		} else if length > LONGLONG_LEN {
-			if length > UNSIGNED_LONGLONG_LEN {
+		} else if length > LonglongLen {
+			if length > UnsignedLonglongLen {
 				return DECIMAL_NUM
 			}
-			cmp = UNSIGNED_LONGLONG
+			cmp = UnsignedLonglong
 			smaller = ULONGLONG_NUM
 			bigger = DECIMAL_NUM
 		} else {
-			cmp = LONGLONG
+			cmp = Longlong
 			smaller = LONG_NUM
 			bigger = ULONGLONG_NUM
 		}
@@ -610,8 +605,8 @@ func (s *lex) scanInt(lval *MySQLSymType) int {
 
 	idx := 0
 	for idx < len(cmp) && cmp[idx] == s.buf[start] {
-		idx += 1
-		start += 1
+		idx++
+		start++
 	}
 
 	if idx == len(cmp) {
@@ -624,7 +619,7 @@ func (s *lex) scanInt(lval *MySQLSymType) int {
 	return bigger
 }
 
-func (s *lex) scanFloat(lval *MySQLSymType, c *byte) (int, bool) {
+func (s *Lexer) scanFloat(lval *MySQLSymType, c *byte) (int, bool) {
 	cs := s.charset
 
 	// try match (+|-)? digit+
@@ -645,7 +640,7 @@ func (s *lex) scanFloat(lval *MySQLSymType, c *byte) (int, bool) {
 	return 0, false
 }
 
-func (s *lex) getPureIdentifier() (int, []byte) {
+func (s *Lexer) getPureIdentifier() (int, []byte) {
 	identMap := s.charset.IdentMap
 	c := s.peek(0)
 	rs := int(c)
@@ -662,13 +657,13 @@ func (s *lex) getPureIdentifier() (int, []byte) {
 	}
 
 	if s.peek(0) == '.' && identMap[int(s.peek(1))] != 0 {
-		s.nextState = MY_LEX_IDENT_SEP
+		s.nextState = MyLexIdentSep
 	}
 
 	return rs, s.buf[s.tokStart:s.pos]
 }
 
-func (s *lex) scanText() ([]byte, error) {
+func (s *Lexer) scanText() ([]byte, error) {
 	var dq bool
 	var sep byte
 
@@ -677,7 +672,7 @@ func (s *lex) scanText() ([]byte, error) {
 	}
 	for s.pos < len(s.buf) {
 		c := s.next()
-		if c == '\\' && !s.mode.MODE_NO_BACKSLASH_ESCAPES {
+		if c == '\\' && !s.mode.ModeNoBackslashEscapes {
 			if s.peek(0) == EOF {
 				return nil, ErrStringFormat
 			}
@@ -693,8 +688,10 @@ func (s *lex) scanText() ([]byte, error) {
 
 }
 
-func (s *lex) Error(err string) {
-	s.LastError = err
+func (s *Lexer) Error(err string) {
+	buf := bytes.NewBuffer(make([]byte, 0, 32))
+	fmt.Fprintf(buf, "%s at position %v near '%s'", err, s.pos, string(s.buf[s.tokStart:s.pos]))
+	s.LastError = buf.String()
 }
 
 func matchQuote(c byte, doubleQuote bool) bool {

@@ -1,40 +1,15 @@
 package sql
 
-//Select select_stmt
-type Select struct {
-	QueryExpression QueryExpression
-}
-
-//QueryExpression ...
-type QueryExpression struct {
-	QueryExpressionBody QueryExpressionBody
-	Order               Order
-	Limit               Limit
-	Lock                Lock
-}
-
-//QueryExpressionBody ...
-type QueryExpressionBody struct {
-}
-
-//Order ...
-type Order struct {
-}
-
-//Limit ...
-type Limit struct {
-}
-
-//Lock ...
-type Lock struct {
-}
-
-//Table ...
 type Table interface {
+	GetSchemas() []string
 }
 
-// TableName  table name
-type TableName struct {
-	Schema string
-	Name   string
+//TableIdent table_ident
+type TableIdent struct {
+	Schema []byte
+	Name   []byte
+}
+
+func (t *TableIdent) GetSchemas() []string {
+	return []string{string(t.Schema)}
 }
