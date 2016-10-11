@@ -915,7 +915,7 @@ execute_var_ident:
 help:
           HELP_SYM
           {
-            $$ = HelpStmt{}
+            $$ = &HelpStmt{}
           }
         ;
 
@@ -1059,21 +1059,21 @@ create:
           '(' key_list ')' normal_key_options
           opt_index_lock_algorithm
           {
-            $$ = &CreateIndex{}
+            $$ = &CreateIndexStmt{}
           }
         | CREATE fulltext INDEX_SYM ident init_key_options ON
           table_ident
           '(' key_list ')' fulltext_key_options
           opt_index_lock_algorithm 
           {
-            $$ = &CreateIndex{}
+            $$ = &CreateIndexStmt{}
           }
         | CREATE spatial INDEX_SYM ident init_key_options ON
           table_ident
           '(' key_list ')' spatial_key_options
           opt_index_lock_algorithm
           {
-            $$ = &CreateIndex{}
+            $$ = &CreateIndexStmt{}
           }
         | CREATE DATABASE opt_if_not_exists ident
           opt_create_database_options
@@ -1084,17 +1084,17 @@ create:
           view_or_trigger_or_sp_or_event
           {
             switch st := $2.(type) {
-            case *viewTail:
+            case *ViewTail:
                 $$ = &CreateViewStmt{View: st.View, As: st.As}
-            case *triggerTail:
+            case *TriggerTail:
                 $$ = &CreateTriggerStmt{Trigger: st.Trigger}
-            case *spTail:
+            case *SpTail:
                 $$ = &CreateProcedureStmt{Procedure: st.Procedure}
-            case *sfTail:
+            case *SfTail:
                 $$ = &CreateFunctionStmt{Function: st.Function}
-            case *udfTail:
+            case *UdfTail:
                 $$ = &CreateUDFStmt{Function: st.Function}
-            case *eventTail:
+            case *EventTail:
                 $$ = &CreateEventStmt{Event: st.Event}
             default:
                 panic(__yyfmt__.Sprintf("unknow create statement:%T", st))
@@ -7092,7 +7092,7 @@ view_tail:
           view_suid VIEW_SYM table_ident
           view_list_opt AS view_select
           {
-            $$ = &viewTail{View: $3, As: $6}
+            $$ = &ViewTail{View: $3, As: $6}
           }
         ;
 
@@ -7300,3 +7300,5 @@ uninstall:
 /**
   @} (end of group Parser)
 */
+
+
