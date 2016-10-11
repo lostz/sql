@@ -10,6 +10,7 @@ import (
 	"github.com/lostz/sql/charset"
 )
 
+// Lexer for yacc
 type Lexer struct {
 	reader    *bufio.Reader
 	buf       []byte

@@ -1,10 +1,9 @@
 package sql
 
 type Statement interface {
-	IsDDL() bool
-	IsDML() bool
+	Statement()
 }
 
-func setParseTree(yylex interface{}, stmt Statement) {
+func SetParseTree(yylex interface{}, stmt Statement) {
 	yylex.(*Lexer).ParseTree = stmt
 }

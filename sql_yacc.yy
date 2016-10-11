@@ -1,15 +1,58 @@
+/*
+   Copyright (c) 2000, 2015 Oracle and/or its affiliates. All rights reserved.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; version 2 of the License.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301  USA */
+
+/* sql_yacc.yy */
 %{
-    package sql
-    import ()
+package sql
+import (
+    )
 %}
-
 %union {
-   bytes []byte
-   statement Statement
-   table     Table
-   tables  Tables
+    str  string
+    interf interface{}
+    bytes []byte
+    statement Statement
+    selectStatement *SelectStmt
+    subquery  *SubQuery
+    table     Table
+    tables Tables
+    tableToTable *TableToTable
+    tableToTables []*TableToTable
+    tableIndex *TableIndex
+    tableIndexs []*TableIndex
+    tableExpression *TableExpression
+    spname *Spname
+    expr Expr
+    exprs Exprs
+    boolexpr BoolExpr
+    valexpr  ValueExpr
+    empty struct{}
+    lockType SelectLockType
+    viewTail *ViewTail
+    eventTail *EventTail
+    triggerTail *TriggerTail
+    sfTail *SfTail
+    spTail *SpTail
+    udfTail *UdfTail
+    variable *Variable
+    variables []*Variable
+    likeOrWhere *LikeOrWhere
+    lifeType LifeType
+    limit *Limit
 }
-
 
 %token<bytes>  ABORT_SYM                     /* INTERNAL (used in lex) */
 %token<bytes>  ACCESSIBLE_SYM
@@ -42,8 +85,8 @@
 %token<bytes>  BEFORE_SYM                    /* SQL-2003-N */
 %token<bytes>  BEGIN_SYM                     /* SQL-2003-R */
 %token<bytes>  BETWEEN_SYM                   /* SQL-2003-R */
-%token<bytes>  BIGINT_SYM                    /* SQL-2003-R */
-%token<bytes>  BINARY_SYM                    /* SQL-2003-R */
+%token<bytes>  BIGINT                        /* SQL-2003-R */
+%token<bytes>  BINARY                        /* SQL-2003-R */
 %token<bytes>  BINLOG_SYM
 %token<bytes>  BIN_NUM
 %token<bytes>  BIT_AND                       /* MYSQL-FUNC */
@@ -61,7 +104,8 @@
 %token<bytes>  CACHE_SYM
 %token<bytes>  CALL_SYM                      /* SQL-2003-R */
 %token<bytes>  CASCADE                       /* SQL-2003-N */
-%token<bytes>  CASCADED                      /* SQL-2003-R */ %token<bytes>  CASE_SYM                      /* SQL-2003-R */
+%token<bytes>  CASCADED                      /* SQL-2003-R */
+%token<bytes>  CASE_SYM                      /* SQL-2003-R */
 %token<bytes>  CAST_SYM                      /* SQL-2003-R */
 %token<bytes>  CATALOG_NAME_SYM              /* SQL-2003-N */
 %token<bytes>  CHAIN_SYM                     /* SQL-2003-N */
@@ -91,7 +135,6 @@
 %token<bytes>  COMPLETION_SYM
 %token<bytes>  COMPRESSED_SYM
 %token<bytes>  COMPRESSION_SYM
-%token<bytes>  ENCRYPTION_SYM
 %token<bytes>  CONCURRENT
 %token<bytes>  CONDITION_SYM                 /* SQL-2003-R, SQL-2008-R */
 %token<bytes>  CONNECTION_SYM
@@ -119,7 +162,7 @@
 %token<bytes>  DATABASES
 %token<bytes>  DATAFILE_SYM
 %token<bytes>  DATA_SYM                      /* SQL-2003-N */
-%token<bytes>  DATETIME_SYM                  /* MYSQL */
+%token<bytes>  DATETIME
 %token<bytes>  DATE_ADD_INTERVAL             /* MYSQL-FUNC */
 %token<bytes>  DATE_SUB_INTERVAL             /* MYSQL-FUNC */
 %token<bytes>  DATE_SYM                      /* SQL-2003-R */
@@ -132,7 +175,7 @@
 %token<bytes>  DECIMAL_NUM
 %token<bytes>  DECIMAL_SYM                   /* SQL-2003-R */
 %token<bytes>  DECLARE_SYM                   /* SQL-2003-R */
-%token<bytes>  DEFAULT_SYM                   /* SQL-2003-R */
+%token<bytes>  DEFAULT                       /* SQL-2003-R */
 %token<bytes>  DEFAULT_AUTH_SYM              /* INTERNAL */
 %token<bytes>  DEFINER_SYM
 %token<bytes>  DELAYED_SYM
@@ -166,7 +209,7 @@
 %token<bytes>  END_OF_INPUT                  /* INTERNAL */
 %token<bytes>  ENGINES_SYM
 %token<bytes>  ENGINE_SYM
-%token<bytes>  ENUM_SYM                      /* MYSQL */
+%token<bytes>  ENUM
 %token<bytes>  EQ                            /* OPERATOR */
 %token<bytes>  EQUAL_SYM                     /* OPERATOR */
 %token<bytes>  ERROR_SYM
@@ -212,7 +255,7 @@
 %token<bytes>  GENERAL
 %token<bytes>  GENERATED
 %token<bytes>  GROUP_REPLICATION
-%token<bytes>  GEOMETRYCOLLECTION_SYM        /* MYSQL */
+%token<bytes>  GEOMETRYCOLLECTION
 %token<bytes>  GEOMETRY_SYM
 %token<bytes>  GET_FORMAT                    /* MYSQL-FUNC */
 %token<bytes>  GET_SYM                       /* SQL-2003-R */
@@ -248,9 +291,8 @@
 %token<bytes>  INNER_SYM                     /* SQL-2003-R */
 %token<bytes>  INOUT_SYM                     /* SQL-2003-R */
 %token<bytes>  INSENSITIVE_SYM               /* SQL-2003-R */
-%token<bytes>  INSERT_SYM                    /* SQL-2003-R */
+%token<bytes>  INSERT                        /* SQL-2003-R */
 %token<bytes>  INSERT_METHOD
-%token<bytes>  INSTANCE_SYM
 %token<bytes>  INSTALL_SYM
 %token<bytes>  INTERVAL_SYM                  /* SQL-2003-R */
 %token<bytes>  INTO                          /* SQL-2003-R */
@@ -286,7 +328,7 @@
 %token<bytes>  LIMIT
 %token<bytes>  LINEAR_SYM
 %token<bytes>  LINES
-%token<bytes>  LINESTRING_SYM                /* MYSQL */
+%token<bytes>  LINESTRING
 %token<bytes>  LIST_SYM
 %token<bytes>  LOAD
 %token<bytes>  LOCAL_SYM                     /* SQL-2003-R */
@@ -295,8 +337,8 @@
 %token<bytes>  LOCK_SYM
 %token<bytes>  LOGFILE_SYM
 %token<bytes>  LOGS_SYM
-%token<bytes>  LONGBLOB_SYM                  /* MYSQL */
-%token<bytes>  LONGTEXT_SYM                  /* MYSQL */
+%token<bytes>  LONGBLOB
+%token<bytes>  LONGTEXT
 %token<bytes>  LONG_NUM
 %token<bytes>  LONG_SYM
 %token<bytes>  LOOP_SYM
@@ -335,9 +377,9 @@
 %token<bytes>  MAX_UPDATES_PER_HOUR
 %token<bytes>  MAX_USER_CONNECTIONS_SYM
 %token<bytes>  MAX_VALUE_SYM                 /* SQL-2003-N */
-%token<bytes>  MEDIUMBLOB_SYM                /* MYSQL */
-%token<bytes>  MEDIUMINT_SYM                 /* MYSQL */
-%token<bytes>  MEDIUMTEXT_SYM                /* MYSQL */
+%token<bytes>  MEDIUMBLOB
+%token<bytes>  MEDIUMINT
+%token<bytes>  MEDIUMTEXT
 %token<bytes>  MEDIUM_SYM
 %token<bytes>  MEMORY_SYM
 %token<bytes>  MERGE_SYM                     /* SQL-2003-R */
@@ -354,9 +396,9 @@
 %token<bytes>  MODIFY_SYM
 %token<bytes>  MOD_SYM                       /* SQL-2003-N */
 %token<bytes>  MONTH_SYM                     /* SQL-2003-R */
-%token<bytes>  MULTILINESTRING_SYM           /* MYSQL */
-%token<bytes>  MULTIPOINT_SYM                /* MYSQL */
-%token<bytes>  MULTIPOLYGON_SYM              /* MYSQL */
+%token<bytes>  MULTILINESTRING
+%token<bytes>  MULTIPOINT
+%token<bytes>  MULTIPOLYGON
 %token<bytes>  MUTEX_SYM
 %token<bytes>  MYSQL_ERRNO_SYM
 %token<bytes>  NAMES_SYM                     /* SQL-2003-N */
@@ -385,7 +427,7 @@
 %token<bytes>  NUMERIC_SYM                   /* SQL-2003-R */
 %token<bytes>  NVARCHAR_SYM
 %token<bytes>  OFFSET_SYM
-%token<bytes>  ON_SYM                        /* SQL-2003-R */
+%token<bytes>  ON                            /* SQL-2003-R */
 %token<bytes>  ONE_SYM
 %token<bytes>  ONLY_SYM                      /* SQL-2003-R */
 %token<bytes>  OPEN_SYM                      /* SQL-2003-R */
@@ -406,7 +448,7 @@
 %token<bytes>  PAGE_SYM
 %token<bytes>  PARAM_MARKER
 %token<bytes>  PARSER_SYM
-%token<bytes>  OBSOLETE_TOKEN_654            /* was: PARSE_GCOL_EXPR_SYM */
+%token<bytes>  PARSE_GCOL_EXPR_SYM
 %token<bytes>  PARTIAL                       /* SQL-2003-N */
 %token<bytes>  PARTITION_SYM                 /* SQL-2003-R */
 %token<bytes>  PARTITIONS_SYM
@@ -417,7 +459,7 @@
 %token<bytes>  PLUGIN_SYM
 %token<bytes>  PLUGINS_SYM
 %token<bytes>  POINT_SYM
-%token<bytes>  POLYGON_SYM                   /* MYSQL */
+%token<bytes>  POLYGON
 %token<bytes>  PORT_SYM
 %token<bytes>  POSITION_SYM                  /* SQL-2003-N */
 %token<bytes>  PRECEDES_SYM                  /* MYSQL */
@@ -442,7 +484,7 @@
 %token<bytes>  READ_ONLY_SYM
 %token<bytes>  READ_SYM                      /* SQL-2003-N */
 %token<bytes>  READ_WRITE_SYM
-%token<bytes>  REAL_SYM                      /* SQL-2003-R */
+%token<bytes>  REAL                          /* SQL-2003-R */
 %token<bytes>  REBUILD_SYM
 %token<bytes>  RECOVER_SYM
 %token<bytes>  REDOFILE_SYM
@@ -463,7 +505,7 @@
 %token<bytes>  REPAIR
 %token<bytes>  REPEATABLE_SYM                /* SQL-2003-N */
 %token<bytes>  REPEAT_SYM                    /* MYSQL-FUNC */
-%token<bytes>  REPLACE_SYM                   /* MYSQL-FUNC */
+%token<bytes>  REPLACE                       /* MYSQL-FUNC */
 %token<bytes>  REPLICATION
 %token<bytes>  REPLICATE_DO_DB
 %token<bytes>  REPLICATE_IGNORE_DB
@@ -487,7 +529,6 @@
 %token<bytes>  RIGHT                         /* SQL-2003-R */
 %token<bytes>  ROLLBACK_SYM                  /* SQL-2003-R */
 %token<bytes>  ROLLUP_SYM                    /* SQL-2003-R */
-%token<bytes>  ROTATE_SYM
 %token<bytes>  ROUTINE_SYM                   /* SQL-2003-N */
 %token<bytes>  ROWS_SYM                      /* SQL-2003-R */
 %token<bytes>  ROW_FORMAT_SYM
@@ -508,7 +549,7 @@
 %token<bytes>  SESSION_SYM                   /* SQL-2003-N */
 %token<bytes>  SERVER_SYM
 %token<bytes>  SERVER_OPTIONS
-%token<bytes>  SET_SYM                       /* SQL-2003-R */
+%token<bytes>  SET                           /* SQL-2003-R */
 %token<bytes>  SET_VAR
 %token<bytes>  SHARE_SYM
 %token<bytes>  SHIFT_LEFT                    /* OPERATOR */
@@ -520,7 +561,7 @@
 %token<bytes>  SIMPLE_SYM                    /* SQL-2003-N */
 %token<bytes>  SLAVE
 %token<bytes>  SLOW
-%token<bytes>  SMALLINT_SYM                  /* SQL-2003-R */
+%token<bytes>  SMALLINT                      /* SQL-2003-R */
 %token<bytes>  SNAPSHOT_SYM
 %token<bytes>  SOCKET_SYM
 %token<bytes>  SONAME_SYM
@@ -572,7 +613,7 @@
 %token<bytes>  SYSDATE
 %token<bytes>  TABLES
 %token<bytes>  TABLESPACE_SYM
-%token<bytes>  OBSOLETE_TOKEN_820            /* was: TABLE_REF_PRIORITY */
+%token<bytes>  TABLE_REF_PRIORITY
 %token<bytes>  TABLE_SYM                     /* SQL-2003-R */
 %token<bytes>  TABLE_CHECKSUM_SYM
 %token<bytes>  TABLE_NAME_SYM                /* SQL-2003-N */
@@ -583,13 +624,13 @@
 %token<bytes>  TEXT_SYM
 %token<bytes>  THAN_SYM
 %token<bytes>  THEN_SYM                      /* SQL-2003-R */
-%token<bytes>  TIMESTAMP_SYM                 /* SQL-2003-R */
+%token<bytes>  TIMESTAMP                     /* SQL-2003-R */
 %token<bytes>  TIMESTAMP_ADD
 %token<bytes>  TIMESTAMP_DIFF
 %token<bytes>  TIME_SYM                      /* SQL-2003-R */
-%token<bytes>  TINYBLOB_SYM                  /* MYSQL */
-%token<bytes>  TINYINT_SYM                   /* MYSQL */
-%token<bytes>  TINYTEXT_SYN                  /* MYSQL */
+%token<bytes>  TINYBLOB
+%token<bytes>  TINYINT
+%token<bytes>  TINYTEXT
 %token<bytes>  TO_SYM                        /* SQL-2003-R */
 %token<bytes>  TRAILING                      /* SQL-2003-R */
 %token<bytes>  TRANSACTION_SYM
@@ -614,7 +655,7 @@
 %token<bytes>  UNIQUE_SYM
 %token<bytes>  UNKNOWN_SYM                   /* SQL-2003-R */
 %token<bytes>  UNLOCK_SYM
-%token<bytes>  UNSIGNED_SYM                  /* MYSQL */
+%token<bytes>  UNSIGNED
 %token<bytes>  UNTIL_SYM
 %token<bytes>  UPDATE_SYM                    /* SQL-2003-R */
 %token<bytes>  UPGRADE_SYM
@@ -629,8 +670,8 @@
 %token<bytes>  VALIDATION_SYM                /* MYSQL */
 %token<bytes>  VALUES                        /* SQL-2003-R */
 %token<bytes>  VALUE_SYM                     /* SQL-2003-R */
-%token<bytes>  VARBINARY_SYM                 /* SQL-2008-R */
-%token<bytes>  VARCHAR_SYM                   /* SQL-2003-R */
+%token<bytes>  VARBINARY
+%token<bytes>  VARCHAR                       /* SQL-2003-R */
 %token<bytes>  VARIABLES
 %token<bytes>  VARIANCE_SYM
 %token<bytes>  VARYING                       /* SQL-2003-R */
@@ -658,27 +699,12 @@
 %token<bytes>  XOR
 %token<bytes>  YEAR_MONTH_SYM
 %token<bytes>  YEAR_SYM                      /* SQL-2003-R */
-%token<bytes>  ZEROFILL_SYM                  /* MYSQL */
-
-/*
-   Tokens from MySQL 8.0
-*/
-%token<bytes>  JSON_UNQUOTED_SEPARATOR_SYM   /* MYSQL */
-%token<bytes>  PERSIST_SYM
-%token<bytes>  ROLE_SYM                      /* SQL-1999-R */
-%token<bytes>  ADMIN_SYM                     /* SQL-1999-R */
-%token<bytes>  INVISIBLE_SYM
-%token<bytes>  VISIBLE_SYM
-%token<bytes>  EXCEPT_SYM                    /* SQL-1999-R */
-%token<bytes>  COMPONENT_SYM                 /* MYSQL */
-%token<bytes>  GRAMMAR_SELECTOR_EXPR         /* synthetic token: starts single expr. */
-%token<bytes>  GRAMMAR_SELECTOR_GCOL       /* synthetic token: starts generated col. */
-%token<bytes>  GRAMMAR_SELECTOR_PART      /* synthetic token: starts partition expr. */
+%token<bytes>  ZEROFILL
 
 %right UNIQUE_SYM KEY_SYM
-
-%left CONDITIONLESS_JOIN
-%left   JOIN_SYM INNER_SYM CROSS STRAIGHT_JOIN NATURAL LEFT RIGHT ON_SYM USING
+%left   JOIN_SYM INNER_SYM STRAIGHT_JOIN CROSS LEFT RIGHT
+/* A dummy token to force the priority of table_ref production in a join. */
+%left   TABLE_REF_PRIORITY
 %left   SET_VAR
 %left   OR_OR_SYM OR_SYM OR2_SYM
 %left   XOR
@@ -693,277 +719,5252 @@
 %left   '^'
 %left   NEG '~'
 %right  NOT_SYM NOT2_SYM
-%right  BINARY_SYM COLLATE_SYM
+%right  BINARY COLLATE_SYM
 %left  INTERVAL_SYM
-%left SUBQUERY_AS_EXPR
-%left '(' ')'
 
-%left EMPTY_FROM_CLAUSE
-%right INTO
+%start query
+%type <statement> verb_clause statement
+/* DDL */
+%type <statement> alter create drop rename truncate
+/* DML */
+%type <statement> insert_stmt update_stmt delete_stmt replace_stmt call do_stmt handler  load
+%type <selectStatement> select select_init  select_paren select_part2 query_specification  select_part2_derived select_paren_derived select_derived create_select 
+%type <selectStatement> view_select view_select_aux create_view_select create_view_select_paren query_expression_body
+%type <selectStatement> union_opt opt_union_clause  select_derived_union union_list
+%type <subquery> subselect
+/* Transaction */
+%type <statement> commit lock release rollback savepoint start unlock xa
+/* DAL */
+%type <statement> analyze  binlog_base64_event check checksum optimize repair flush grant install uninstall  kill keycache partition_entry preload reset revoke set show flush_options show_param start_option_value_list  parse_gcol_expr 
+/* Replication Statement */
+%type <statement> change purge slave
+/* Prepare */
+%type <statement> deallocate execute prepare
+/* Compound-Statement */
+%type <statement> get_diagnostics resignal_stmt signal_stmt
+/* MySQL Utility Statement */
+%type <statement> describe help use shutdown_stmt explainable_command
+%type <bytes> ident IDENT_sys keyword keyword_sp ident_or_empty opt_wild opt_table_alias opt_db TEXT_STRING_sys ident_or_text interval interval_time_stamp TEXT_STRING_literal old_or_new_charset_name old_or_new_charset_name_or_default charset_name_or_default charset_name opt_full
+%type <interf> insert_from_constructor   insert_from_subquery  insert_query_expression insert_values view_or_trigger_or_sp_or_event definer_tail no_definer_tail start_option_value_list_following_option_type 
+%type <table> table_ident  table_ident_nodb  table_ident_opt_wild table_name  table_lock from_clause table_reference_list opt_from_clause
+%type <tables> table_list table_lock_list opt_table_list
+%type <table> esc_table_ref table_ref table_factor join_table 
+%type <tables> join_table_list derived_table_list table_alias_ref_list 
+%type <tableToTable> table_to_table
+%type <tableToTables> table_to_table_list
+%type <tableExpression> table_expression
+%type <tableIndex> assign_to_keycache assign_to_keycache_parts preload_keys_parts preload_keys
+%type <tableIndexs> keycache_list_or_parts keycache_list preload_list_or_parts preload_list
+%type <limit> opt_limit_clause limit_clause limit_options limit_option
+%type <spname> sp_name opt_ev_rename_to
+%type <empty> '.'
+%type <lockType> opt_select_lock_type
+%type <viewTail> view_tail
+%type <triggerTail> trigger_tail
+%type <spTail> sp_tail
+%type <sfTail> sf_tail
+%type <udfTail> udf_tail
+%type <eventTail> event_tail
+%type <likeOrWhere>   opt_wild_or_where opt_wild_or_where_for_show
+%type <str> internal_variable_name comp_op
+%type <variable> option_value_no_option_type option_value_following_option_type option_value
+%type <variables> option_value_list_continued option_value_list
 
-%type <statement> simple_statement_or_begin simple_statement 
-%type <statement> alter
-%type <table>  table_ident
-%type <tables> table_element_list
-%type <bytes> ident IDENT_sys ident_keyword role_or_label_keyword role_or_ident_keyword label_keyword ident_or_text TEXT_STRING_sys charset_name charset_name_or_default
+%type <lifeType> option_type opt_var_ident_type
 
-
+%type <expr> expr set_expr_or_default
+%type <exprs> expr_list
+%type <boolexpr> bool_pri
+%type <valexpr> predicate bit_expr simple_expr simple_ident literal param_marker variable text_literal temporal_literal NUM_literal simple_ident_q 
 %%
 
-start_entry:
-           sql_statement
-           ;
-
-sql_statement:
-             END_OF_INPUT
-             {
-                setParseTree(yylex, nil)
-             }
-             | simple_statement_or_begin
-             {
-                setParseTree(yylex, $1)
-             }
-             ';'
-             opt_end_of_input
-             |simple_statement_or_begin END_OF_INPUT
-             {
-                setParseTree(yylex, $1)
-             }
-             ;
+query:
+          END_OF_INPUT
+          {
+            SetParseTree(yylex, nil)
+          }
+        | verb_clause
+          ';'
+          opt_end_of_input
+          {
+            SetParseTree(yylex, nil)
+          }
+        | verb_clause END_OF_INPUT
+          {
+            SetParseTree(yylex, nil)
+          }
+        ;
 
 opt_end_of_input:
-                /* empty */
-                | END_OF_INPUT
-                ;
+          /* empty */
+        | END_OF_INPUT
+        ;
 
-simple_statement_or_begin:
-                         simple_statement { $$ = $1}
-                         ;
+verb_clause:
+          statement { $$ = $1 }
+        | begin { $$ = &BeginStmt{} };
+        ;
 
-simple_statement:
-                alter {$$ = $1}
-                ;
+/* Verb clauses, except begin */
+statement:
+          alter { $$ = $1 }
+        | analyze { $$ = $1 }
+        | binlog_base64_event { $$ = $1 }
+        | call { $$ = $1 }
+        | change { $$ = $1 }
+        | check { $$ = $1 }
+        | checksum { $$ = $1 }
+        | commit { $$ = $1 }
+        | create { $$ = $1 }
+        | deallocate { $$ = $1 }
+        | delete_stmt { $$ = $1 }
+        | describe  { $$ = $1 }
+        | do_stmt   { $$ = $1 }
+        | drop { $$ = $1 }
+        | execute { $$ = $1 }
+        | flush { $$ = $1 }
+        | get_diagnostics { $$ = $1 }
+        | group_replication { $$=nil } 
+        | grant { $$ = $1 }
+        | handler { $$ = $1 }
+        | help { $$ = $1 }
+        | insert_stmt { $$ = $1 }
+        | install { $$ = $1 }
+        | kill { $$ = $1 }
+        | load { $$ = $1 }
+        | lock { $$ = $1 }
+        | optimize { $$ = $1 }
+        | keycache { $$ = $1 }
+        | parse_gcol_expr { $$ = $1 }
+        | partition_entry { $$ = $1 }
+        | preload { $$ = $1 }
+        | prepare { $$ = $1 }
+        | purge { $$ = $1 }
+        | release { $$ = $1 }
+        | rename { $$ = $1 }
+        | repair { $$ = $1 }
+        | replace_stmt { $$ = $1 }
+        | reset { $$ = $1 }
+        | resignal_stmt { $$ = $1 }
+        | revoke { $$ = $1 }
+        | rollback { $$ = $1 }
+        | savepoint { $$ = $1 }
+        | select { $$ = $1 }
+        | set { $$ = $1 }
+        | signal_stmt { $$ = $1 }
+        | show { $$ = $1 }
+        | shutdown_stmt { $$ = $1 }
+        | slave { $$ = $1 }
+        | start { $$ = $1 }
+        | truncate { $$ = $1 }
+        | uninstall { $$ = $1 }
+        | unlock { $$ = $1 }
+        | update_stmt        { $$ = $1 }
+        | use { $$ = $1 }
+        | xa { $$ = $1 }
+        ;
 
+deallocate:
+          deallocate_or_drop PREPARE_SYM ident
+          {
+            $$ = &DeallocateStmt{}
+          }
+        ;
+
+deallocate_or_drop:
+          DEALLOCATE_SYM
+        | DROP
+        ;
+
+prepare:
+          PREPARE_SYM ident FROM prepare_src
+          {
+            $$ = &PrepareStmt{}
+          }
+        ;
+
+prepare_src:
+          TEXT_STRING_sys
+        | '@' ident_or_text
+        ;
+
+execute:
+          EXECUTE_SYM ident
+          execute_using
+          {
+            $$ = &ExecuteStmt{}
+          }
+        ;
+
+execute_using:
+          /* nothing */
+        | USING execute_var_list
+        ;
+
+execute_var_list:
+          execute_var_list ',' execute_var_ident
+        | execute_var_ident
+        ;
+
+execute_var_ident:
+          '@' ident_or_text
+        ;
+
+/* help */
+
+help:
+          HELP_SYM
+          {
+            $$ = HelpStmt{}
+          }
+        ;
+
+/* change master */
+
+change:
+          CHANGE MASTER_SYM TO_SYM
+          master_defs opt_channel
+          {
+             $$ = &ChangeStmt{}
+          }
+        | CHANGE REPLICATION FILTER_SYM
+          filter_defs
+          {
+             $$ = &ChangeStmt{}
+          }
+        ;
+
+filter_defs:
+          filter_def
+        | filter_defs ',' filter_def
+        ;
+filter_def:
+          REPLICATE_DO_DB EQ opt_filter_db_list
+        | REPLICATE_IGNORE_DB EQ opt_filter_db_list
+        | REPLICATE_DO_TABLE EQ opt_filter_table_list
+        | REPLICATE_IGNORE_TABLE EQ opt_filter_table_list
+        | REPLICATE_WILD_DO_TABLE EQ opt_filter_string_list
+        | REPLICATE_WILD_IGNORE_TABLE EQ opt_filter_string_list
+        | REPLICATE_REWRITE_DB EQ opt_filter_db_pair_list
+        ;
+opt_filter_db_list:
+          '(' ')'
+        | '(' filter_db_list ')'
+        ;
+
+filter_db_list:
+          filter_db_ident
+        | filter_db_list ',' filter_db_ident
+        ;
+
+filter_db_ident:
+          ident /* DB name */
+        ;
+opt_filter_db_pair_list:
+          '(' ')'
+        |'(' filter_db_pair_list ')'
+        ;
+filter_db_pair_list:
+          '(' filter_db_ident ',' filter_db_ident ')'
+        | filter_db_pair_list ',' '(' filter_db_ident ',' filter_db_ident ')'
+        ;
+opt_filter_table_list:
+          '(' ')'
+        |'(' filter_table_list ')'
+        ;
+
+filter_table_list:
+          filter_table_ident
+        | filter_table_list ',' filter_table_ident
+        ;
+
+filter_table_ident:
+          ident '.' ident /* qualified table name */
+        ;
+
+opt_filter_string_list:
+          '(' ')'
+        |'(' filter_string_list ')'
+        ;
+
+filter_string_list:
+          filter_string
+        | filter_string_list ',' filter_string
+        ;
+
+filter_string:
+          filter_wild_db_table_string
+        ;
+
+master_defs:
+          master_def
+        | master_defs ',' master_def
+        ;
+
+master_def:
+          MASTER_HOST_SYM EQ TEXT_STRING_sys_nonewline
+        | MASTER_BIND_SYM EQ TEXT_STRING_sys_nonewline
+        | MASTER_USER_SYM EQ TEXT_STRING_sys_nonewline
+        | MASTER_PASSWORD_SYM EQ TEXT_STRING_sys_nonewline
+        | MASTER_PORT_SYM EQ ulong_num
+        | MASTER_CONNECT_RETRY_SYM EQ ulong_num
+        | MASTER_RETRY_COUNT_SYM EQ ulong_num
+        | MASTER_DELAY_SYM EQ ulong_num
+        | MASTER_SSL_SYM EQ ulong_num
+        | MASTER_SSL_CA_SYM EQ TEXT_STRING_sys_nonewline
+        | MASTER_SSL_CAPATH_SYM EQ TEXT_STRING_sys_nonewline
+        | MASTER_TLS_VERSION_SYM EQ TEXT_STRING_sys_nonewline
+        | MASTER_SSL_CERT_SYM EQ TEXT_STRING_sys_nonewline
+        | MASTER_SSL_CIPHER_SYM EQ TEXT_STRING_sys_nonewline
+        | MASTER_SSL_KEY_SYM EQ TEXT_STRING_sys_nonewline
+        | MASTER_SSL_VERIFY_SERVER_CERT_SYM EQ ulong_num
+        | MASTER_SSL_CRL_SYM EQ TEXT_STRING_sys_nonewline
+        | MASTER_SSL_CRLPATH_SYM EQ TEXT_STRING_sys_nonewline
+        | MASTER_HEARTBEAT_PERIOD_SYM EQ NUM_literal
+        | IGNORE_SERVER_IDS_SYM EQ '(' ignore_server_id_list ')'
+        |MASTER_AUTO_POSITION_SYM EQ ulong_num
+        |master_file_def
+        ;
+
+ignore_server_id_list:
+          /* Empty */
+          | ignore_server_id
+          | ignore_server_id_list ',' ignore_server_id
+        ;
+
+ignore_server_id:
+          ulong_num
+          ;
+
+master_file_def:
+          MASTER_LOG_FILE_SYM EQ TEXT_STRING_sys_nonewline
+        | MASTER_LOG_POS_SYM EQ ulonglong_num
+        | RELAY_LOG_FILE_SYM EQ TEXT_STRING_sys_nonewline
+        | RELAY_LOG_POS_SYM EQ ulong_num
+        ;
+
+opt_channel:
+         /*empty */
+     | FOR_SYM CHANNEL_SYM TEXT_STRING_sys_nonewline
+    ;
+
+/* create a table */
+
+create:
+          CREATE opt_table_options TABLE_SYM opt_if_not_exists table_ident create2
+          {
+            $$=&CreateTableStmt{Table:$5}
+          }
+        | CREATE opt_unique INDEX_SYM ident key_alg ON table_ident
+          '(' key_list ')' normal_key_options
+          opt_index_lock_algorithm
+          {
+            $$ = &CreateIndex{}
+          }
+        | CREATE fulltext INDEX_SYM ident init_key_options ON
+          table_ident
+          '(' key_list ')' fulltext_key_options
+          opt_index_lock_algorithm 
+          {
+            $$ = &CreateIndex{}
+          }
+        | CREATE spatial INDEX_SYM ident init_key_options ON
+          table_ident
+          '(' key_list ')' spatial_key_options
+          opt_index_lock_algorithm
+          {
+            $$ = &CreateIndex{}
+          }
+        | CREATE DATABASE opt_if_not_exists ident
+          opt_create_database_options
+          {
+            $$ = &CreateDatabaseStmt{Name:$4}
+          }
+        | CREATE
+          view_or_trigger_or_sp_or_event
+          {
+            switch st := $2.(type) {
+            case *viewTail:
+                $$ = &CreateViewStmt{View: st.View, As: st.As}
+            case *triggerTail:
+                $$ = &CreateTriggerStmt{Trigger: st.Trigger}
+            case *spTail:
+                $$ = &CreateProcedureStmt{Procedure: st.Procedure}
+            case *sfTail:
+                $$ = &CreateFunctionStmt{Function: st.Function}
+            case *udfTail:
+                $$ = &CreateUDFStmt{Function: st.Function}
+            case *eventTail:
+                $$ = &CreateEventStmt{Event: st.Event}
+            default:
+                panic(__yyfmt__.Sprintf("unknow create statement:%T", st))
+            }
+          }
+        | CREATE USER opt_if_not_exists clear_privileges grant_list require_clause
+                      connect_options opt_account_lock_password_expire_options
+          {
+            $$ = &CreateUserStmt{}
+          }
+        | CREATE LOGFILE_SYM GROUP_SYM logfile_group_info
+          {
+            $$ = &CreateLogStmt{}
+          }
+        | CREATE TABLESPACE_SYM tablespace_info
+          {
+            $$ = &CreateTablespaceStmt{}
+          }
+        | CREATE SERVER_SYM ident_or_text FOREIGN DATA_SYM WRAPPER_SYM
+          ident_or_text OPTIONS_SYM '(' server_options_list ')'
+          {
+            $$ = &CreateServerStmt{}
+          }
+        ;
+
+server_options_list:
+          server_option
+        | server_options_list ',' server_option
+        ;
+
+server_option:
+          USER TEXT_STRING_sys
+        | HOST_SYM TEXT_STRING_sys
+        | DATABASE TEXT_STRING_sys
+        | OWNER_SYM TEXT_STRING_sys
+        | PASSWORD TEXT_STRING_sys
+        | SOCKET_SYM TEXT_STRING_sys
+        | PORT_SYM ulong_num
+        ;
+
+event_tail:
+          EVENT_SYM opt_if_not_exists sp_name
+          ON SCHEDULE_SYM ev_schedule_time
+          opt_ev_on_completion
+          opt_ev_status
+          opt_ev_comment
+          DO_SYM ev_sql_stmt
+          {
+            $$ = &EventTail{Event: $3}
+          }
+        ;
+
+ev_schedule_time:
+          EVERY_SYM expr interval
+          ev_starts
+          ev_ends
+        | AT_SYM expr
+        ;
+
+opt_ev_status:
+          /* empty */ 
+        | ENABLE_SYM
+        | DISABLE_SYM ON SLAVE
+        | DISABLE_SYM
+        ;
+
+ev_starts:
+          /* empty */
+        | STARTS_SYM expr
+        ;
+
+ev_ends:
+          /* empty */
+        | ENDS_SYM expr
+        ;
+
+opt_ev_on_completion:
+          /* empty */
+        | ev_on_completion
+        ;
+
+ev_on_completion:
+          ON COMPLETION_SYM PRESERVE_SYM
+        | ON COMPLETION_SYM NOT_SYM PRESERVE_SYM
+        ;
+
+opt_ev_comment:
+          /* empty */
+        | COMMENT_SYM TEXT_STRING_sys
+        ;
+
+ev_sql_stmt:
+          ev_sql_stmt_inner
+        ;
+
+ev_sql_stmt_inner:
+          sp_proc_stmt_statement
+        | sp_proc_stmt_return
+        | sp_proc_stmt_if
+        | case_stmt_specification
+        | sp_labeled_block
+        | sp_unlabeled_block
+        | sp_labeled_control
+        | sp_proc_stmt_unlabeled
+        | sp_proc_stmt_leave
+        | sp_proc_stmt_iterate
+        | sp_proc_stmt_open
+        | sp_proc_stmt_fetch
+        | sp_proc_stmt_close
+        ;
+
+clear_privileges:
+          clear_password_expire_options
+        ;
+
+clear_password_expire_options:
+         /* Nothing */
+        ;
+
+sp_name:
+          ident '.' ident
+          {
+            $$ = &Spname{Name: $3}
+          }
+        | ident
+          {
+            $$ = &Spname{Name: $1}
+          }
+        ;
+
+sp_a_chistics:
+          /* Empty */ {}
+        | sp_a_chistics sp_chistic {}
+        ;
+
+sp_c_chistics:
+          /* Empty */ {}
+        | sp_c_chistics sp_c_chistic {}
+        ;
+
+/* Characteristics for both create and alter */
+sp_chistic:
+          COMMENT_SYM TEXT_STRING_sys
+        | LANGUAGE_SYM SQL_SYM
+        | NO_SYM SQL_SYM
+        | CONTAINS_SYM SQL_SYM
+        | READS_SYM SQL_SYM DATA_SYM
+        | MODIFIES_SYM SQL_SYM DATA_SYM
+        | sp_suid
+        ;
+
+/* Create characteristics */
+sp_c_chistic:
+          sp_chistic
+        | DETERMINISTIC_SYM
+        | not DETERMINISTIC_SYM
+        ;
+
+sp_suid:
+          SQL_SYM SECURITY_SYM DEFINER_SYM
+        | SQL_SYM SECURITY_SYM INVOKER_SYM
+        ;
+
+call:
+          CALL_SYM sp_name
+          opt_sp_cparam_list
+          {
+            $$ = &Call{Spname:$2}
+          }
+        ;
+
+/* CALL parameters */
+opt_sp_cparam_list:
+          /* Empty */
+        | '(' opt_sp_cparams ')'
+        ;
+
+opt_sp_cparams:
+          /* Empty */
+        | sp_cparams
+        ;
+
+sp_cparams:
+          sp_cparams ',' expr
+        | expr
+        ;
+
+/* Stored FUNCTION parameter declaration list */
+sp_fdparam_list:
+          /* Empty */
+        | sp_fdparams
+        ;
+
+sp_fdparams:
+          sp_fdparams ',' sp_fdparam
+        | sp_fdparam
+        ;
+
+sp_init_param:
+          /* Empty */
+        ;
+
+sp_fdparam:
+          ident sp_init_param type_with_opt_collate
+        ;
+
+/* Stored PROCEDURE parameter declaration list */
+sp_pdparam_list:
+          /* Empty */
+        | sp_pdparams
+        ;
+
+sp_pdparams:
+          sp_pdparams ',' sp_pdparam
+        | sp_pdparam
+        ;
+
+sp_pdparam:
+          sp_opt_inout sp_init_param ident type_with_opt_collate
+        ;
+
+sp_opt_inout:
+          /* Empty */
+        | IN_SYM
+        | OUT_SYM
+        | INOUT_SYM
+        ;
+
+sp_proc_stmts:
+          /* Empty */ {}
+        | sp_proc_stmts  sp_proc_stmt ';'
+        ;
+
+sp_proc_stmts1:
+          sp_proc_stmt ';' {}
+        | sp_proc_stmts1  sp_proc_stmt ';'
+        ;
+
+sp_decls:
+          /* Empty */
+        | sp_decls sp_decl ';'
+        ;
+
+sp_decl:
+          DECLARE_SYM           /*$1*/
+          sp_decl_idents        /*$2*/
+          type_with_opt_collate /*$4*/
+          sp_opt_default        /*$5*/
+        | DECLARE_SYM ident CONDITION_SYM FOR_SYM sp_cond
+        | DECLARE_SYM sp_handler_type HANDLER_SYM FOR_SYM
+          sp_hcond_list sp_proc_stmt
+        | DECLARE_SYM   /*$1*/
+          ident         /*$2*/
+          CURSOR_SYM    /*$3*/
+          FOR_SYM       /*$4*/
+          select        /*$6*/
+        ;
+
+sp_handler_type:
+          EXIT_SYM
+        | CONTINUE_SYM
+        ;
+
+sp_hcond_list:
+          sp_hcond_element
+        | sp_hcond_list ',' sp_hcond_element
+        ;
+
+sp_hcond_element:
+          sp_hcond
+        ;
+
+sp_cond:
+          ulong_num
+        | sqlstate
+        ;
+
+sqlstate:
+          SQLSTATE_SYM opt_value TEXT_STRING_literal
+        ;
+
+opt_value:
+          /* Empty */  {}
+        | VALUE_SYM    {}
+        ;
+
+sp_hcond:
+          sp_cond
+        | ident /* CONDITION name */
+        | SQLWARNING_SYM /* SQLSTATEs 01??? */
+        | not FOUND_SYM /* SQLSTATEs 02??? */
+        | SQLEXCEPTION_SYM /* All other SQLSTATEs */
+        ;
+
+signal_stmt:
+          SIGNAL_SYM signal_value opt_set_signal_information
+          {
+            $$ = &SignalStmt{}
+          }
+        ;
+
+signal_value:
+          ident
+        | sqlstate
+        ;
+
+opt_signal_value:
+          /* empty */
+        | signal_value
+        ;
+
+opt_set_signal_information:
+          /* empty */
+        | SET signal_information_item_list
+        ;
+
+signal_information_item_list:
+          signal_condition_information_item_name EQ signal_allowed_expr
+        | signal_information_item_list ','
+          signal_condition_information_item_name EQ signal_allowed_expr
+        ;
+
+/*
+  Only a limited subset of <expr> are allowed in SIGNAL/RESIGNAL.
+*/
+signal_allowed_expr:
+          literal
+        | variable
+        | simple_ident
+        ;
+
+/* conditions that can be set in signal / resignal */
+signal_condition_information_item_name:
+          CLASS_ORIGIN_SYM
+        | SUBCLASS_ORIGIN_SYM
+        | CONSTRAINT_CATALOG_SYM
+        | CONSTRAINT_SCHEMA_SYM
+        | CONSTRAINT_NAME_SYM
+        | CATALOG_NAME_SYM
+        | SCHEMA_NAME_SYM
+        | TABLE_NAME_SYM
+        | COLUMN_NAME_SYM
+        | CURSOR_NAME_SYM
+        | MESSAGE_TEXT_SYM
+        | MYSQL_ERRNO_SYM
+        ;
+
+resignal_stmt:
+          RESIGNAL_SYM opt_signal_value opt_set_signal_information
+          {
+            $$ = &ResignalStmt{}
+          }
+        ;
+
+get_diagnostics:
+          GET_SYM which_area DIAGNOSTICS_SYM diagnostics_information
+          {
+            $$ = &Diagnostics{}
+          }
+        ;
+
+which_area:
+        /* If <which area> is not specified, then CURRENT is implicit. */
+        | CURRENT_SYM
+        | STACKED_SYM
+        ;
+
+diagnostics_information:
+          statement_information
+        | CONDITION_SYM condition_number condition_information
+        ;
+
+statement_information:
+          statement_information_item
+        | statement_information ',' statement_information_item
+        ;
+
+statement_information_item:
+          simple_target_specification EQ statement_information_item_name
+
+simple_target_specification:
+          ident
+        | '@' ident_or_text
+        ;
+
+statement_information_item_name:
+          NUMBER_SYM
+        | ROW_COUNT_SYM
+        ;
+
+condition_number:
+          signal_allowed_expr
+        ;
+
+condition_information:
+          condition_information_item
+        | condition_information ',' condition_information_item
+        ;
+
+condition_information_item:
+          simple_target_specification EQ condition_information_item_name
+          ;
+
+condition_information_item_name:
+          CLASS_ORIGIN_SYM
+        | SUBCLASS_ORIGIN_SYM
+        | CONSTRAINT_CATALOG_SYM
+        | CONSTRAINT_SCHEMA_SYM
+        | CONSTRAINT_NAME_SYM
+        | CATALOG_NAME_SYM
+        | SCHEMA_NAME_SYM
+        | TABLE_NAME_SYM
+        | COLUMN_NAME_SYM
+        | CURSOR_NAME_SYM
+        | MESSAGE_TEXT_SYM
+        | MYSQL_ERRNO_SYM
+        | RETURNED_SQLSTATE_SYM
+        ;
+
+sp_decl_idents:
+          ident
+        | sp_decl_idents ',' ident
+        ;
+
+sp_opt_default:
+        /* Empty */
+        | DEFAULT
+          expr
+        ;
+
+sp_proc_stmt:
+          sp_proc_stmt_statement
+        | sp_proc_stmt_return
+        | sp_proc_stmt_if
+        | case_stmt_specification
+        | sp_labeled_block
+        | sp_unlabeled_block
+        | sp_labeled_control
+        | sp_proc_stmt_unlabeled
+        | sp_proc_stmt_leave
+        | sp_proc_stmt_iterate
+        | sp_proc_stmt_open
+        | sp_proc_stmt_fetch
+        | sp_proc_stmt_close
+        ;
+
+sp_proc_stmt_if:
+          IF
+          sp_if END IF
+        ;
+
+sp_proc_stmt_statement:
+          statement
+        ;
+
+sp_proc_stmt_return:
+          RETURN_SYM    /*$1*/
+          expr          /*$3*/
+        ;
+
+sp_proc_stmt_unlabeled:
+          sp_unlabeled_control
+        ;
+
+sp_proc_stmt_leave:
+          LEAVE_SYM label_ident
+        ;
+
+sp_proc_stmt_iterate:
+          ITERATE_SYM label_ident
+        ;
+
+sp_proc_stmt_open:
+          OPEN_SYM ident
+        ;
+
+sp_proc_stmt_fetch:
+          FETCH_SYM sp_opt_fetch_noise ident INTO sp_fetch_list
+        ;
+
+sp_proc_stmt_close:
+          CLOSE_SYM ident
+        ;
+
+sp_opt_fetch_noise:
+          /* Empty */
+        | NEXT_SYM FROM
+        | FROM
+        ;
+
+sp_fetch_list:
+          ident
+        | sp_fetch_list ',' ident
+        ;
+
+sp_if:
+          expr                  /*$2*/
+          THEN_SYM              /*$4*/
+          sp_proc_stmts1        /*$5*/
+          sp_elseifs            /*$7*/
+        ;
+
+sp_elseifs:
+          /* Empty */
+        | ELSEIF_SYM sp_if
+        | ELSE sp_proc_stmts1
+        ;
+
+case_stmt_specification:
+          simple_case_stmt
+        | searched_case_stmt
+        ;
+
+simple_case_stmt:
+          CASE_SYM                      /*$1*/
+          expr                          /*$3*/
+          simple_when_clause_list       /*$5*/
+          else_clause_opt               /*$6*/
+          END                           /*$7*/
+          CASE_SYM                      /*$8*/
+        ;
+
+searched_case_stmt:
+          CASE_SYM
+          searched_when_clause_list
+          else_clause_opt
+          END
+          CASE_SYM
+        ;
+
+simple_when_clause_list:
+          simple_when_clause
+        | simple_when_clause_list simple_when_clause
+        ;
+
+searched_when_clause_list:
+          searched_when_clause
+        | searched_when_clause_list searched_when_clause
+        ;
+
+simple_when_clause:
+          WHEN_SYM                      /*$1*/
+          expr                          /*$3*/
+          THEN_SYM                      /*$5*/
+          sp_proc_stmts1                /*$6*/
+        ;
+
+searched_when_clause:
+          WHEN_SYM                      /*$1*/
+          expr                          /*$3*/
+          THEN_SYM                      /*$6*/
+          sp_proc_stmts1                /*$7*/
+        ;
+
+else_clause_opt:
+          /* empty */
+        | ELSE sp_proc_stmts1
+        ;
+
+sp_labeled_control:
+          label_ident ':'
+          sp_unlabeled_control sp_opt_label
+        ;
+
+sp_opt_label:
+          /* Empty  */
+        | label_ident
+        ;
+
+sp_labeled_block:
+          label_ident ':'
+          sp_block_content sp_opt_label
+        ;
+
+sp_unlabeled_block:
+          sp_block_content
+        ;
+
+sp_block_content:
+          BEGIN_SYM
+          sp_decls
+          sp_proc_stmts
+          END
+        ;
+
+sp_unlabeled_control:
+          LOOP_SYM
+          sp_proc_stmts1 END LOOP_SYM
+        | WHILE_SYM                     /*$1*/
+          expr                          /*$3*/
+          DO_SYM                        /*$10*/
+          sp_proc_stmts1                /*$11*/
+          END                           /*$12*/
+          WHILE_SYM                     /*$13*/
+        | REPEAT_SYM                    /*$1*/
+          sp_proc_stmts1                /*$2*/
+          UNTIL_SYM                     /*$3*/
+          expr                          /*$5*/
+          END                           /*$7*/
+          REPEAT_SYM                    /*$8*/
+        ;
+
+trg_action_time:
+            BEFORE_SYM
+          | AFTER_SYM
+          ;
+
+trg_event:
+            INSERT
+          | UPDATE_SYM
+          | DELETE_SYM
+          ;
+change_tablespace_access:
+          tablespace_name
+          ts_access_mode
+        ;
+
+change_tablespace_info:
+          tablespace_name
+          CHANGE ts_datafile
+          change_ts_option_list
+        ;
+
+tablespace_info:
+          tablespace_name
+          ADD ts_datafile
+          opt_logfile_group_name
+          tablespace_option_list
+        ;
+
+opt_logfile_group_name:
+          /* empty */ {}
+        | USE_SYM LOGFILE_SYM GROUP_SYM ident
+        ;
+
+alter_tablespace_info:
+          tablespace_name
+          ADD ts_datafile
+          alter_tablespace_option_list
+        | tablespace_name
+          DROP ts_datafile
+          alter_tablespace_option_list
+        ;
+
+logfile_group_info:
+          logfile_group_name
+          add_log_file
+          logfile_group_option_list
+        ;
+
+alter_logfile_group_info:
+          logfile_group_name
+          add_log_file
+          alter_logfile_group_option_list
+        ;
+
+add_log_file:
+          ADD lg_undofile
+        | ADD lg_redofile
+        ;
+
+change_ts_option_list:
+          /* empty */ {}
+          change_ts_options
+        ;
+
+change_ts_options:
+          change_ts_option
+        | change_ts_options change_ts_option
+        | change_ts_options ',' change_ts_option
+        ;
+
+change_ts_option:
+          opt_ts_initial_size
+        | opt_ts_autoextend_size
+        | opt_ts_max_size
+        ;
+
+tablespace_option_list:
+          /* empty */
+        | tablespace_options
+        ;
+
+tablespace_options:
+          tablespace_option
+        | tablespace_options tablespace_option
+        | tablespace_options ',' tablespace_option
+        ;
+
+tablespace_option:
+          opt_ts_initial_size
+        | opt_ts_autoextend_size
+        | opt_ts_max_size
+        | opt_ts_extent_size
+        | opt_ts_nodegroup
+        | opt_ts_engine
+        | ts_wait
+        | opt_ts_comment
+        | opt_ts_file_block_size
+        ;
+
+alter_tablespace_option_list:
+          /* empty */
+        | alter_tablespace_options
+        ;
+
+alter_tablespace_options:
+          alter_tablespace_option
+        | alter_tablespace_options alter_tablespace_option
+        | alter_tablespace_options ',' alter_tablespace_option
+        ;
+
+alter_tablespace_option:
+          opt_ts_initial_size
+        | opt_ts_autoextend_size
+        | opt_ts_max_size
+        | opt_ts_engine
+        | ts_wait
+        ;
+
+logfile_group_option_list:
+          /* empty */
+        | logfile_group_options
+        ;
+
+logfile_group_options:
+          logfile_group_option
+        | logfile_group_options logfile_group_option
+        | logfile_group_options ',' logfile_group_option
+        ;
+
+logfile_group_option:
+          opt_ts_initial_size
+        | opt_ts_undo_buffer_size
+        | opt_ts_redo_buffer_size
+        | opt_ts_nodegroup
+        | opt_ts_engine
+        | ts_wait
+        | opt_ts_comment
+        ;
+
+alter_logfile_group_option_list:
+          /* empty */
+        | alter_logfile_group_options
+        ;
+
+alter_logfile_group_options:
+          alter_logfile_group_option
+        | alter_logfile_group_options alter_logfile_group_option
+        | alter_logfile_group_options ',' alter_logfile_group_option
+        ;
+
+alter_logfile_group_option:
+          opt_ts_initial_size
+        | opt_ts_engine
+        | ts_wait
+        ;
+
+
+ts_datafile:
+          DATAFILE_SYM TEXT_STRING_sys
+        ;
+
+lg_undofile:
+          UNDOFILE_SYM TEXT_STRING_sys
+        ;
+
+lg_redofile:
+          REDOFILE_SYM TEXT_STRING_sys
+        ;
+
+tablespace_name:
+          ident
+        ;
+
+logfile_group_name:
+          ident
+        ;
+
+ts_access_mode:
+          READ_ONLY_SYM
+        | READ_WRITE_SYM
+        | NOT_SYM ACCESSIBLE_SYM
+        ;
+
+opt_ts_initial_size:
+          INITIAL_SIZE_SYM opt_equal size_number
+        ;
+
+opt_ts_autoextend_size:
+          AUTOEXTEND_SIZE_SYM opt_equal size_number
+        ;
+
+opt_ts_max_size:
+          MAX_SIZE_SYM opt_equal size_number
+        ;
+
+opt_ts_extent_size:
+          EXTENT_SIZE_SYM opt_equal size_number
+        ;
+
+opt_ts_undo_buffer_size:
+          UNDO_BUFFER_SIZE_SYM opt_equal size_number
+        ;
+
+opt_ts_redo_buffer_size:
+          REDO_BUFFER_SIZE_SYM opt_equal size_number
+        ;
+
+opt_ts_nodegroup:
+          NODEGROUP_SYM opt_equal real_ulong_num
+        ;
+
+opt_ts_comment:
+          COMMENT_SYM opt_equal TEXT_STRING_sys
+        ;
+
+opt_ts_engine:
+          opt_storage ENGINE_SYM opt_equal storage_engines
+        ;
+
+opt_ts_file_block_size:
+          FILE_BLOCK_SIZE_SYM opt_equal size_number
+        ;
+
+ts_wait:
+          WAIT_SYM
+        | NO_WAIT_SYM
+        ;
+
+size_number:
+          real_ulonglong_num
+        | IDENT_sys
+        ;
+
+/*
+  End tablespace part
+*/
+
+create2:
+          '(' create2a {}
+        | opt_create_table_options
+          opt_create_partitioning
+          create3 {}
+        | LIKE table_ident
+        | '(' LIKE table_ident ')'
+        ;
+
+create2a:
+          create_field_list ')' opt_create_table_options
+          opt_create_partitioning
+          create3 {}
+        |  opt_create_partitioning
+           create_select ')'
+           union_opt
+        ;
+
+create3:
+          /* empty */ {}
+        | opt_duplicate opt_as create_select
+          opt_union_clause
+        | opt_duplicate opt_as '(' create_select ')'
+          union_opt
+        ;
+
+opt_create_partitioning:
+          opt_partitioning
+        ;
+
+opt_partitioning:
+          /* empty */ {}
+        | partitioning
+        ;
+
+partitioning:
+          PARTITION_SYM
+          partition
+        ;
+
+partition_entry:
+          PARTITION_SYM
+          partition {}
+        ;
+
+partition:
+          BY part_type_def opt_num_parts opt_sub_part part_defs
+        ;
+
+part_type_def:
+          opt_linear KEY_SYM opt_key_algo '(' part_field_list ')'
+        | opt_linear HASH_SYM
+          part_func {}
+        | RANGE_SYM part_func
+        | RANGE_SYM part_column_list
+        | LIST_SYM part_func
+        | LIST_SYM part_column_list
+        ;
+
+opt_linear:
+          /* empty */ {}
+        | LINEAR_SYM
+        ;
+
+opt_key_algo:
+          /* empty */
+        | ALGORITHM_SYM EQ real_ulong_num
+        ;
+
+part_field_list:
+          /* empty */ {}
+        | part_field_item_list {}
+        ;
+
+part_field_item_list:
+          part_field_item {}
+        | part_field_item_list ',' part_field_item {}
+        ;
+
+part_field_item:
+          ident
+        ;
+
+part_column_list:
+          COLUMNS '(' part_field_list ')'
+        ;
+
+
+part_func:
+          '(' part_func_expr ')'
+        ;
+
+sub_part_func:
+          '(' part_func_expr ')'
+        ;
+
+
+opt_num_parts:
+          /* empty */ {}
+        | PARTITIONS_SYM real_ulong_num
+        ;
+
+opt_sub_part:
+          /* empty */ {}
+        | SUBPARTITION_SYM BY opt_linear HASH_SYM sub_part_func
+          opt_num_subparts {}
+        | SUBPARTITION_SYM BY opt_linear KEY_SYM opt_key_algo
+          '(' sub_part_field_list ')'
+          opt_num_subparts {}
+        ;
+
+sub_part_field_list:
+          sub_part_field_item {}
+        | sub_part_field_list ',' sub_part_field_item {}
+        ;
+
+sub_part_field_item:
+          ident
+        ;
+
+part_func_expr:
+          bit_expr
+        ;
+
+opt_num_subparts:
+          /* empty */ {}
+        | SUBPARTITIONS_SYM real_ulong_num
+        ;
+
+part_defs:
+          /* empty */
+        | '(' part_def_list ')'
+        ;
+
+part_def_list:
+          part_definition {}
+        | part_def_list ',' part_definition {}
+        ;
+
+part_definition:
+          PARTITION_SYM
+          part_name
+          opt_part_values
+          opt_part_options
+          opt_sub_partition
+        ;
+
+part_name:
+          ident
+        ;
+
+opt_part_values:
+          /* empty */
+        | VALUES LESS_SYM THAN_SYM
+          part_func_max {}
+        | VALUES IN_SYM
+          part_values_in {}
+        ;
+
+part_func_max:
+          MAX_VALUE_SYM
+        | part_value_item {}
+        ;
+
+part_values_in:
+          part_value_item
+        | '(' part_value_list ')'
+        ;
+
+part_value_list:
+          part_value_item {}
+        | part_value_list ',' part_value_item {}
+        ;
+
+part_value_item:
+          '('
+          part_value_item_list
+          ')'
+        ;
+
+part_value_item_list:
+          part_value_expr_item {}
+        | part_value_item_list ',' part_value_expr_item {}
+        ;
+
+part_value_expr_item:
+          MAX_VALUE_SYM
+        | bit_expr
+        ;
+
+
+opt_sub_partition:
+          /* empty */
+        | '(' sub_part_list ')'
+        ;
+
+sub_part_list:
+          sub_part_definition {}
+        | sub_part_list ',' sub_part_definition {}
+        ;
+
+sub_part_definition:
+          SUBPARTITION_SYM
+          sub_name opt_part_options {}
+        ;
+
+sub_name:
+          ident_or_text
+        ;
+
+opt_part_options:
+         /* empty */ {}
+       | opt_part_option_list {}
+       ;
+
+opt_part_option_list:
+         opt_part_option_list opt_part_option {}
+       | opt_part_option {}
+       ;
+
+opt_part_option:
+          TABLESPACE_SYM opt_equal ident
+        | opt_storage ENGINE_SYM opt_equal storage_engines
+        | NODEGROUP_SYM opt_equal real_ulong_num
+        | MAX_ROWS opt_equal real_ulonglong_num
+        | MIN_ROWS opt_equal real_ulonglong_num
+        | DATA_SYM DIRECTORY_SYM opt_equal TEXT_STRING_sys
+        | INDEX_SYM DIRECTORY_SYM opt_equal TEXT_STRING_sys
+        | COMMENT_SYM opt_equal TEXT_STRING_sys
+        ;
+
+/*
+ End of partition parser part
+*/
+
+create_select:
+          SELECT_SYM select_options select_item_list table_expression
+          {
+             $$ = &SelectStmt{From:$4.From,Limit:$4.Limit}
+
+          }
+        ;
+
+opt_as:
+          /* empty */ {}
+        | AS {}
+        ;
+
+opt_create_database_options:
+          /* empty */ {}
+        | create_database_options {}
+        ;
+
+create_database_options:
+          create_database_option {}
+        | create_database_options create_database_option {}
+        ;
+
+create_database_option:
+          default_collation {}
+        | default_charset {}
+        ;
+
+opt_table_options:
+          /* empty */
+        | table_options
+        ;
+
+table_options:
+          table_option
+        | table_option table_options
+        ;
+
+table_option:
+          TEMPORARY
+        ;
+
+opt_if_not_exists:
+          /* empty */
+        | IF not EXISTS
+        ;
+
+opt_create_table_options:
+          /* empty */
+        | create_table_options
+        ;
+
+create_table_options_space_separated:
+          create_table_option
+        | create_table_option create_table_options_space_separated
+        ;
+
+create_table_options:
+          create_table_option
+        | create_table_option     create_table_options
+        | create_table_option ',' create_table_options
+        ;
+
+create_table_option:
+          ENGINE_SYM opt_equal storage_engines
+        | MAX_ROWS opt_equal ulonglong_num
+        | MIN_ROWS opt_equal ulonglong_num
+        | AVG_ROW_LENGTH opt_equal ulong_num
+        | PASSWORD opt_equal TEXT_STRING_sys
+        | COMMENT_SYM opt_equal TEXT_STRING_sys
+        | COMPRESSION_SYM opt_equal TEXT_STRING_sys
+        | AUTO_INC opt_equal ulonglong_num
+        | PACK_KEYS_SYM opt_equal ulong_num
+        | PACK_KEYS_SYM opt_equal DEFAULT
+        | STATS_AUTO_RECALC_SYM opt_equal ulong_num
+        | STATS_AUTO_RECALC_SYM opt_equal DEFAULT
+        | STATS_PERSISTENT_SYM opt_equal ulong_num
+        | STATS_PERSISTENT_SYM opt_equal DEFAULT
+        | STATS_SAMPLE_PAGES_SYM opt_equal ulong_num
+        | STATS_SAMPLE_PAGES_SYM opt_equal DEFAULT
+        | CHECKSUM_SYM opt_equal ulong_num
+        | TABLE_CHECKSUM_SYM opt_equal ulong_num
+        | DELAY_KEY_WRITE_SYM opt_equal ulong_num
+        | ROW_FORMAT_SYM opt_equal row_types
+        | UNION_SYM opt_equal
+        | default_charset
+        | default_collation
+        | INSERT_METHOD opt_equal merge_insert_types
+        | DATA_SYM DIRECTORY_SYM opt_equal TEXT_STRING_sys
+        | INDEX_SYM DIRECTORY_SYM opt_equal TEXT_STRING_sys
+        | TABLESPACE_SYM opt_equal ident
+        | STORAGE_SYM DISK_SYM
+        | STORAGE_SYM MEMORY_SYM
+        | CONNECTION_SYM opt_equal TEXT_STRING_sys
+        | KEY_BLOCK_SIZE opt_equal ulong_num
+        ;
+
+default_charset:
+          opt_default charset opt_equal charset_name_or_default
+        ;
+
+default_collation:
+          opt_default COLLATE_SYM opt_equal collation_name_or_default
+        ;
+
+storage_engines:
+          ident_or_text
+        ;
+
+known_storage_engines:
+          ident_or_text
+        ;
+
+row_types:
+          DEFAULT
+        | FIXED_SYM
+        | DYNAMIC_SYM
+        | COMPRESSED_SYM
+        | REDUNDANT_SYM
+        | COMPACT_SYM
+        ;
+
+merge_insert_types:
+         NO_SYM
+       | FIRST_SYM
+       | LAST_SYM
+       ;
+
+udf_type:
+          STRING_SYM
+        | REAL
+        | DECIMAL_SYM
+        | INT_SYM
+        ;
+
+
+create_field_list:
+        field_list
+        ;
+
+field_list:
+          field_list_item
+        | field_list ',' field_list_item
+        ;
+
+field_list_item:
+          column_def
+        | key_def
+        ;
+
+column_def:
+          field_spec opt_check_constraint
+        | field_spec references
+        ;
+
+key_def:
+          normal_key_type opt_ident key_alg '(' key_list ')' normal_key_options
+        | fulltext opt_key_or_index opt_ident init_key_options
+        | spatial opt_key_or_index opt_ident init_key_options
+        | opt_constraint constraint_key_type opt_ident key_alg
+        | opt_constraint FOREIGN KEY_SYM opt_ident '(' key_list ')' references
+        | opt_constraint check_constraint
+        ;
+
+opt_check_constraint:
+          /* empty */
+        | check_constraint
+        ;
+
+check_constraint:
+          CHECK_SYM '(' expr ')'
+        ;
+
+opt_constraint:
+          /* empty */
+        | constraint
+        ;
+
+constraint:
+          CONSTRAINT opt_ident
+        ;
+
+field_spec:
+          field_ident
+          field_def
+        ;
+
+field_def:
+          type opt_attribute {}
+        | type opt_collate_explicit opt_generated_always
+          AS '(' generated_column_func ')' opt_stored_attribute
+          opt_gcol_attribute_list
+        ;
+
+opt_generated_always:
+          /* empty */
+        | GENERATED ALWAYS_SYM
+        ;
+
+opt_gcol_attribute_list:
+          /* empty */
+        | gcol_attribute_list
+        ;
+
+gcol_attribute_list:
+          gcol_attribute_list gcol_attribute
+        | gcol_attribute
+        ;
+
+gcol_attribute:
+          UNIQUE_SYM
+        | UNIQUE_SYM KEY_SYM
+        | COMMENT_SYM TEXT_STRING_sys
+        | not NULL_SYM
+        | NULL_SYM
+        | opt_primary KEY_SYM
+        ;
+
+opt_stored_attribute:
+          /* empty */
+        | VIRTUAL_SYM
+        | STORED_SYM
+        ;
+
+parse_gcol_expr:
+          PARSE_GCOL_EXPR_SYM '(' generated_column_func ')'
+          {
+            $$ = GeneratedColumn{}
+          }
+        ;
+
+generated_column_func:
+          expr
+        ;
+
+type:
+          int_type opt_field_length field_options
+        | real_type opt_precision field_options
+        | FLOAT_SYM float_options field_options
+        | BIT_SYM
+        | BIT_SYM field_length
+        | BOOL_SYM
+        | BOOLEAN_SYM
+        | char field_length opt_binary
+        | char opt_binary
+        | nchar field_length opt_bin_mod
+        | nchar opt_bin_mod
+        | BINARY field_length
+        | BINARY
+        | varchar field_length opt_binary
+        | nvarchar field_length opt_bin_mod
+        | VARBINARY field_length
+        | YEAR_SYM opt_field_length field_options
+        | DATE_SYM
+        | TIME_SYM type_datetime_precision
+        | TIMESTAMP type_datetime_precision
+        | DATETIME type_datetime_precision
+        | TINYBLOB
+        | BLOB_SYM opt_field_length
+        | spatial_type
+        | MEDIUMBLOB
+        | LONGBLOB
+        | LONG_SYM VARBINARY
+        | LONG_SYM varchar opt_binary
+        | TINYTEXT opt_binary
+        | TEXT_SYM opt_field_length opt_binary
+        | MEDIUMTEXT opt_binary
+        | LONGTEXT opt_binary
+        | DECIMAL_SYM float_options field_options
+        | NUMERIC_SYM float_options field_options
+        | FIXED_SYM float_options field_options
+        | ENUM '(' string_list ')' opt_binary
+        | SET '(' string_list ')' opt_binary
+        | LONG_SYM opt_binary
+        | SERIAL_SYM
+        | JSON_SYM
+        ;
+
+spatial_type:
+          GEOMETRY_SYM
+        | GEOMETRYCOLLECTION
+        | POINT_SYM
+        | MULTIPOINT
+        | LINESTRING
+        | MULTILINESTRING
+        | POLYGON
+        | MULTIPOLYGON
+        ;
+
+char:
+          CHAR_SYM {}
+        ;
+
+nchar:
+          NCHAR_SYM {}
+        | NATIONAL_SYM CHAR_SYM {}
+        ;
+
+varchar:
+          char VARYING {}
+        | VARCHAR {}
+        ;
+
+nvarchar:
+          NATIONAL_SYM VARCHAR {}
+        | NVARCHAR_SYM {}
+        | NCHAR_SYM VARCHAR {}
+        | NATIONAL_SYM CHAR_SYM VARYING {}
+        | NCHAR_SYM VARYING {}
+        ;
+
+int_type:
+          INT_SYM
+        | TINYINT
+        | SMALLINT
+        | MEDIUMINT
+        | BIGINT
+        ;
+
+real_type:
+          REAL
+        | DOUBLE_SYM
+        | DOUBLE_SYM PRECISION
+        ;
+
+float_options:
+          /* empty */
+        | field_length
+        | precision
+        ;
+
+precision:
+          '(' NUM ',' NUM ')'
+        ;
+
+
+type_datetime_precision:
+          /* empty */
+        | '(' NUM ')'
+        ;
+
+func_datetime_precision:
+          /* empty */
+        | '(' ')'
+        | '(' NUM ')'
+        ;
+
+field_options:
+          /* empty */ {}
+        | field_opt_list {}
+        ;
+
+field_opt_list:
+          field_opt_list field_option {}
+        | field_option {}
+        ;
+
+field_option:
+          SIGNED_SYM {}
+        | UNSIGNED
+        | ZEROFILL
+        ;
+
+field_length:
+          '(' LONG_NUM ')'
+        | '(' ULONGLONG_NUM ')'
+        | '(' DECIMAL_NUM ')'
+        | '(' NUM ')'
+
+opt_field_length:
+          /* empty */
+        | field_length
+        ;
+
+opt_precision:
+          /* empty */
+        | precision
+        ;
+
+opt_attribute:
+          /* empty */ {}
+        | opt_attribute_list {}
+        ;
+
+opt_attribute_list:
+          opt_attribute_list attribute {}
+        | attribute
+        ;
+
+attribute:
+          NULL_SYM
+        | not NULL_SYM
+        | DEFAULT now_or_signed_literal
+        | ON UPDATE_SYM now
+        | AUTO_INC
+        | SERIAL_SYM DEFAULT VALUE_SYM
+        | opt_primary KEY_SYM
+        | UNIQUE_SYM
+        | UNIQUE_SYM KEY_SYM
+        | COMMENT_SYM TEXT_STRING_sys
+        | COLLATE_SYM collation_name
+        | COLUMN_FORMAT_SYM DEFAULT
+        | COLUMN_FORMAT_SYM FIXED_SYM
+        | COLUMN_FORMAT_SYM DYNAMIC_SYM
+        | STORAGE_SYM DEFAULT
+        | STORAGE_SYM DISK_SYM
+        | STORAGE_SYM MEMORY_SYM
+        ;
+
+
+type_with_opt_collate:
+        type opt_collate
+        ;
+
+
+now:
+          NOW_SYM func_datetime_precision
+          ;
+
+now_or_signed_literal:
+          now
+        | signed_literal
+        ;
+
+charset:
+          CHAR_SYM SET
+        | CHARSET
+        ;
+
+charset_name:
+          ident_or_text { $$=$1 }
+        | BINARY { $$=$1 }
+        ;
+
+charset_name_or_default:
+          charset_name { $$=$1   }
+        | DEFAULT { $$=$1 }
+        ;
+
+opt_load_data_charset:
+          /* Empty */
+        | charset charset_name_or_default
+        ;
+
+old_or_new_charset_name:
+          ident_or_text
+          {
+            $$ = $1
+          }
+        | BINARY
+          {
+            $$ = $1
+          }
+        ;
+
+old_or_new_charset_name_or_default:
+          old_or_new_charset_name { $$=$1   }
+        | DEFAULT { $$=$1 }
+        ;
+
+collation_name:
+          ident_or_text
+          ;
+
+opt_collate:
+          /* empty */
+        | COLLATE_SYM collation_name_or_default
+        ;
+
+opt_collate_explicit:
+          /* empty */
+        | COLLATE_SYM collation_name
+        ;
+
+collation_name_or_default:
+          collation_name
+        | DEFAULT
+        ;
+
+opt_default:
+          /* empty */ {}
+        | DEFAULT {}
+        ;
+
+
+ascii:
+          ASCII_SYM
+        | BINARY ASCII_SYM
+        | ASCII_SYM BINARY
+        ;
+
+unicode:
+          UNICODE_SYM
+        | UNICODE_SYM BINARY
+        | BINARY UNICODE_SYM
+        ;
+
+opt_binary:
+          /* empty */
+        | ascii
+        | unicode
+        | BYTE_SYM
+        | charset charset_name opt_bin_mod
+        | BINARY
+        | BINARY charset charset_name
+        ;
+
+opt_bin_mod:
+          /* empty */
+        | BINARY
+        ;
+
+ws_nweights:
+        '(' real_ulong_num
+        ')'
+        ;
+
+ws_level_flag_desc:
+        ASC
+        | DESC
+        ;
+
+ws_level_flag_reverse:
+        REVERSE_SYM
+
+ws_level_flags:
+        /* empty */
+        | ws_level_flag_desc
+        | ws_level_flag_desc ws_level_flag_reverse
+        | ws_level_flag_reverse
+        ;
+
+ws_level_number:
+        real_ulong_num
+        ;
+
+ws_level_list_item:
+        ws_level_number ws_level_flags
+        ;
+
+ws_level_list:
+        ws_level_list_item
+        | ws_level_list ',' ws_level_list_item
+        ;
+
+ws_level_range:
+        ws_level_number '-' ws_level_number
+        ;
+
+ws_level_list_or_range:
+        ws_level_list
+        | ws_level_range
+        ;
+
+opt_ws_levels:
+        /* empty*/
+        | LEVEL_SYM ws_level_list_or_range
+        ;
+
+opt_primary:
+          /* empty */
+        | PRIMARY_SYM
+        ;
+
+references:
+          REFERENCES
+          table_ident
+          opt_ref_list
+          opt_match_clause
+          opt_on_update_delete
+        ;
+
+opt_ref_list:
+          /* empty */
+        | '(' ref_list ')'
+        ;
+
+ref_list:
+          ref_list ',' ident
+        | ident
+        ;
+
+opt_match_clause:
+          /* empty */
+        | MATCH FULL
+        | MATCH PARTIAL
+        | MATCH SIMPLE_SYM
+        ;
+
+opt_on_update_delete:
+          /* empty */
+        | ON UPDATE_SYM delete_option
+        | ON DELETE_SYM delete_option
+        | ON UPDATE_SYM delete_option
+          ON DELETE_SYM delete_option
+        | ON DELETE_SYM delete_option
+          ON UPDATE_SYM delete_option
+        ;
+
+delete_option:
+          RESTRICT
+        | CASCADE
+        | SET NULL_SYM
+        | NO_SYM ACTION
+        | SET DEFAULT
+        ;
+
+normal_key_type:
+          key_or_index
+        ;
+
+constraint_key_type:
+          PRIMARY_SYM KEY_SYM
+        | UNIQUE_SYM opt_key_or_index
+        ;
+
+key_or_index:
+          KEY_SYM {}
+        | INDEX_SYM {}
+        ;
+
+opt_key_or_index:
+          /* empty */ {}
+        | key_or_index
+        ;
+
+keys_or_index:
+          KEYS {}
+        | INDEX_SYM {}
+        | INDEXES {}
+        ;
+
+opt_unique:
+          /* empty */
+        | UNIQUE_SYM
+        ;
+
+fulltext:
+          FULLTEXT_SYM
+        ;
+
+spatial:
+          SPATIAL_SYM
+        ;
+
+init_key_options:
+        ;
+key_alg:
+          init_key_options
+        | init_key_options key_using_alg
+        ;
+
+normal_key_options:
+          /* empty */ {}
+        | normal_key_opts
+        ;
+
+fulltext_key_options:
+          /* empty */ {}
+        | fulltext_key_opts
+        ;
+
+spatial_key_options:
+          /* empty */ {}
+        | spatial_key_opts
+        ;
+
+normal_key_opts:
+          normal_key_opt
+        | normal_key_opts normal_key_opt
+        ;
+
+spatial_key_opts:
+          spatial_key_opt
+        | spatial_key_opts spatial_key_opt
+        ;
+
+fulltext_key_opts:
+          fulltext_key_opt
+        | fulltext_key_opts fulltext_key_opt
+        ;
+
+key_using_alg:
+          USING btree_or_rtree
+        | TYPE_SYM btree_or_rtree
+        ;
+
+all_key_opt:
+          KEY_BLOCK_SIZE opt_equal ulong_num
+        | COMMENT_SYM TEXT_STRING_sys
+        ;
+
+normal_key_opt:
+          all_key_opt
+        | key_using_alg
+        ;
+
+spatial_key_opt:
+          all_key_opt
+        ;
+
+fulltext_key_opt:
+          all_key_opt
+        | WITH PARSER_SYM IDENT_sys
+        ;
+
+btree_or_rtree:
+          BTREE_SYM
+        | RTREE_SYM
+        | HASH_SYM
+        ;
+
+key_list:
+          key_list ',' key_part order_dir
+        | key_part order_dir
+        ;
+
+key_part:
+          ident
+        | ident '(' NUM ')'
+        ;
+
+opt_ident:
+          /* empty */
+        | field_ident
+        ;
+
+opt_component:
+          /* empty */
+        | '.' ident
+        ;
+
+string_list:
+          text_string
+        | string_list ',' text_string
 
 /*
 ** Alter table
 */
 
 alter:
-     ALTER TABLE_SYM table_ident alter_commands
-     {
-         $$ = &AlterTableStmt{Table: $3}
-     }
-     ;
+          ALTER TABLE_SYM table_ident
+          alter_commands
+          {
+            $$ = &AlterTableStmt{Table: $3}
+          }
+        | ALTER DATABASE ident_or_empty
+          create_database_options
+          {
+            $$ = &AlterDatabaseStmt{Name: $3}
+          }
+        | ALTER DATABASE ident UPGRADE_SYM DATA_SYM DIRECTORY_SYM NAME_SYM
+          {
+            $$ = &AlterDatabaseStmt{Name: $3}
+          }
+        | ALTER PROCEDURE_SYM sp_name
+          sp_a_chistics
+          {
+            $$ = &AlterProcedureStmt{Procedure: $3}
+          }
+        | ALTER FUNCTION_SYM sp_name
+          sp_a_chistics
+          {
+            $$ = &AlterFunctionStmt{Function: $3}
+          }
+        | ALTER view_algorithm definer_opt
+          view_tail
+          {
+            $$ = &AlterViewStmt{View: $4.View, As: $4.As} 
+          }
+        | ALTER definer_opt
+          view_tail
+          {
+            $$ = &AlterViewStmt{View: $3.View, As: $3.As}
+          }
+        | ALTER definer_opt EVENT_SYM sp_name
+          ev_alter_on_schedule_completion
+          opt_ev_rename_to
+          opt_ev_status
+          opt_ev_comment
+          opt_ev_sql_stmt
+          {
+            $$ = &AlterEventStmt{Event: $4, Rename: $6}
+          }
+        | ALTER TABLESPACE_SYM alter_tablespace_info
+          {
+            $$ = &AlterTablespaceStmt{}
+          }
+        | ALTER LOGFILE_SYM GROUP_SYM alter_logfile_group_info
+          {
+            $$ = &AlterLogfileStmt{}
+          }
+        | ALTER TABLESPACE_SYM change_tablespace_info
+          {
+            $$ = &AlterTablespaceStmt{}
+          }
+        | ALTER TABLESPACE_SYM change_tablespace_access
+          {
+            $$ = &AlterTablespaceStmt{}
+          }
+        | ALTER SERVER_SYM ident_or_text OPTIONS_SYM '(' server_options_list ')'
+          {
+            $$ = &AlterServerStmt{}
+          }
+        | alter_user_command grant_list require_clause
+          connect_options opt_account_lock_password_expire_options
+          {
+            $$ = &AlterUserStmt{}
+          }
+        | alter_user_command user_func IDENTIFIED_SYM BY TEXT_STRING
+          {
+            $$ = &AlterUserStmt{}
+          }
+        ;
 
+alter_user_command:
+          ALTER USER if_exists clear_privileges
+        ;
+
+opt_account_lock_password_expire_options:
+          /* empty */ {}
+        | opt_account_lock_password_expire_option_list
+        ;
+
+opt_account_lock_password_expire_option_list:
+          opt_account_lock_password_expire_option
+        | opt_account_lock_password_expire_option_list opt_account_lock_password_expire_option
+        ;
+
+opt_account_lock_password_expire_option:
+          ACCOUNT_SYM UNLOCK_SYM
+        | ACCOUNT_SYM LOCK_SYM
+        | password_expire
+        | password_expire INTERVAL_SYM real_ulong_num DAY_SYM
+        | password_expire NEVER_SYM
+        | password_expire DEFAULT
+        ;
+
+password_expire:
+          PASSWORD EXPIRE_SYM clear_password_expire_options {}
+        ;
+
+connect_options:
+          /* empty */ {}
+        | WITH connect_option_list
+        ;
+
+connect_option_list:
+          connect_option_list connect_option {}
+        | connect_option {}
+        ;
+
+connect_option:
+          MAX_QUERIES_PER_HOUR ulong_num
+        | MAX_UPDATES_PER_HOUR ulong_num
+        | MAX_CONNECTIONS_PER_HOUR ulong_num
+        | MAX_USER_CONNECTIONS_SYM ulong_num
+        ;
+
+user_func:
+          USER '(' ')'
+        ;
+
+ev_alter_on_schedule_completion:
+          /* empty */
+        | ON SCHEDULE_SYM ev_schedule_time
+        | ev_on_completion
+        | ON SCHEDULE_SYM ev_schedule_time ev_on_completion
+        ;
+
+opt_ev_rename_to:
+        { $$=nil }
+        | RENAME TO_SYM sp_name
+          {
+            $$=$3
+          }
+        ;
+
+opt_ev_sql_stmt:
+          /* empty*/
+        | DO_SYM ev_sql_stmt
+        ;
+
+ident_or_empty:
+        { $$=nil }
+        | ident { $$= $1 }
+        ;
 
 alter_commands:
-              alter_command_list
-              | alter_command_list partition_clause
-              | alter_command_list remove_partitioning
-              | standalone_alter_commands
-              | alter_commands_modifier_list ',' standalone_alter_commands
-              ;
-alter_command_list:
-                  | alter_commands_modifier_list
-                  | alter_list
-                  | alter_commands_modifier_list ',' alter_list
-                   ;
+          /* empty */
+        | DISCARD TABLESPACE_SYM
+        | IMPORT TABLESPACE_SYM
+        | alter_list
+          opt_partitioning
+        | alter_list
+          remove_partitioning
+        | remove_partitioning
+        | partitioning
+        | add_partition_rule
+        | DROP PARTITION_SYM alt_part_name_list
+        | REBUILD_SYM PARTITION_SYM opt_no_write_to_binlog
+          all_or_alt_part_name_list
+        | OPTIMIZE PARTITION_SYM opt_no_write_to_binlog
+          all_or_alt_part_name_list
+          opt_no_write_to_binlog
+        | ANALYZE_SYM PARTITION_SYM opt_no_write_to_binlog
+          all_or_alt_part_name_list
+        | CHECK_SYM PARTITION_SYM all_or_alt_part_name_list
+          opt_mi_check_type
+        | REPAIR PARTITION_SYM opt_no_write_to_binlog
+          all_or_alt_part_name_list
+          opt_mi_repair_type
+        | COALESCE PARTITION_SYM opt_no_write_to_binlog real_ulong_num
+        | TRUNCATE_SYM PARTITION_SYM all_or_alt_part_name_list
+        | reorg_partition_rule
+        | EXCHANGE_SYM PARTITION_SYM alt_part_name_item
+          WITH TABLE_SYM table_ident opt_validation
+        | DISCARD PARTITION_SYM all_or_alt_part_name_list
+          TABLESPACE_SYM
+        | IMPORT PARTITION_SYM all_or_alt_part_name_list
+          TABLESPACE_SYM
+        ;
 
-standalone_alter_commands:
-                         DISCARD TABLESPACE_SYM
-                         |IMPORT TABLESPACE_SYM
-                         ;
+opt_validation:
+          /* empty */
+        | alter_opt_validation
+        ;
 
+alter_opt_validation:
+        WITH VALIDATION_SYM
+        | WITHOUT_SYM VALIDATION_SYM
+	    ;
 
+remove_partitioning:
+          REMOVE_SYM PARTITIONING_SYM
+        ;
 
+all_or_alt_part_name_list:
+          ALL
+        | alt_part_name_list
+        ;
 
+add_partition_rule:
+          ADD PARTITION_SYM opt_no_write_to_binlog
+          add_part_extra
+        ;
 
-alter_commands_modifier_list:
-                            alter_commands_modifier
-                            | alter_commands_modifier_list ',' alter_commands_modifier
-                            ;
+add_part_extra:
+          /* empty */
+        | '(' part_def_list ')'
+        | PARTITIONS_SYM real_ulong_num
+        ;
+
+reorg_partition_rule:
+          REORGANIZE_SYM PARTITION_SYM opt_no_write_to_binlog
+          reorg_parts_rule
+        ;
+
+reorg_parts_rule:
+          /* empty */
+        | alt_part_name_list
+        ;
+
+alt_part_name_list:
+          alt_part_name_item {}
+        | alt_part_name_list ',' alt_part_name_item {}
+        ;
+
+alt_part_name_item:
+          ident
+        ;
+
+/*
+  End of management of partition commands
+*/
 
 alter_list:
           alter_list_item
-          | alter_list ',' alter_list_item
-          | alter_list ',' alter_commands_modifier
-          ;
+        | alter_list ',' alter_list_item
+        ;
 
-
-
-alter_commands_modifier:
-                       alter_algorithm_option
-                       | alter_lock_option
-                       | alter_opt_validation
-                       ;
-
-alter_list_item:
-               add_column field_ident field_def opt_check_or_references opt_place
-               | ADD table_constraint_def
-               | add_column '(' table_element_list ')'
-               | CHANGE opt_column field_ident field_ident
-                 field_def
-                 opt_place
-               | MODIFY_SYM opt_column field_ident
-                 field_def
-                 opt_place
-               | DROP opt_column field_ident opt_restrict
-               | DROP FOREIGN KEY_SYM field_ident
-               | DROP PRIMARY_SYM KEY_SYM
-               | DROP key_or_index field_ident
-               | DISABLE_SYM KEYS
-               | DROP key_or_index field_ident
-               | DISABLE_SYM KEYS
-               | ENABLE_SYM KEYS
-               | ALTER opt_column field_ident SET_SYM DEFAULT_SYM signed_literal
-               | ALTER INDEX_SYM ident visibility
-               | ALTER opt_column field_ident DROP DEFAULT_SYM
-               | RENAME opt_to table_ident
-               | RENAME key_or_index field_ident TO_SYM field_ident
-               | CONVERT_SYM TO_SYM charset charset_name_or_default opt_collate
-               | create_table_options_space_separated
-               | FORCE_SYM
-               | alter_order_clause
-               ;
-
-alter_algorithm_option:
-                      ALGORITHM_SYM opt_equal DEFAULT_SYM
-                      | ALGORITHM_SYM opt_equal ident
-                      ;
-alter_lock_option:
-                 LOCK_SYM opt_equal DEFAULT_SYM
-                 | LOCK_SYM opt_equal ident
-                 ;
-
-alter_opt_validation:
-                    WITH VALIDATION_SYM
-                    | WITHOUT_SYM VALIDATION_SYM
-                    ;
 add_column:
           ADD opt_column
+        ;
+
+alter_list_item:
+          add_column column_def opt_place
+        | ADD key_def
+        | add_column '(' create_field_list ')'
+        | CHANGE opt_column field_ident
+          field_spec opt_place
+        | MODIFY_SYM opt_column field_ident
+          field_def
+          opt_place
+        | DROP opt_column field_ident opt_restrict
+        | DROP FOREIGN KEY_SYM field_ident
+        | DROP PRIMARY_SYM KEY_SYM
+        | DROP key_or_index field_ident
+        | DISABLE_SYM KEYS
+        | ENABLE_SYM KEYS
+        | ALTER opt_column field_ident SET DEFAULT signed_literal
+        | ALTER opt_column field_ident DROP DEFAULT
+        | RENAME opt_to table_ident
+        | RENAME key_or_index field_ident TO_SYM field_ident
+        | CONVERT_SYM TO_SYM charset charset_name_or_default opt_collate
+        | create_table_options_space_separated
+        | FORCE_SYM
+        | alter_order_clause
+        | alter_algorithm_option
+        | alter_lock_option
+        | UPGRADE_SYM PARTITIONING_SYM
+        | alter_opt_validation
+        ;
+
+opt_index_lock_algorithm:
+          /* empty */
+        | alter_lock_option
+        | alter_algorithm_option
+        | alter_lock_option alter_algorithm_option
+        | alter_algorithm_option alter_lock_option
+
+alter_algorithm_option:
+          ALGORITHM_SYM opt_equal DEFAULT
+        | ALGORITHM_SYM opt_equal ident
+        ;
+
+alter_lock_option:
+          LOCK_SYM opt_equal DEFAULT
+        | LOCK_SYM opt_equal ident
+        ;
+
+opt_column:
+          /* empty */ {}
+        | COLUMN_SYM {}
+        ;
+
+opt_ignore:
+          /* empty */
+        | IGNORE_SYM
+        ;
+
+opt_restrict:
+          /* empty */
+        | RESTRICT
+        | CASCADE
+        ;
+
+opt_place:
+          /* empty */ {}
+        | AFTER_SYM ident
+        | FIRST_SYM
+        ;
+
+opt_to:
+          /* empty */ {}
+        | TO_SYM {}
+        | EQ {}
+        | AS {}
+        ;
+
+group_replication:
+                 START_SYM GROUP_REPLICATION
+               | STOP_SYM GROUP_REPLICATION
+               ;
+
+slave:
+        slave_start start_slave_opts{}
+      | STOP_SYM SLAVE opt_slave_thread_option_list opt_channel
+      {}
+      ;
+
+slave_start:
+          START_SYM SLAVE opt_slave_thread_option_list
+         ;
+
+start_slave_opts:
+          slave_until
+          slave_connection_opts
+          opt_channel
           ;
 
-alter_order_clause:
-                  ORDER_SYM BY alter_order_list
-                  ;
+start:
+          START_SYM TRANSACTION_SYM opt_start_transaction_option_list
+          {
+            $$ = &StartTrans{}
+          }
+        ;
 
-alter_order_list:
-                alter_order_list ',' alter_order_item
-                | alter_order_item
-                ;
+opt_start_transaction_option_list:
+          /* empty */
+        | start_transaction_option_list
+        ;
 
-alter_order_item:
-                simple_ident_nospvar order_dir
-                ;
+start_transaction_option_list:
+          start_transaction_option
+        | start_transaction_option_list ',' start_transaction_option
+        ;
+
+start_transaction_option:
+          WITH CONSISTENT_SYM SNAPSHOT_SYM
+        | READ_SYM ONLY_SYM
+        | READ_SYM WRITE_SYM
+        ;
+
+slave_connection_opts:
+          slave_user_name_opt slave_user_pass_opt
+          slave_plugin_auth_opt slave_plugin_dir_opt
+        ;
+
+slave_user_name_opt:
+          {
+            /* empty */
+          }
+        | USER EQ TEXT_STRING_sys
+        ;
+
+slave_user_pass_opt:
+          {
+            /* empty */
+          }
+        | PASSWORD EQ TEXT_STRING_sys
+        ;
+
+slave_plugin_auth_opt:
+          {
+            /* empty */
+          }
+        | DEFAULT_AUTH_SYM EQ TEXT_STRING_sys
+        ;
+
+slave_plugin_dir_opt:
+          {
+            /* empty */
+          }
+        | PLUGIN_DIR_SYM EQ TEXT_STRING_sys
+        ;
+
+opt_slave_thread_option_list:
+          /* empty */
+        | slave_thread_option_list
+        ;
+
+slave_thread_option_list:
+          slave_thread_option
+        | slave_thread_option_list ',' slave_thread_option
+        ;
+
+slave_thread_option:
+          SQL_THREAD
+        | RELAY_THREAD
+        ;
+
+slave_until:
+          /*empty*/
+        | UNTIL_SYM slave_until_opts
+        ;
+
+slave_until_opts:
+          master_file_def
+        | slave_until_opts ',' master_file_def
+        | SQL_BEFORE_GTIDS EQ TEXT_STRING_sys
+        | SQL_AFTER_GTIDS EQ TEXT_STRING_sys
+        | SQL_AFTER_MTS_GAPS
+        ;
+
+checksum:
+          CHECKSUM_SYM table_or_tables
+          table_list opt_checksum_type
+          {
+            $$ = &ChecksumStmt{}
+          }
+        ;
+
+opt_checksum_type:
+          /* nothing */
+        | QUICK
+        | EXTENDED_SYM
+        ;
+
+repair:
+          REPAIR opt_no_write_to_binlog table_or_tables
+          table_list opt_mi_repair_type
+          {
+            $$ = &RepairStmt{}
+          }
+        ;
+
+opt_mi_repair_type:
+          /* empty */
+        | mi_repair_types {}
+        ;
+
+mi_repair_types:
+          mi_repair_type {}
+        | mi_repair_type mi_repair_types {}
+        ;
+
+mi_repair_type:
+          QUICK
+        | EXTENDED_SYM
+        | USE_FRM
+        ;
+
+analyze:
+          ANALYZE_SYM opt_no_write_to_binlog table_or_tables
+          table_list
+          {
+            $$ = &AnalyzeStmt{}
+          }
+        ;
+
+binlog_base64_event:
+          BINLOG_SYM TEXT_STRING_sys
+          {
+            $$ = &BinlogSmt{}
+          }
+        ;
+
+check:
+          CHECK_SYM table_or_tables
+          table_list opt_mi_check_type
+          {
+            $$ = &CheckStmt{}
+          }
+        ;
+
+opt_mi_check_type:
+          /* empty */
+        | mi_check_types {}
+        ;
+
+mi_check_types:
+          mi_check_type {}
+        | mi_check_type mi_check_types {}
+        ;
+
+mi_check_type:
+          QUICK
+        | FAST_SYM
+        | MEDIUM_SYM
+        | EXTENDED_SYM
+        | CHANGED
+        | FOR_SYM UPGRADE_SYM
+        ;
+
+optimize:
+          OPTIMIZE opt_no_write_to_binlog table_or_tables
+          table_list
+          {
+            $$ = &OptimizeStmt{}
+          }
+        ;
+
+opt_no_write_to_binlog:
+          /* empty */
+        | NO_WRITE_TO_BINLOG
+        | LOCAL_SYM
+        ;
+
+rename:
+          RENAME table_or_tables
+          table_to_table_list
+          {
+            $$ = &RenameTableStmt{ToList: $3}
+          }
+        | RENAME USER clear_privileges rename_list
+          {
+            $$ = &RenameUserStmt{}
+          }
+        ;
+
+rename_list:
+          user TO_SYM user
+        | rename_list ',' user TO_SYM user
+        ;
+
+table_to_table_list:
+          table_to_table
+          {
+            $$ = []*TableToTable{$1}
+          }
+        | table_to_table_list ',' table_to_table
+          {
+            $$ = append($1, $3)
+          }
+        ;
+
+table_to_table:
+          table_ident TO_SYM table_ident
+          {
+            { $$ = &TableToTable{From: $1, To: $3}}
+          }
+        ;
+
+keycache:
+          CACHE_SYM INDEX_SYM
+          keycache_list_or_parts IN_SYM key_cache_name
+          {
+            $$ = &CacheIndexStmt{TableIndexList: $3}
+          }
+        ;
+
+keycache_list_or_parts:
+          keycache_list { $$ = $1}
+        | assign_to_keycache_parts { $$ = []*TableIndex{$1} }
+        ;
+
+keycache_list:
+          assign_to_keycache { $$ = []*TableIndex{$1} }
+        | keycache_list ',' assign_to_keycache { $$ = append($1, $3) }
+        ;
+
+assign_to_keycache:
+          table_ident cache_keys_spec
+          { $$ = &TableIndex{Table: $1} }
+        ;
+
+assign_to_keycache_parts:
+          table_ident adm_partition cache_keys_spec
+          { $$ = &TableIndex{Table: $1} }
+        ;
+
+key_cache_name:
+          ident
+        | DEFAULT
+        ;
+
+preload:
+          LOAD INDEX_SYM INTO CACHE_SYM
+          preload_list_or_parts
+          {
+            $$ = &LoadIndex{TableIndexList: $5}
+          }
+        ;
+
+preload_list_or_parts:
+          preload_keys_parts { $$ = TableIndexes{$1} }
+        | preload_list { $$ = $1 }
+        ;
+
+preload_list:
+          preload_keys { $$ = TableIndexes{$1} }
+        | preload_list ',' preload_keys
+        {
+            $$ = append($1, $3)
+        }
+        ;
+
+preload_keys:
+          table_ident cache_keys_spec opt_ignore_leaves
+          {
+            $$ = &TableIndex{Table: $1}
+          }
+        ;
+
+preload_keys_parts:
+          table_ident adm_partition cache_keys_spec opt_ignore_leaves
+          {
+            $$ = &TableIndex{Table: $1}
+          }
+        ;
+
+adm_partition:
+          PARTITION_SYM
+          '(' all_or_alt_part_name_list ')'
+        ;
+
+cache_keys_spec:
+          cache_key_list_or_empty
+        ;
+
+cache_key_list_or_empty:
+          /* empty */
+        | key_or_index '(' opt_key_usage_list ')'
+        ;
+
+opt_ignore_leaves:
+          /* empty */
+        | IGNORE_SYM LEAVES
+        ;
+
+/*
+  Select : retrieve data from table
+*/
 
 
-charset:
-       CHAR_SYM SET_SYM {}
-       | CHARSET {}
+select:
+          select_init
+          {
+             $$ = $1
+          }
+        ;
+
+/* Need first branch for subselects. */
+select_init:
+          SELECT_SYM select_part2 opt_union_clause
+          {
+            $$ = $2
+          }
+        | '(' select_paren ')' union_opt
+          {
+            if $4 == nil {
+                $$ = $2
+            }
+            $$ = &UnionStmt{SelectList:$2,OrderBy:$4.OrderBy,Limit:$4.Limit}
+          }
+        ;
+
+select_paren:
+          SELECT_SYM select_part2
+          {
+            $$ = $2
+          }
+        | '(' select_paren ')'
+        {
+           $$ = &SubQuery{SelectStatement : $2}
+        }
+        ;
+
+/* The equivalent of select_paren for nested queries. */
+select_paren_derived:
+          SELECT_SYM select_part2_derived table_expression
+          {
+            { $$ = $2 }
+          }
+        | '(' select_paren_derived ')' { $$= $2 }
+        ;
+
+select_part2:
+          select_options_and_item_list
+          opt_order_clause
+          opt_limit_clause
+          opt_select_lock_type
+          {
+            $$ = &SelectStmt{ Limit:$3,LockTp:$4}
+          }
+        | select_options_and_item_list into opt_select_lock_type
+          {
+            $$ = &SelectStmt{ LockTp:$3}
+          }
+        | select_options_and_item_list  /* #1 */
+          opt_into                      /* #2 */
+          from_clause                   /* #3 */
+          opt_where_clause              /* #4 */
+          opt_group_clause              /* #5 */
+          opt_having_clause             /* #6 */
+          opt_order_clause              /* #7 */
+          opt_limit_clause              /* #8 */
+          opt_procedure_analyse_clause  /* #9 */
+          opt_into                      /* #10 */
+          opt_select_lock_type          /* #11 */
+          {
+            $$ = &SelectStmt{ From:$3, Limit:$8, LockTp:$11}
+          }
+        ;
+
+select_options_and_item_list:
+          select_options select_item_list
+        ;
+
+
+table_expression:
+          opt_from_clause               /* #1 */
+          opt_where_clause              /* #2 */
+          opt_group_clause              /* #3 */
+          opt_having_clause             /* #4 */
+          opt_order_clause              /* #5 */
+          opt_limit_clause              /* #6 */
+          opt_procedure_analyse_clause  /* #7 */
+          opt_select_lock_type          /* #8 */
+          {
+            $$ = &TableExpression{Limit :$6,LockTp:$8}
+          }
+        ;
+
+from_clause:
+          FROM table_reference_list { $$= $2 }
+        ;
+
+opt_from_clause:
+          /* empty */ { $$=nil }
+        | from_clause { $$=$1 }
+        ;
+
+table_reference_list:
+          join_table_list
+          {
+            $$ = $1
+          }
+        | DUAL_SYM  { $$=nil }
+        ;
+
+select_options:
+          /* empty*/
+        | select_option_list
+        ;
+
+select_option_list:
+          select_option_list select_option
+        | select_option
+        ;
+
+select_option:
+          query_spec_option
+        | SQL_NO_CACHE_SYM
+        | SQL_CACHE_SYM
+        ;
+
+opt_select_lock_type:
+          /* empty */ { $$ = SelectLockNone }
+        | FOR_SYM UPDATE_SYM
+          {
+            $$ = SelectLockForUpdate
+          }
+        | LOCK_SYM IN_SYM SHARE_SYM MODE_SYM
+          {
+            $$ = SelectLockInShareMode
+          }
+        ;
+
+select_item_list:
+          select_item_list ',' select_item
+        | select_item
+        | '*'
+        ;
+
+select_item:
+          table_wild
+        | expr select_alias
+        ;
+
+
+select_alias:
+          /* empty */
+        | AS ident
+        | AS TEXT_STRING_sys
+        | ident
+        | TEXT_STRING_sys
+        ;
+
+optional_braces:
+          /* empty */ {}
+        | '(' ')' {}
+        ;
+
+/* all possible expressions */
+expr:
+          expr or expr %prec OR_SYM
+          {
+            $$ = &OrExpr{Left: $1, Right: $3}
+          }
+        | expr XOR expr %prec XOR
+          {
+            $$ = &XorExpr{Left: $1, Right: $3}
+          }
+        | expr and expr %prec AND_SYM
+          {
+            $$ = &AndExpr{Left: $1, Right: $3}
+          }
+        | NOT_SYM expr %prec NOT_SYM
+          {
+            $$ = &NotExpr{Expr: $2}
+          }
+        | bool_pri IS TRUE_SYM %prec IS
+          {
+            $$ = &TrueExpr{Expr:$1}
+          }
+        | bool_pri IS not TRUE_SYM %prec IS
+          {
+            $$ = TrueExpr{Expr:$1,Not:true}
+          }
+        | bool_pri IS FALSE_SYM %prec IS
+          {
+            $$ = FalseExpr{Expr:$1}
+          }
+        | bool_pri IS not FALSE_SYM %prec IS
+          {
+            $$ = FalseExpr{Expr:$1,Not:true}
+          }
+        | bool_pri IS UNKNOWN_SYM %prec IS
+          {
+            $$ = UnknownExpr{Expr:$1}
+          }
+        | bool_pri IS not UNKNOWN_SYM %prec IS
+          {
+            $$=UnknownExpr{Expr:$1,Not:true}
+          }
+        | bool_pri { $$ = $1 }
+        ;
+
+bool_pri:
+          bool_pri IS NULL_SYM %prec IS
+          {
+            $$ = &IsNullPri{Expr: $1}
+          }
+        | bool_pri IS not NULL_SYM %prec IS
+          {
+            $$ = &IsNullPri{Expr: $1,Not:true}
+          }
+        | bool_pri comp_op predicate %prec EQ
+          {
+            $$ = &CompOp{Left: $1, Right: $3}
+          }
+        | bool_pri comp_op all_or_any '(' subselect ')' %prec EQ
+          {
+            $$ = &CompOpAll{Left:$1,Right:$5}
+          }
+        | predicate { $$ = $1 }
+        ;
+
+predicate:
+          bit_expr IN_SYM '(' subselect ')'
+          {
+            $$ = &InCondition{Expr: $1, List: InExprs{$4}}
+          }
+        | bit_expr not IN_SYM '(' subselect ')'
+          {
+            $$ = &InCondition{Expr: $1, List: InExprs{$5},Not:true}
+          }
+        | bit_expr IN_SYM '(' expr ')'
+          {
+            $$ = &InCondition{Expr: $1, List: InExprs{$4}}
+          }
+        | bit_expr IN_SYM '(' expr ',' expr_list ')'
+          {
+            $$ = &InCondition{Expr: $1, List: append(InExprs{$4}, $6...)}
+          }
+        | bit_expr not IN_SYM '(' expr ')'
+          {
+            $$ = &InCondition{Expr: $1, List: InExprs{$5},Not:true}
+          }
+        | bit_expr not IN_SYM '(' expr ',' expr_list ')'
+          {
+            $$ = &InCondition{Expr: $1, List: append(InExprs{$5}, $7...),Not:true}
+          }
+        | bit_expr BETWEEN_SYM bit_expr AND_SYM predicate
+          {
+            $$ = &BetweenCondition{Left:$3,Right:$5}
+          }
+        | bit_expr not BETWEEN_SYM bit_expr AND_SYM predicate
+          {
+            $$ = &BetweenCondition{Left:$4,Right:$6,Not:true}
+          }
+        | bit_expr SOUNDS_SYM LIKE bit_expr
+          {
+            $$ =&LikeCondition{Expr:$1,Pattern:$4}
+          }
+        | bit_expr LIKE simple_expr opt_escape
+          {
+            $$ =&LikeCondition{Expr:$1,Pattern:$3}
+          }
+        | bit_expr not LIKE simple_expr opt_escape
+          {
+            $$ =&LikeCondition{Expr:$1,Pattern:$4,Not:true}
+          }
+        | bit_expr REGEXP bit_expr
+          {
+            $$ =&RgexpCondition{Expr:$1,Pattern:$3}
+          }
+        | bit_expr not REGEXP bit_expr
+          {
+            $$ =&RgexpCondition{Expr:$1,Pattern:$4,Not:true}
+          }
+        | bit_expr { $$ = $1 }
+        ;
+
+bit_expr:
+          bit_expr '|' bit_expr %prec '|'
+          {
+            $$=&BinaryOperationExpr{Left: $1, Operator: BITOR, Right: $3}
+          }
+        | bit_expr '&' bit_expr %prec '&'
+          {
+            $$=&BinaryOperationExpr{Left: $1, Operator: BITAND, Right: $3}
+          }
+        | bit_expr SHIFT_LEFT bit_expr %prec SHIFT_LEFT
+          {
+            $$=&BinaryOperationExpr{Left: $1, Operator: SHIFTLEFT, Right: $3}
+          }
+        | bit_expr SHIFT_RIGHT bit_expr %prec SHIFT_RIGHT
+          {
+            $$=&BinaryOperationExpr{Left: $1, Operator: SHIFRIGHT, Right: $3}
+          }
+        | bit_expr '+' bit_expr %prec '+'
+          {
+            $$=&BinaryOperationExpr{Left: $1, Operator: PLUS, Right: $3}
+          }
+        | bit_expr '-' bit_expr %prec '-'
+          {
+            $$=&BinaryOperationExpr{Left: $1, Operator: MINUS, Right: $3}
+          }
+        | bit_expr '+' INTERVAL_SYM expr interval %prec '+'
+          {
+            $$=&BinaryOperationExpr{Left: $1, Operator: PLUS, Right: &IntervalExpr{Expr: $4, Interval: $5}}
+          }
+        | bit_expr '-' INTERVAL_SYM expr interval %prec '-'
+          {
+            $$=&BinaryOperationExpr{Left: $1, Operator: MINUS, Right: &IntervalExpr{Expr: $4, Interval: $5}}
+          }
+        | bit_expr '*' bit_expr %prec '*'
+          {
+            $$=&BinaryOperationExpr{Left: $1, Operator: MULT, Right: $3}
+          }
+        | bit_expr '/' bit_expr %prec '/'
+          {
+            $$=&BinaryOperationExpr{Left: $1, Operator: DIV, Right: $3}
+          }
+        | bit_expr '%' bit_expr %prec '%'
+          {
+            $$=&BinaryOperationExpr{Left: $1, Operator: MOD, Mod: $3}
+          }
+        | bit_expr DIV_SYM bit_expr %prec DIV_SYM
+          {
+            $$=&BinaryOperationExpr{Left: $1, Operator: DIV, Right: $3}
+          }
+        | bit_expr MOD_SYM bit_expr %prec MOD_SYM
+          {
+            $$=&BinaryOperationExpr{Left: $1, Operator: MOD, Mod: $3}
+          }
+        | bit_expr '^' bit_expr
+          {
+            $$=&BinaryOperationExpr{Left: $1, Operator: BITXOR, Mod: $3}
+          }
+        | simple_expr { $$ = $1 }
+        ;
+
+or:
+          OR_SYM
+       | OR2_SYM
        ;
 
-charset_name_or_default:
-                       charset_name { $$=$1   }
-                       | DEFAULT_SYM    { $$=$1; }
-                       ;
+and:
+          AND_SYM
+       | AND_AND_SYM
+       ;
 
-create_table_options_space_separated:
-                                    create_table_option
-                                    | create_table_options_space_separated create_table_option
-                                    ;
-create_table_options:
-                    create_table_option
-                    | create_table_options opt_comma create_table_option
-                    ;
+not:
+          NOT_SYM
+        | NOT2_SYM
+        ;
 
-opt_comma:
-         /* empty */
-         | ','
-         ;
+not2:
+          '!'
+        | NOT2_SYM
+        ;
 
-partition_clause:
-                PARTITION_SYM BY part_type_def opt_num_parts opt_sub_part
-                opt_part_defs
-                ;
-part_type_def:
-             opt_linear KEY_SYM opt_key_algo '(' opt_name_list ')'
-             | opt_linear HASH_SYM '(' bit_expr ')'
-             | RANGE_SYM '(' bit_expr ')'
-             | RANGE_SYM COLUMNS '(' name_list ')'
-             | LIST_SYM '(' bit_expr ')'
-             | LIST_SYM COLUMNS '(' name_list ')'
-             ;
-opt_linear:
-          | LINEAR_SYM 
+comp_op:
+          EQ     { $$ = EQ }
+        | EQUAL_SYM { $$ = EQUAL }
+        | GE     { $$ = GE }
+        | GT_SYM { $$ = GE }
+        | LE     { $$ = LE }
+        | LT     { $$ = LT }
+        | NE     { $$ = NE }
+        ;
+
+all_or_any:
+          ALL
+        | ANY_SYM
+        ;
+
+simple_expr:
+          simple_ident { $$ = $1 }
+        | function_call_keyword { $$ = &FuncExpr{} }
+        | function_call_nonkeyword { $$ = &FuncExpr{} }
+        | function_call_generic { $$ = &FuncExpr{} }
+        | function_call_conflict { $$ = &FuncExpr{} }
+        | simple_expr COLLATE_SYM ident_or_text %prec NEG
+             { $$ = &CollateExpr{Expr: $1, Collate: $3} }
+        | literal { $$= $1 }
+        | param_marker { $$= $1 }
+        | variable { $$= $1 }
+        | sum_expr { $$ = &FuncExpr{} }
+        | simple_expr OR_OR_SYM simple_expr
+          {
+            $$ = &BinaryOperationExpr{Left: $1,Operator:OROR, Right: $3}
+          }
+        | '+' simple_expr %prec NEG
+          {
+            $$=&BinaryOperationExpr{Left: $2, Operator:UPLUS }
+          }
+        | '-' simple_expr %prec NEG
+          {
+            $$=&BinaryOperationExpr{Left: $2, Operator:UMINUS }
+          }
+        | '~' simple_expr %prec NEG
+          {
+            $$=&BinaryOperationExpr{Left: $2, Operator:TILDA }
+          }
+        | not2 simple_expr %prec NEG
+          {
+            $$=&BinaryOperationExpr{Left: $2, Operator:NOT2 }
+          }
+        | '(' subselect ')'
+          {
+            $$ = &SubQuery{SelectStatement: $2}
+          }
+        | '(' expr ')'
+          {
+            $$ = &Exprs{$2}
+          }
+        | '(' expr ',' expr_list ')'
+          {
+            $$ = append(Exprs{$2}, $4...)
+          }
+        | ROW_SYM '(' expr ',' expr_list ')'
+          {
+            $$ = &FuncExpr{}
+          }
+        | EXISTS '(' subselect ')'
+          {
+            $$ = &ExistsExpr{SubQuery: $3}
+          }
+        | '{' ident expr '}'
+          {
+            $$ = &IdentExpr{Ident: $2, Expr: $3}
+          }
+        | MATCH ident_list_arg AGAINST '(' bit_expr fulltext_options ')'
+          {
+            $$ = &MatchExpr{}
+          }
+        | BINARY simple_expr %prec NEG
+          {
+            $$=&BinaryOperationExpr{Left: $2, Operator:UBINARY }
+          }
+        | CAST_SYM '(' expr AS cast_type ')'
+          {
+            $$ = &FuncExpr{}
+          }
+        | CASE_SYM opt_expr when_list opt_else END
+          {
+            $$ = &FuncExpr{}
+          }
+        | CONVERT_SYM '(' expr ',' cast_type ')'
+          {
+            $$ = &FuncExpr{}
+          }
+        | CONVERT_SYM '(' expr USING charset_name ')'
+          {
+            $$ = &FuncExpr{}
+          }
+        | DEFAULT '(' simple_ident ')'
+          {
+            $$ = &FuncExpr{}
+          }
+        | VALUES '(' simple_ident_nospvar ')'
+          {
+            $$ = &FuncExpr{}
+          }
+        | INTERVAL_SYM expr interval '+' expr %prec INTERVAL_SYM
+          /* we cannot put interval before - */
+          {
+            $$ = &FuncExpr{}
+          }
+        | simple_ident JSON_SEPARATOR_SYM TEXT_STRING_literal
+          {
+            $$ = &FuncExpr{}
+          }
+        ;
+
+function_call_keyword:
+          CHAR_SYM '(' expr_list ')'
+        | CHAR_SYM '(' expr_list USING charset_name ')'
+        | CURRENT_USER optional_braces
+        | DATE_SYM '(' expr ')'
+        | DAY_SYM '(' expr ')'
+        | HOUR_SYM '(' expr ')'
+        | INSERT '(' expr ',' expr ',' expr ',' expr ')'
+        | INTERVAL_SYM '(' expr ',' expr ')' %prec INTERVAL_SYM
+        | INTERVAL_SYM '(' expr ',' expr ',' expr_list ')' %prec INTERVAL_SYM
+        | LEFT '(' expr ',' expr ')'
+        | MINUTE_SYM '(' expr ')'
+        | MONTH_SYM '(' expr ')'
+        | RIGHT '(' expr ',' expr ')'
+        | SECOND_SYM '(' expr ')'
+        | TIME_SYM '(' expr ')'
+        | TIMESTAMP '(' expr ')'
+        | TIMESTAMP '(' expr ',' expr ')'
+        | TRIM '(' expr ')'
+        | TRIM '(' LEADING expr FROM expr ')'
+        | TRIM '(' TRAILING expr FROM expr ')'
+        | TRIM '(' BOTH expr FROM expr ')'
+        | TRIM '(' LEADING FROM expr ')'
+        | TRIM '(' TRAILING FROM expr ')'
+        | TRIM '(' BOTH FROM expr ')'
+        | TRIM '(' expr FROM expr ')'
+        | USER '(' ')'
+        | YEAR_SYM '(' expr ')'
+        ;
+
+function_call_nonkeyword:
+          ADDDATE_SYM '(' expr ',' expr ')'
+        | ADDDATE_SYM '(' expr ',' INTERVAL_SYM expr interval ')'
+        | CURDATE optional_braces
+        | CURTIME func_datetime_precision
+        | DATE_ADD_INTERVAL '(' expr ',' INTERVAL_SYM expr interval ')'
+          %prec INTERVAL_SYM
+        | DATE_SUB_INTERVAL '(' expr ',' INTERVAL_SYM expr interval ')'
+          %prec INTERVAL_SYM
+        | EXTRACT_SYM '(' interval FROM expr ')'
+        | GET_FORMAT '(' date_time_type  ',' expr ')'
+        | now
+        | POSITION_SYM '(' bit_expr IN_SYM expr ')'
+        | SUBDATE_SYM '(' expr ',' expr ')'
+        | SUBDATE_SYM '(' expr ',' INTERVAL_SYM expr interval ')'
+        | SUBSTRING '(' expr ',' expr ',' expr ')'
+        | SUBSTRING '(' expr ',' expr ')'
+        | SUBSTRING '(' expr FROM expr FOR_SYM expr ')'
+        | SUBSTRING '(' expr FROM expr ')'
+        | SYSDATE func_datetime_precision
+        | TIMESTAMP_ADD '(' interval_time_stamp ',' expr ',' expr ')'
+        | TIMESTAMP_DIFF '(' interval_time_stamp ',' expr ',' expr ')'
+        | UTC_DATE_SYM optional_braces
+        | UTC_TIME_SYM func_datetime_precision
+        | UTC_TIMESTAMP_SYM func_datetime_precision
+        ;
+function_call_conflict:
+          ASCII_SYM '(' expr ')'
+        | CHARSET '(' expr ')'
+        | COALESCE '(' expr_list ')'
+        | COLLATION_SYM '(' expr ')'
+        | DATABASE '(' ')'
+        | IF '(' expr ',' expr ',' expr ')'
+        | FORMAT_SYM '(' expr ',' expr ')'
+        | FORMAT_SYM '(' expr ',' expr ',' expr ')'
+        | MICROSECOND_SYM '(' expr ')'
+        | MOD_SYM '(' expr ',' expr ')'
+        | PASSWORD '(' expr ')'
+        | QUARTER_SYM '(' expr ')'
+        | REPEAT_SYM '(' expr ',' expr ')'
+        | REPLACE '(' expr ',' expr ',' expr ')'
+        | REVERSE_SYM '(' expr ')'
+        | ROW_COUNT_SYM '(' ')'
+        | TRUNCATE_SYM '(' expr ',' expr ')'
+        | WEEK_SYM '(' expr ')'
+        | WEEK_SYM '(' expr ',' expr ')'
+        | WEIGHT_STRING_SYM '(' expr opt_ws_levels ')'
+        | WEIGHT_STRING_SYM '(' expr AS CHAR_SYM ws_nweights opt_ws_levels ')'
+        | WEIGHT_STRING_SYM '(' expr AS BINARY ws_nweights ')'
+        | WEIGHT_STRING_SYM '(' expr ',' ulong_num ',' ulong_num ',' ulong_num ')'
+        | geometry_function
+        ;
+
+geometry_function:
+          CONTAINS_SYM '(' expr ',' expr ')'
+        | GEOMETRYCOLLECTION '(' opt_expr_list ')'
+        | LINESTRING '(' expr_list ')'
+        | MULTILINESTRING '(' expr_list ')'
+        | MULTIPOINT '(' expr_list ')'
+        | MULTIPOLYGON '(' expr_list ')'
+        | POINT_SYM '(' expr ',' expr ')'
+        | POLYGON '(' expr_list ')'
+        ;
+
+function_call_generic:
+          IDENT_sys '(' opt_udf_expr_list ')'
+        | ident '.' ident '(' opt_expr_list ')'
+        ;
+
+fulltext_options:
+          opt_natural_language_mode opt_query_expansion
+        | IN_SYM BOOLEAN_SYM MODE_SYM
+        ;
+
+opt_natural_language_mode:
+          /* nothing */
+        | IN_SYM NATURAL LANGUAGE_SYM MODE_SYM
+        ;
+
+opt_query_expansion:
+          /* nothing */
+        | WITH QUERY_SYM EXPANSION_SYM
+        ;
+
+opt_udf_expr_list:
+        /* empty */
+        | udf_expr_list
+        ;
+
+udf_expr_list:
+          udf_expr
+        | udf_expr_list ',' udf_expr
+        ;
+
+udf_expr:
+          expr select_alias
+        ;
+
+sum_expr:
+          AVG_SYM '(' in_sum_expr ')'
+        | AVG_SYM '(' DISTINCT in_sum_expr ')'
+        | BIT_AND  '(' in_sum_expr ')'
+        | BIT_OR  '(' in_sum_expr ')'
+        | BIT_XOR  '(' in_sum_expr ')'
+        | COUNT_SYM '(' opt_all '*' ')'
+        | COUNT_SYM '(' in_sum_expr ')'
+        | COUNT_SYM '(' DISTINCT expr_list ')'
+        | MIN_SYM '(' in_sum_expr ')'
+        | MIN_SYM '(' DISTINCT in_sum_expr ')'
+        | MAX_SYM '(' in_sum_expr ')'
+        | MAX_SYM '(' DISTINCT in_sum_expr ')'
+        | STD_SYM '(' in_sum_expr ')'
+        | VARIANCE_SYM '(' in_sum_expr ')'
+        | STDDEV_SAMP_SYM '(' in_sum_expr ')'
+        | VAR_SAMP_SYM '(' in_sum_expr ')'
+        | SUM_SYM '(' in_sum_expr ')'
+        | SUM_SYM '(' DISTINCT in_sum_expr ')'
+        | GROUP_CONCAT_SYM '(' opt_distinct
+          expr_list opt_gorder_clause
+          opt_gconcat_separator
+          ')'
+        ;
+
+variable:
+          '@' variable_aux { $$ = &Variable{} }
+        ;
+
+variable_aux:
+          ident_or_text SET_VAR expr
+        | ident_or_text
+        | '@' opt_var_ident_type ident_or_text opt_component
+        ;
+
+opt_distinct:
+          /* empty */
+        | DISTINCT
+        ;
+
+opt_gconcat_separator:
+          /* empty */
+        | SEPARATOR_SYM text_string
+        ;
+
+opt_gorder_clause:
+          /* empty */
+        | ORDER_SYM BY gorder_list
+        ;
+
+gorder_list:
+          gorder_list ',' order_expr
+        | order_expr
+        ;
+
+in_sum_expr:
+          opt_all expr
+        ;
+
+cast_type:
+          BINARY opt_field_length
+        | CHAR_SYM opt_field_length opt_binary
+        | NCHAR_SYM opt_field_length
+        | SIGNED_SYM
+        | SIGNED_SYM INT_SYM
+        | UNSIGNED
+        | UNSIGNED INT_SYM
+        | DATE_SYM
+        | TIME_SYM type_datetime_precision
+        | DATETIME type_datetime_precision
+        | DECIMAL_SYM float_options
+        | JSON_SYM
+        ;
+
+opt_expr_list:
+          /* empty */
+        | expr_list
+        ;
+
+expr_list:
+          expr { $$ = Exprs{$1} }
+        | expr_list ',' expr
+        {
+            $$ = append($1, $3)
+        }
+        ;
+
+ident_list_arg:
+          ident_list
+        | '(' ident_list ')'
+        ;
+
+ident_list:
+          simple_ident
+        | ident_list ',' simple_ident
+        ;
+
+opt_expr:
+          /* empty */
+        | expr
+        ;
+
+opt_else:
+          /* empty */
+        | ELSE expr
+        ;
+
+when_list:
+          WHEN_SYM expr THEN_SYM expr
+        | when_list WHEN_SYM expr THEN_SYM expr
+        ;
+
+table_ref:
+          table_factor { $$ = $1 }
+        | join_table
+          {
+            $$ = $1
+          }
+        ;
+
+join_table_list:
+          derived_table_list
+          {
+            $$ = $1
+          }
+        ;
+esc_table_ref:
+        table_ref { $$ = $1 }
+      | '{' ident table_ref '}' { $$= $3 }
+      ;
+
+derived_table_list:
+          esc_table_ref { $$ = []Table{$1} }
+        | derived_table_list ',' esc_table_ref
+          {
+            $$ = append($1, $3)
+          }
+        ;
+
+join_table:
+          table_ref normal_join table_ref %prec TABLE_REF_PRIORITY
+          {
+            $$ = &Join{Left: $1, Right: $3}
+          }
+        | table_ref STRAIGHT_JOIN table_factor
+          {
+            $$ = &Join{Left: $1, Right: $3}
+          }
+        | table_ref normal_join table_ref
+          ON
+          expr
+          {
+            $$ = &Join{Left: $1, Right: $3}
+          }
+        | table_ref STRAIGHT_JOIN table_factor
+          ON
+          expr
+          {
+            $$ = &Join{Left: $1, Right: $3}
+          }
+        | table_ref normal_join table_ref
+          USING
+          '(' using_list ')'
+          {
+            $$ = &Join{Left: $1, Right: $3}
+          }
+        | table_ref NATURAL JOIN_SYM table_factor
+          {
+             $$ = &Join{Left: $1, Right: $4}
+          }
+
+          /* LEFT JOIN variants */
+        | table_ref LEFT opt_outer JOIN_SYM table_ref
+          ON
+          expr
+          {
+             $$ = &Join{Left: $1, Right: $5}
+          }
+        | table_ref LEFT opt_outer JOIN_SYM table_factor
+          USING '(' using_list ')'
+          {
+             $$ = &Join{Left: $1, Right: $5}
+          }
+        | table_ref NATURAL LEFT opt_outer JOIN_SYM table_factor
+          {
+             $$ = &Join{Left: $1, Right: $6}
+          }
+        | table_ref RIGHT opt_outer JOIN_SYM table_ref
+          ON
+          expr
+          {
+             $$ = &Join{Left: $1, Right: $5}
+          }
+        | table_ref RIGHT opt_outer JOIN_SYM table_factor
+          USING '(' using_list ')'
+          {
+             $$ = &Join{Left: $1, Right: $5}
+          }
+        | table_ref NATURAL RIGHT opt_outer JOIN_SYM table_factor
+          {
+             $$ = &Join{Left: $1, Right: $6}
+          }
+        ;
+
+normal_join:
+          JOIN_SYM {}
+        | INNER_SYM JOIN_SYM {}
+        | CROSS JOIN_SYM {}
+        ;
+opt_use_partition:
+          /* empty */
+        | use_partition
+        ;
+
+use_partition:
+          PARTITION_SYM '(' using_list ')'
+        ;
+table_factor:
+          table_ident opt_use_partition opt_table_alias opt_key_definition
+          {
+            $$ = &AliasedTable{TableOrSubQuery: $1, As: $3}
+          }
+        | SELECT_SYM select_options select_item_list table_expression
+          {
+            $$ = &AliasedTable{TableOrSubQuery: $4}
+          }
+        | '(' select_derived_union ')' opt_table_alias
+          {
+            $$ = &AliasedTable{TableOrSubQuery: $4 }
+          }
+        ;
+
+select_derived_union:
+          select_derived opt_union_order_or_limit
+          {
+            $$ = &SubQuery{SelectStatement:$1}
+          }
+        | select_derived_union UNION_SYM union_option query_specification
+          {
+            $$ = &SubQuery{SelectStatement: &UnionStmt{SelectList:$1}}
+          }
+        ;
+
+select_part2_derived:
+          opt_query_spec_options select_item_list
+          {
+            $$ = &SelectStmt{}
+          }
+        ;
+
+select_derived:
+          derived_table_list
+          {
+            $$ = &SelectStmt{From: $1}
+          }
+        ;
+
+opt_outer:
+          /* empty */
+        | OUTER
+        ;
+
+index_hint_clause:
+          /* empty */
+        | FOR_SYM JOIN_SYM
+        | FOR_SYM ORDER_SYM BY
+        | FOR_SYM GROUP_SYM BY
+        ;
+
+index_hint_type:
+          FORCE_SYM
+        | IGNORE_SYM
+        ;
+
+index_hint_definition:
+          index_hint_type key_or_index index_hint_clause
+          '(' key_usage_list ')'
+        | USE_SYM key_or_index index_hint_clause
+          '(' opt_key_usage_list ')'
+       ;
+
+index_hints_list:
+          index_hint_definition
+        | index_hints_list index_hint_definition
+        ;
+
+opt_index_hints_list:
+          /* empty */
+        | index_hints_list
+        ;
+
+opt_key_definition:
+          opt_index_hints_list
+        ;
+
+opt_key_usage_list:
+          /* empty */
+        | key_usage_list
+        ;
+
+key_usage_element:
+          ident
+        | PRIMARY_SYM
+        ;
+
+key_usage_list:
+          key_usage_element
+        | key_usage_list ',' key_usage_element
+        ;
+
+using_list:
+          ident
+        | using_list ',' ident
+        ;
+
+interval:
+          interval_time_stamp    { $$=$1}
+        | DAY_HOUR_SYM           { $$=$1}
+        | DAY_MICROSECOND_SYM    { $$=$1}
+        | DAY_MINUTE_SYM         { $$=$1}
+        | DAY_SECOND_SYM         { $$=$1}
+        | HOUR_MICROSECOND_SYM   { $$=$1 }
+        | HOUR_MINUTE_SYM        { $$=$1 }
+        | HOUR_SECOND_SYM        { $$=$1 }
+        | MINUTE_MICROSECOND_SYM { $$=$1 }
+        | MINUTE_SECOND_SYM      { $$=$1 }
+        | SECOND_MICROSECOND_SYM { $$=$1 }
+        | YEAR_MONTH_SYM         { $$=$1 }
+        ;
+
+interval_time_stamp:
+          DAY_SYM         { $$=$1 }
+        | WEEK_SYM        { $$=$1  }
+        | HOUR_SYM        { $$=$1 }
+        | MINUTE_SYM      { $$=$1 }
+        | MONTH_SYM       { $$=$1 }
+        | QUARTER_SYM     { $$=$1 }
+        | SECOND_SYM      { $$=$1 }
+        | MICROSECOND_SYM { $$=$1 }
+        | YEAR_SYM        { $$=$1 }
+        ;
+
+date_time_type:
+          DATE_SYM
+        | TIME_SYM
+        | TIMESTAMP
+        | DATETIME
+        ;
+
+table_alias:
+          /* empty */
+        | AS
+        | EQ
+        ;
+
+opt_table_alias:
+          /* empty */ { $$=nil }
+        | table_alias ident
+          {
+            $$=$2
+          }
+        ;
+
+opt_all:
+          /* empty */
+        | ALL
+        ;
+
+opt_where_clause:
+          /* empty */
+        | WHERE expr
+        ;
+
+opt_having_clause:
+          /* empty */
+        | HAVING expr
+        ;
+
+opt_escape:
+          ESCAPE_SYM simple_expr
+        | /* empty */
+        ;
+opt_group_clause:
+          /* empty */
+        | GROUP_SYM BY group_list olap_opt
+        ;
+
+group_list:
+          group_list ',' order_expr
+        | order_expr
+        ;
+
+olap_opt:
+          /* empty */
+        | WITH_CUBE_SYM
+        | WITH_ROLLUP_SYM
+        ;
+
+/*
+  Order by statement in ALTER TABLE
+*/
+
+alter_order_clause:
+          ORDER_SYM BY alter_order_list
+        ;
+
+alter_order_list:
+          alter_order_list ',' alter_order_item
+        | alter_order_item
+        ;
+
+alter_order_item:
+          simple_ident_nospvar order_dir
+        ;
+opt_order_clause:
+          /* empty */
+        | order_clause
+        ;
+
+order_clause:
+          ORDER_SYM BY order_list
+        ;
+
+order_list:
+          order_list ',' order_expr
+        | order_expr
+        ;
+
+order_dir:
+          /* empty */
+        | ASC
+        | DESC
+        ;
+
+opt_limit_clause:
+          /* empty */ { $$=nil }
+        | limit_clause { $$=$1}
+        ;
+
+limit_clause:
+          LIMIT limit_options
+          { $$=$2 }
+        ;
+
+limit_options:
+          limit_option { $$ = &Limit{Offset:$1} }
+        | limit_option ',' limit_option
+        {
+           $$ = &Limit{Offset:$1,Count:$3}
+        }
+        | limit_option OFFSET_SYM limit_option
+        {
+           $$ = &Limit{Offset:$1,Count:$3}
+        }
+        ;
+
+limit_option:
+          ident { $$=$1 }
+        | param_marker { $$=$1 }
+        | ULONGLONG_NUM { $$=$1 }
+        | LONG_NUM { $$=$1 }
+        | NUM { $$=$1 }
+        ;
+
+opt_simple_limit:
+          /* empty */
+        | LIMIT limit_option
+        ;
+
+ulong_num:
+          NUM
+        | HEX_NUM
+        | LONG_NUM
+        | ULONGLONG_NUM
+        | DECIMAL_NUM
+        | FLOAT_NUM
+        ;
+
+real_ulong_num:
+          NUM
+        | HEX_NUM
+        | LONG_NUM
+        | ULONGLONG_NUM
+        | dec_num_error
+        ;
+
+ulonglong_num:
+          NUM
+        | ULONGLONG_NUM
+        | LONG_NUM
+        | DECIMAL_NUM
+        | FLOAT_NUM
+        ;
+
+real_ulonglong_num:
+          NUM
+        | ULONGLONG_NUM
+        | LONG_NUM
+        | dec_num_error
+        ;
+
+dec_num_error:
+          dec_num
+        ;
+
+dec_num:
+          DECIMAL_NUM
+        | FLOAT_NUM
+        ;
+
+opt_procedure_analyse_clause:
+          /* empty */
+        | PROCEDURE_SYM ANALYSE_SYM
+          '(' opt_procedure_analyse_params ')'
+        ;
+
+opt_procedure_analyse_params:
+          /* empty */
+        | procedure_analyse_param
+        | procedure_analyse_param ',' procedure_analyse_param
+        ;
+
+procedure_analyse_param:
+          NUM
+        ;
+
+select_var_list:
+          select_var_list ',' select_var_ident
+        | select_var_ident
+        ;
+
+select_var_ident:
+          '@' ident_or_text
+        | ident_or_text
+        ;
+
+opt_into:
+          /* empty */
+        | into
+        ;
+
+into:
+          INTO into_destination
+        ;
+
+into_destination:
+          OUTFILE TEXT_STRING_filesystem
+          opt_load_data_charset
+          opt_field_term opt_line_term
+        | DUMPFILE TEXT_STRING_filesystem
+        | select_var_list
+        ;
+
+
+do_stmt:
+          DO_SYM empty_select_options select_item_list
+          {
+            $$ =&DoStmt{}
+          }
+        ;
+
+empty_select_options:
+          /* empty */
+        ;
+
+/*
+  Drop : delete tables or index or user
+*/
+
+drop:
+          DROP opt_temporary table_or_tables if_exists
+          table_list opt_restrict
+          {
+            $$ = &DropTableStmt{Tables:$5}
+          }
+        | DROP INDEX_SYM ident ON table_ident
+          opt_index_lock_algorithm
+          {
+            $$ = &DropIndexStmt{On: $5}
+          }
+        | DROP DATABASE if_exists ident
+          {
+            $$ = &DropDatabaseStmt{Name : $4}
+          }
+        | DROP FUNCTION_SYM if_exists ident '.' ident
+          {
+            $$ = &DropFunctionStmt{Function: &Spname{Qualifier: $4 , Name: $6}}
+          }
+        | DROP FUNCTION_SYM if_exists ident
+          {
+            $$ = &DropFunctionStmt{Function: &Spname{Name: $4}}
+          }
+        | DROP PROCEDURE_SYM if_exists sp_name
+          {
+            $$ = &DropProcedureStmt{Procedure: $4}
+          }
+        | DROP USER if_exists clear_privileges user_list
+          {
+            $$ = &DropUserStmt{}
+          }
+        | DROP VIEW_SYM if_exists
+          table_list opt_restrict
+          {
+            $$ = &DropViewStmt{}
+          }
+        | DROP EVENT_SYM if_exists sp_name
+          {
+            $$ = &DropEventStmt{}
+          }
+        | DROP TRIGGER_SYM if_exists sp_name
+          {
+            $$ = &DropTriggerStmt{}
+          }
+        | DROP TABLESPACE_SYM tablespace_name drop_ts_options_list
+          {
+            $$ = &DropTablespaceStmt{}
+          }
+        | DROP LOGFILE_SYM GROUP_SYM logfile_group_name drop_ts_options_list
+          {
+            $$ = &DropLogfileStmt{}
+          }
+        | DROP SERVER_SYM if_exists ident_or_text
+          {
+            $$ = &DropServerStmt{}
+          }
+        ;
+
+table_list:
+          table_name {$$ = Tables{$1}}
+        | table_list ',' table_name
+        {
+            $$ = append($1, $3)
+        }
+        ;
+
+table_name:
+          table_ident
+          {
+            $$=$1
+          }
+        ;
+
+table_alias_ref_list:
+          table_ident_opt_wild
+          {
+            $$ = Tables{$1}
+          }
+        | table_alias_ref_list ',' table_ident_opt_wild
+          {
+            $$ = append($1, $3)
+          }
+        ;
+
+if_exists:
+          /* empty */
+        | IF EXISTS
+        ;
+
+opt_temporary:
+          /* empty */
+        | TEMPORARY
+        ;
+
+drop_ts_options_list:
+          /* empty */
+        | drop_ts_options
+
+drop_ts_options:
+          drop_ts_option
+        | drop_ts_options drop_ts_option
+        | drop_ts_options_list ',' drop_ts_option
+        ;
+
+drop_ts_option:
+          opt_ts_engine
+        | ts_wait
+
+/*
+** Insert : add new data to table
+*/
+
+insert_stmt:
+          INSERT                       /* #1 */
+          insert_lock_option           /* #2 */
+          opt_ignore                   /* #3 */
+          opt_INTO                     /* #4 */
+          table_ident                  /* #5 */
+          opt_use_partition            /* #6 */
+          insert_from_constructor      /* #7 */
+          opt_insert_update_list       /* #8 */
+          {
+            $$ = &InsertStmt{Table:$5 }
+          }
+        | INSERT                       /* #1 */
+          insert_lock_option           /* #2 */
+          opt_ignore                   /* #3 */
+          opt_INTO                     /* #4 */
+          table_ident                  /* #5 */
+          opt_use_partition            /* #6 */
+          SET                          /* #7 */
+          update_list                  /* #8 */
+          opt_insert_update_list       /* #9 */
+          {
+            $$ = &InsertStmt{Table:$5 }
+          }
+        | INSERT                       /* #1 */
+          insert_lock_option           /* #2 */
+          opt_ignore                   /* #3 */
+          opt_INTO                     /* #4 */
+          table_ident                  /* #5 */
+          opt_use_partition            /* #6 */
+          insert_from_subquery         /* #7 */
+          opt_insert_update_list       /* #8 */
+          {
+            $$ = &InsertStmt{Table:$5 }
+          }
+        ;
+
+replace_stmt:
+          REPLACE                       /* #1 */
+          replace_lock_option           /* #2 */
+          opt_INTO                      /* #3 */
+          table_ident                   /* #4 */
+          opt_use_partition             /* #5 */
+          insert_from_constructor       /* #6 */
+          {
+            $$ = &ReplaceStmt{Table:$4}
+          }
+        | REPLACE                       /* #1 */
+          replace_lock_option           /* #2 */
+          opt_INTO                      /* #3 */
+          table_ident                   /* #4 */
+          opt_use_partition             /* #5 */
+          SET                           /* #6 */
+          update_list                   /* #7 */
+          {
+            $$ = &ReplaceStmt{Table:$4}
+          }
+        | REPLACE                       /* #1 */
+          replace_lock_option           /* #2 */
+          opt_INTO                      /* #3 */
+          table_ident                   /* #4 */
+          opt_use_partition             /* #5 */
+          insert_from_subquery          /* #6 */
+          {
+            $$ = &ReplaceStmt{Table:$4}
+          }
+        ;
+
+insert_lock_option:
+          /* empty */
+        | LOW_PRIORITY
+        | DELAYED_SYM
+        | HIGH_PRIORITY
+        ;
+
+replace_lock_option:
+          opt_low_priority
+        | DELAYED_SYM
+        ;
+
+opt_INTO:
+          /* empty */
+        | INTO
+        ;
+
+insert_from_constructor:
+          insert_values
+          {
+            $$ =$1
+          }
+        | '(' ')' insert_values
+          {
+            $$ = $3
+          }
+        | '(' fields ')' insert_values
+          {
+            $$ = $4
+          }
+        ;
+
+insert_from_subquery:
+          insert_query_expression
+          {
+            $$ = $1
+          }
+        | '(' ')' insert_query_expression
+          {
+            $$ = $3
+          }
+        | '(' fields ')' insert_query_expression
+          {
+            $$ = $4
+          }
+        ;
+
+fields:
+          fields ',' insert_ident
+        | insert_ident
+        ;
+
+insert_values:
+          value_or_values values_list
+          {
+            $$ = struct{}{}
+          }
+        ;
+
+insert_query_expression:
+          create_select opt_union_clause
+          {
+            if $$2==nil {
+                $$ = $1
+            } else {
+            $$ = &UnionStmt{SelectList:$1}
+            }
+          }
+        | '(' create_select ')' union_opt
+          {
+            if $4==nil {
+                $$ = $2
+            }else {
+            $$ = &UnionStmt{SelectList:$2}
+            }
+          }
+        ;
+
+value_or_values:
+          VALUE_SYM
+        | VALUES
+        ;
+
+values_list:
+          values_list ','  row_value
+        | row_value
+        ;
+
+
+equal:
+          EQ {}
+        | SET_VAR {}
+        ;
+
+opt_equal:
+          /* empty */ {}
+        | equal {}
+        ;
+
+row_value:
+          '(' opt_values ')'
+        ;
+
+opt_values:
+          /* empty */
+        | values
+        ;
+
+values:
+          values ','  expr_or_default
+        | expr_or_default
+        ;
+
+expr_or_default:
+          expr
+        | DEFAULT
+        ;
+
+opt_insert_update_list:
+          /* empty */
+        | ON DUPLICATE_SYM KEY_SYM UPDATE_SYM update_list
+        ;
+
+/* Update rows in a table */
+
+update_stmt:
+          UPDATE_SYM            /* #1 */
+          opt_low_priority      /* #2 */
+          opt_ignore            /* #3 */
+          join_table_list       /* #4 */
+          SET                   /* #5 */
+          update_list           /* #6 */
+          opt_where_clause      /* #7 */
+          opt_order_clause      /* #8 */
+          opt_simple_limit      /* #9 */
+          {
+            $$ = &UpdateStmt{Tables:$4}
+          }
+        ;
+
+update_list:
+          update_list ',' update_elem
+        | update_elem
+        ;
+
+update_elem:
+          simple_ident_nospvar equal expr_or_default
+        ;
+
+opt_low_priority:
+          /* empty */
+        | LOW_PRIORITY
+        ;
+
+/* Delete rows from a table */
+
+delete_stmt:
+          DELETE_SYM
+          opt_delete_options
+          FROM
+          table_ident
+          opt_use_partition
+          opt_where_clause
+          opt_order_clause
+          opt_simple_limit
+          {
+            $$ = DeleteStmt{Tabels:$4}
+          }
+        | DELETE_SYM
+          opt_delete_options
+          table_alias_ref_list
+          FROM
+          join_table_list
+          opt_where_clause
+          {
+            $$= DeleteStmt{Tables:append($3,$5...)}
+          }
+        | DELETE_SYM
+          opt_delete_options
+          FROM
+          table_alias_ref_list
+          USING
+          join_table_list
+          opt_where_clause
+          {
+            $$= DeleteStmt{Tables:append($4, $6...)}
+          }
+        ;
+
+opt_wild:
+          /* empty */ { $$ = nil }
+        | '.' '*' { $$ = []byte{'*'} }
+        ;
+
+opt_delete_options:
+          /* empty */
+        | opt_delete_option opt_delete_options
+        ;
+
+opt_delete_option:
+          QUICK
+        | LOW_PRIORITY
+        | IGNORE_SYM
+        ;
+
+truncate:
+          TRUNCATE_SYM opt_table_sym
+          table_name
+          {
+            $$=&TruncateTableStmt{Tables:$3}
+          }
+        ;
+
+opt_table_sym:
+          /* empty */
+        | TABLE_SYM
+        ;
+
+opt_profile_defs:
+  /* empty */
+  | profile_defs;
+
+profile_defs:
+  profile_def
+  | profile_defs ',' profile_def;
+
+profile_def:
+  CPU_SYM
+  | MEMORY_SYM
+  | BLOCK_SYM IO_SYM
+  | CONTEXT_SYM SWITCHES_SYM
+  | PAGE_SYM FAULTS_SYM
+  | IPC_SYM
+  | SWAPS_SYM
+  | SOURCE_SYM
+  | ALL
+  ;
+
+opt_profile_args:
+  /* empty */
+  | FOR_SYM QUERY_SYM NUM
+  ;
+
+/* Show things */
+
+show:
+          SHOW
+          show_param
+          {
+            $$ = $2
+          }
+        ;
+
+show_param:
+           DATABASES opt_wild_or_where
+           {
+                $$=&ShowStmt{Tp:ShowDatabases}
+           }
+         | opt_full TABLES opt_db opt_wild_or_where
+           {
+                $$=&ShowStmt{Tp:ShowTables}
+           }
+         | opt_full TRIGGERS_SYM opt_db opt_wild_or_where
+           {
+                $$=&ShowStmt{Tp:ShowTriggers}
+           }
+         | EVENTS_SYM opt_db opt_wild_or_where
+           {
+                $$=&ShowStmt{Tp:ShowEvents}
+           }
+         | TABLE_SYM STATUS_SYM opt_db opt_wild_or_where
+           {
+                $$=&ShowStmt{Tp:ShowTableStatus}
+           }
+        | OPEN_SYM TABLES opt_db opt_wild_or_where
+          {
+                $$=&ShowStmt{Tp:ShowTableStatus}
+          }
+        | PLUGINS_SYM
+          {
+                $$=&ShowStmt{Tp:ShowPlugins}
+          }
+        | ENGINE_SYM known_storage_engines show_engine_param
+          {
+                $$=&ShowStmt{Tp:ShowEngines}
+          }
+        | ENGINE_SYM ALL show_engine_param
+          {
+                $$=&ShowStmt{Tp:ShowEngines}
+          }
+        | opt_full COLUMNS from_or_in table_ident opt_db opt_wild_or_where
+          {
+                $$=&ShowStmt{Tp:ShowColumns}
+          }
+        | master_or_binary LOGS_SYM
+          {
+                $$=&ShowStmt{Tp:ShowBinlogs}
+          }
+        | SLAVE HOSTS_SYM
+          {
+                $$=&ShowStmt{Tp:ShowSlaveHosts}
+          }
+        | BINLOG_SYM EVENTS_SYM binlog_in binlog_from
+          opt_limit_clause
+          {
+                $$=&ShowStmt{Tp:ShowBinlogEvents}
+          }
+        | RELAYLOG_SYM EVENTS_SYM binlog_in binlog_from
+          opt_limit_clause opt_channel
+          {
+                $$=&ShowStmt{Tp:ShowRelaylogEvents}
+          }
+        | keys_or_index         /* #1 */
+          from_or_in            /* #2 */
+          table_ident           /* #3 */
+          opt_db                /* #4 */
+          opt_where_clause      /* #5 */
+          {
+               $$=&ShowStmt{Tp:ShowKeys}
+          }
+        | opt_storage ENGINES_SYM
+          {
+                $$=&ShowStmt{Tp:ShowEngines}
+          }
+        | PRIVILEGES
+          {
+                $$=&ShowStmt{Tp:ShowPrivileges}
+          }
+        | COUNT_SYM '(' '*' ')' WARNINGS
+          {
+                $$=&ShowStmt{Tp:ShowWarnings}
+          }
+        | COUNT_SYM '(' '*' ')' ERRORS
+          {
+                $$=&ShowStmt{Tp:ShowErrors}
+          }
+        | WARNINGS opt_limit_clause
+          {
+                $$=&ShowStmt{Tp:ShowWarnings}
+          }
+        | ERRORS opt_limit_clause
+          {
+                $$=&ShowStmt{Tp:ShowErrors}
+          }
+        | PROFILES_SYM
+          {
+                $$=&ShowStmt{Tp:ShowProfiles}
+          }
+        | PROFILE_SYM opt_profile_defs opt_profile_args opt_limit_clause
+          {
+                $$=&ShowStmt{Tp:ShowProfiles}
+          }
+        | opt_var_type STATUS_SYM opt_wild_or_where_for_show
+          {
+                $$=&ShowStmt{Tp:ShowStatus}
+          }
+        | opt_full PROCESSLIST_SYM
+          {
+                if $1==nil {
+                    $$ = &ShowStmt{Tp:ShowProcesslist}
+                }
+                $$=&ShowStmt{Tp:ShowFullProcesslist}
+          }
+        | opt_var_type VARIABLES opt_wild_or_where_for_show
+          {
+            $$ = &ShowStmt{Tp:ShowVariables}
+          }
+        | charset opt_wild_or_where
+          {
+            $$ = &ShowStmt{Tp:ShowCharset}
+          }
+        | COLLATION_SYM opt_wild_or_where
+          {
+            $$ = &ShowStmt{Tp:ShowCollation}
+          }
+        | GRANTS
+          {
+            $$ = &ShowStmt{Tp:ShowGrants}
+          }
+        | GRANTS FOR_SYM user
+          {
+            $$ = &ShowStmt{Tp:ShowGrants}
+          }
+        | CREATE DATABASE opt_if_not_exists ident
+          {
+                $$=&ShowStmt{Tp:ShowDatabases}
+          }
+        | CREATE TABLE_SYM table_ident
+          {
+                $$=&ShowStmt{Tp:ShowTable}
+          }
+        | CREATE VIEW_SYM table_ident
+          {
+                $$=&ShowStmt{Tp:ShowView}
+          }
+        | MASTER_SYM STATUS_SYM
+          {
+                $$=&ShowStmt{Tp:ShowMasterStatus}
+          }
+        | SLAVE STATUS_SYM opt_channel
+          {
+                $$=&ShowStmt{Tp:ShowSlaveStatus}
+          }
+        | CREATE PROCEDURE_SYM sp_name
+          {
+                $$=&ShowStmt{Tp:ShowProcedureStatus}
+          }
+        | CREATE FUNCTION_SYM sp_name
+          {
+                $$=&ShowStmt{Tp:ShowFunction}
+          }
+        | CREATE TRIGGER_SYM sp_name
+          {
+                $$=&ShowStmt{Tp:ShowTrigger}
+          }
+        | PROCEDURE_SYM STATUS_SYM opt_wild_or_where
+          {
+                $$=&ShowStmt{Tp:ShowProcedureStatus}
+          }
+        | FUNCTION_SYM STATUS_SYM opt_wild_or_where
+          {
+                $$=&ShowStmt{Tp:ShowFunction}
+          }
+        | PROCEDURE_SYM CODE_SYM sp_name
+          {
+                $$=&ShowStmt{Tp:ShowProcedureStatus}
+          }
+        | FUNCTION_SYM CODE_SYM sp_name
+          {
+                $$=&ShowStmt{Tp:ShowFunction}
+          }
+        | CREATE EVENT_SYM sp_name
+          {
+                $$=&ShowStmt{Tp:ShowEvents}
+          }
+        | CREATE USER clear_privileges user
+          {
+               $$=&ShowStmt{Tp:ShowUser}
+          }
+        ;
+
+show_engine_param:
+          STATUS_SYM
+        | MUTEX_SYM
+        | LOGS_SYM
+        ;
+
+master_or_binary:
+          MASTER_SYM
+        | BINARY
+        ;
+
+opt_storage:
+          /* empty */
+        | STORAGE_SYM
+        ;
+
+opt_db:
+          /* empty */  { $$= nil }
+        | from_or_in ident { $$= $2 }
+        ;
+
+opt_full:
+          /* empty */ { $$=nil }
+        | FULL { $$=$1 }
+        ;
+
+from_or_in:
+          FROM
+        | IN_SYM
+        ;
+
+binlog_in:
+          /* empty */
+        | IN_SYM TEXT_STRING_sys
+        ;
+
+binlog_from:
+          /* empty */
+        | FROM ulonglong_num
+        ;
+
+opt_wild_or_where:
+          /* empty */ { $$ = nil }
+        | LIKE TEXT_STRING_sys
+          {
+            $$ = &LikeOrWhere{Like: string($2)}
+          }
+        | WHERE expr
+          {
+            $$ = nil
+          }
+        ;
+
+opt_wild_or_where_for_show:
+          /* empty */ { $$ =nil }
+        | LIKE TEXT_STRING_sys
+          {
+            $$ = &LikeOrWhere{Like: string($2)}
+          }
+        | WHERE expr
+          {
+            $$ = nil
+          }
+        ;
+
+/* A Oracle compatible synonym for show */
+describe:
+          describe_command table_ident
+          opt_describe_column
+          {
+            $$ = &DescribeStmt{Table:$2}
+          }
+        | describe_command opt_extended_describe
+          explainable_command
+          {
+            $$ = &DescribeStmt{Command:$3}
+          }
+        ;
+
+explainable_command:
+          select  { $$ = $1 }
+        | insert_stmt                           { $$ = $1 }
+        | replace_stmt                          { $$ = $1 }
+        | update_stmt                           { $$ = $1 }
+        | delete_stmt                           { $$ = $1 }
+        | FOR_SYM CONNECTION_SYM real_ulong_num
+          {
+            $$ = $1
+          }
+        ;
+
+describe_command:
+          DESC
+        | DESCRIBE
+        ;
+
+opt_extended_describe:
+          /* empty */
+        | EXTENDED_SYM
+        | PARTITIONS_SYM
+        | FORMAT_SYM EQ ident_or_text
+        ;
+
+opt_describe_column:
+          /* empty */
+        | text_string
+        | ident
+        ;
+
+
+/* flush things */
+
+flush:
+          FLUSH_SYM opt_no_write_to_binlog
+          flush_options
+          {
+            $$=$3
+          }
+        ;
+
+flush_options:
+          table_or_tables
+          opt_table_list
+          opt_flush_lock
+          {
+            $$=&FlushStmt{}
+          }
+        | flush_options_list
+        {
+            $$=&FlushStmt{}
+        }
+        ;
+
+opt_flush_lock:
+          /* empty */ {}
+        | WITH READ_SYM LOCK_SYM
+        | FOR_SYM
+          EXPORT_SYM
+        ;
+
+flush_options_list:
+          flush_options_list ',' flush_option
+        | flush_option
+          {}
+        ;
+
+flush_option:
+          ERROR_SYM LOGS_SYM
+        | ENGINE_SYM LOGS_SYM
+        | GENERAL LOGS_SYM
+        | SLOW LOGS_SYM
+        | BINARY LOGS_SYM
+        | RELAY LOGS_SYM opt_channel
+        | QUERY_SYM CACHE_SYM
+        | HOSTS_SYM
+        | PRIVILEGES
+        | LOGS_SYM
+        | STATUS_SYM
+        | DES_KEY_FILE
+        | RESOURCES
+        | OPTIMIZER_COSTS_SYM
+        ;
+
+opt_table_list:
+          /* empty */  { $$=nil}
+        | table_list { $$=$1}
+        ;
+
+reset:
+          RESET_SYM
+          reset_options
+          {
+            $$=ResetStmt{}
+          }
+        ;
+
+reset_options:
+          reset_options ',' reset_option
+        | reset_option
+        ;
+
+reset_option:
+          SLAVE
+          slave_reset_options opt_channel
+        | MASTER_SYM
+        | QUERY_SYM CACHE_SYM
+        ;
+
+slave_reset_options:
+          /* empty */
+        | ALL
+        ;
+
+purge:
+          PURGE
+          purge_options
+          {
+            $$=PurgeStmt{}
+          }
+        ;
+
+purge_options:
+          master_or_binary LOGS_SYM purge_option
+        ;
+
+purge_option:
+          TO_SYM TEXT_STRING_sys
+        | BEFORE_SYM expr
+        ;
+
+/* kill threads */
+
+kill:
+          KILL_SYM kill_option expr
+          {
+            $$=KilStmt{}
+          }
+        ;
+
+kill_option:
+          /* empty */
+        | CONNECTION_SYM
+        | QUERY_SYM
+        ;
+
+/* change database */
+
+use:
+          USE_SYM ident
+          {
+            $$ = &Use{Name: $2}
+          }
+        ;
+
+/* import, export of files */
+
+load:
+          LOAD data_or_xml
+          load_data_lock opt_local INFILE TEXT_STRING_filesystem
+          opt_duplicate INTO TABLE_SYM table_ident opt_use_partition
+          opt_load_data_charset
+          opt_xml_rows_identified_by
+          opt_field_term opt_line_term opt_ignore_lines opt_field_or_var_spec
+          opt_load_data_set_spec
+          {
+            $$=&LoadStmt{}
+          }
           ;
 
+data_or_xml:
+        DATA_SYM
+        | XML_SYM
+        ;
 
-remove_partitioning:
-                   REMOVE_SYM PARTITIONING_SYM
-                   ;
+opt_local:
+          /* empty */
+        | LOCAL_SYM
+        ;
+
+load_data_lock:
+          /* empty */
+        | CONCURRENT
+        | LOW_PRIORITY
+        ;
+
+opt_duplicate:
+          /* empty */
+        | REPLACE
+        | IGNORE_SYM
+        ;
+
+opt_field_term:
+          /* empty */
+        | COLUMNS field_term_list
+        ;
+
+field_term_list:
+          field_term_list field_term
+        | field_term
+        ;
+
+field_term:
+          TERMINATED BY text_string
+        | OPTIONALLY ENCLOSED BY text_string
+        | ENCLOSED BY text_string
+        | ESCAPED BY text_string
+        ;
+
+opt_line_term:
+          /* empty */
+        | LINES line_term_list
+        ;
+
+line_term_list:
+          line_term_list line_term
+        | line_term
+        ;
+
+line_term:
+          TERMINATED BY text_string
+        | STARTING BY text_string
+        ;
+
+opt_xml_rows_identified_by:
+        /* empty */
+        | ROWS_SYM IDENTIFIED_SYM BY text_string
+        ;
+
+opt_ignore_lines:
+          /* empty */
+        | IGNORE_SYM NUM lines_or_rows
+        ;
+
+lines_or_rows:
+        LINES { }
+
+        | ROWS_SYM { }
+        ;
+
+opt_field_or_var_spec:
+          /* empty */ {}
+        | '(' fields_or_vars ')' {}
+        | '(' ')' {}
+        ;
+
+fields_or_vars:
+          fields_or_vars ',' field_or_var
+        | field_or_var
+        ;
+
+field_or_var:
+          simple_ident_nospvar
+        | '@' ident_or_text
+        ;
+
+opt_load_data_set_spec:
+          /* empty */ {}
+        | SET load_data_set_list {}
+        ;
+
+load_data_set_list:
+          load_data_set_list ',' load_data_set_elem
+        | load_data_set_elem
+        ;
+
+load_data_set_elem:
+          simple_ident_nospvar equal expr_or_default
+        ;
+
+/* Common definitions */
+
+text_literal:
+          TEXT_STRING
+          {
+            $$ = StringVal($1)
+          }
+        | NCHAR_STRING
+          {
+            $$ = StringVal($1)
+          }
+        | UNDERSCORE_CHARSET TEXT_STRING
+          {
+            $$ = StringVal(append(append($1, ' '), $2...))
+          }
+        | text_literal TEXT_STRING_literal
+          {
+            $$ = StringVal(append($1.(StringVal), $2...))
+          }
+        ;
+
+text_string:
+          TEXT_STRING_literal
+        | HEX_NUM
+        | BIN_NUM
+        ;
+
+param_marker:
+          PARAM_MARKER
+          {
+            $$ = StringVal("?")
+          }
+        ;
+
+signed_literal:
+          literal
+        | '+' NUM_literal
+        | '-' NUM_literal
+        ;
+
+
+literal:
+          text_literal { $$= $1 }
+        | NUM_literal { $$= $1 }
+        | temporal_literal { $$= $1 }
+        | NULL_SYM
+          {
+            $$ = &NullVal{}
+          }
+        | FALSE_SYM
+          {
+            $$ = BoolVal(false)
+          }
+        | TRUE_SYM
+          {
+            $$ = BoolVal(true)
+          }
+        | HEX_NUM
+          {
+            $$ = HexVal($1)
+          }
+        | BIN_NUM
+          {
+            $$ = BinVal($1)
+          }
+        | UNDERSCORE_CHARSET HEX_NUM
+          {
+            $$ = HexVal(append(append($1, ' '), $2...))
+          }
+        | UNDERSCORE_CHARSET BIN_NUM
+          {
+            $$ = BinVal(append(append($1, ' '), $2...))
+          }
+        ;
+
+NUM_literal:
+          NUM
+          {
+            $$ = NumVal($1)
+          }
+        | LONG_NUM
+          {
+          $$ = NumVal($1)
+          }
+        | ULONGLONG_NUM
+          {
+            $$ = NumVal($1)
+          }
+        | DECIMAL_NUM
+          {
+            $$ = NumVal($1)
+          }
+        | FLOAT_NUM
+          {
+            $$ = NumVal($1)
+          }
+        ;
+
+
+temporal_literal:
+        DATE_SYM TEXT_STRING
+          {
+            $$ = StringVal(append($1, $2...))
+          }
+        | TIME_SYM TEXT_STRING
+          {
+            $$ = StringVal(append($1, $2...))
+          }
+        | TIMESTAMP TEXT_STRING
+          {
+            $$ = StringVal(append($1, $2...))
+          }
+        ;
 
 
 
 
+/**********************************************************************
+** Creating different items.
+**********************************************************************/
 
+insert_ident:
+          simple_ident_nospvar
+        | table_wild
+        ;
 
+table_wild:
+          ident '.' '*'
+        | ident '.' ident '.' '*'
+        ;
 
+order_expr:
+          expr order_dir
+        ;
 
+simple_ident:
+          ident
+          {
+            $$ = &SchemaObject{Column: $1}
+          }
+        | simple_ident_q
+        {
+            $$ = $1
+        }
+        ;
 
+simple_ident_nospvar:
+          ident
+        | simple_ident_q
+        ;
 
+simple_ident_q:
+          ident '.' ident
+          {
+            $$ = &SchemaObject{Table: $1, Column: $3}
+          }
+        | '.' ident '.' ident
+          {
+            $$ = &SchemaObject{Table: $2, Column: $4}
+          }
+        | ident '.' ident '.' ident
+          {
+            $$ = &SchemaObject{Schema: $1, Table: $3, Column: $5}
+          }
+        ;
 
-
-
-
-
+field_ident:
+          ident
+        | ident '.' ident '.' ident
+        | ident '.' ident
+        | '.' ident  /* For Delphi */
+        ;
 
 table_ident:
-           ident
-           {
-             $$ = &TableIdent{Name:$1}; 
-           }
-           | ident '.' ident
-           {
-             $$ = &TableIdent{Schema:$1,  Name:$3}; 
-           }
-           |'.' ident
-           {
-             $$  = &TableIdent{Name:$2}; 
-           }
-           ;
+          ident
+          {
+            $$ = &TableIdent{Name:$1}
+          }
+        | ident '.' ident
+          {
+            $$ = &TableIdent{Schema:$1,  Name:$3}
+          }
+        | '.' ident
+          {
+            $$  = &TableIdent{Name:$2}
+          }
+        ;
 
+table_ident_opt_wild:
+          ident opt_wild
+          {
+            $$  = &TableIdent{Name:$1}
+          }
+        | ident '.' ident opt_wild
+          {
+            $$ = &TableIdent{Schema:$1,  Name:$3}
+          }
+        ;
 
-ident:
-     IDENT_sys { $$ = $1 }
-     |  ident_keyword { $$ = $1 }
-     ;
-
+table_ident_nodb:
+          ident
+          {
+            $$  = &TableIdent{Name:$1}
+          }
+        ;
 
 IDENT_sys:
-         IDENT { $$ = $1 }
-         | IDENT_QUOTED { $$ = $1 }
-         ;
+          IDENT { $$= $1; }
+        | IDENT_QUOTED
+          {
+              $$= $1
+          }
+        ;
 
-ident_keyword:
-             label_keyword         { $$ = $1}
-             | role_or_ident_keyword {$$ = $1}
-             | EXECUTE_SYM           {$$ = $1}
-             | SHUTDOWN              {$$ = $1}
-             ;
-label_keyword:
-             role_or_label_keyword    { $$=$1 }
-             | EVENT_SYM                { $$=$1 }
-             | FILE_SYM                 { $$=$1 }
-             | NONE_SYM                 { $$=$1 }
-             | PROCESS                  { $$=$1 }
-             | PROXY_SYM                { $$=$1 }
-             | RELOAD                   { $$=$1}
-             | REPLICATION              { $$=$1 }
-             | SUPER_SYM                { $$=$1 }
-             ;
-role_or_ident_keyword:
-          ACCOUNT_SYM           { $$=$1 }
+TEXT_STRING_sys_nonewline:
+          TEXT_STRING_sys
+        ;
+
+filter_wild_db_table_string:
+          TEXT_STRING_sys_nonewline
+        ;
+
+TEXT_STRING_sys:
+          TEXT_STRING
+          {
+             $$ = $1
+          }
+        ;
+
+TEXT_STRING_literal:
+          TEXT_STRING
+          {
+             $$ = $1
+          }
+        ;
+
+TEXT_STRING_filesystem:
+          TEXT_STRING
+        ;
+
+ident:
+          IDENT_sys    { $$=$1; }
+        | keyword
+          {
+            $$ = $1
+          }
+        ;
+
+label_ident:
+          IDENT_sys
+        | keyword_sp
+        ;
+
+ident_or_text:
+          ident           { $$=$1}
+        | TEXT_STRING_sys { $$=$1}
+        | LEX_HOSTNAME { $$=$1}
+        ;
+
+user:
+          ident_or_text
+        | ident_or_text '@' ident_or_text
+        | CURRENT_USER optional_braces
+        ;
+
+/* Keyword that we allow for identifiers (except SP labels) */
+keyword:
+          keyword_sp            { $$=$1 }
+        | ACCOUNT_SYM           { $$=$1 }
         | ASCII_SYM             { $$=$1 }
         | ALWAYS_SYM            { $$=$1 }
         | BACKUP_SYM            { $$=$1 }
@@ -979,6 +5980,7 @@ role_or_ident_keyword:
         | DEALLOCATE_SYM        { $$=$1 }
         | DO_SYM                { $$=$1 }
         | END                   { $$=$1 }
+        | EXECUTE_SYM           { $$=$1 }
         | FLUSH_SYM             { $$=$1 }
         | FOLLOWS_SYM           { $$=$1 }
         | FORMAT_SYM            { $$=$1 }
@@ -987,13 +5989,13 @@ role_or_ident_keyword:
         | HELP_SYM              { $$=$1 }
         | HOST_SYM              { $$=$1 }
         | INSTALL_SYM           { $$=$1 }
-        | INVISIBLE_SYM         { $$=$1 }
         | LANGUAGE_SYM          { $$=$1 }
         | NO_SYM                { $$=$1 }
         | OPEN_SYM              { $$=$1 }
         | OPTIONS_SYM           { $$=$1 }
         | OWNER_SYM             { $$=$1 }
         | PARSER_SYM            { $$=$1 }
+        | PARSE_GCOL_EXPR_SYM   { $$=$1 }
         | PORT_SYM              { $$=$1 }
         | PRECEDES_SYM          { $$=$1 }
         | PREPARE_SYM           { $$=$1 }
@@ -1005,6 +6007,7 @@ role_or_ident_keyword:
         | SAVEPOINT_SYM         { $$=$1 }
         | SECURITY_SYM          { $$=$1 }
         | SERVER_SYM            { $$=$1 }
+        | SHUTDOWN              { $$=$1 }
         | SIGNED_SYM            { $$=$1 }
         | SOCKET_SYM            { $$=$1 }
         | SLAVE                 { $$=$1 }
@@ -1012,72 +6015,72 @@ role_or_ident_keyword:
         | START_SYM             { $$=$1 }
         | STOP_SYM              { $$=$1 }
         | TRUNCATE_SYM          { $$=$1 }
-        | VISIBLE_SYM           { $$=$1 }
         | UNICODE_SYM           { $$=$1 }
         | UNINSTALL_SYM         { $$=$1 }
         | WRAPPER_SYM           { $$=$1 }
         | XA_SYM                { $$=$1 }
         | UPGRADE_SYM           { $$=$1 }
         ;
-role_or_label_keyword:
-          ACTION                   { $$=$1 }
-        | ADDDATE_SYM              { $$=$1 }
-        | AFTER_SYM                { $$=$1 }
-        | AGAINST                  { $$=$1 }
-        | AGGREGATE_SYM            { $$=$1 }
-        | ALGORITHM_SYM            { $$=$1 }
-        | ANALYSE_SYM              { $$=$1 }
-        | ANY_SYM                  { $$=$1 }
-        | AT_SYM                   { $$=$1 }
-        | AUTO_INC                 { $$=$1 }
-        | AUTOEXTEND_SIZE_SYM      { $$=$1 }
-        | AVG_ROW_LENGTH           { $$=$1 }
-        | AVG_SYM                  { $$=$1 }
-        | BINLOG_SYM               { $$=$1 }
-        | BIT_SYM                  { $$=$1 }
-        | BLOCK_SYM                { $$=$1 }
-        | BOOL_SYM                 { $$=$1 }
-        | BOOLEAN_SYM              { $$=$1 }
-        | BTREE_SYM                { $$=$1 }
-        | CASCADED                 { $$=$1 }
-        | CATALOG_NAME_SYM         { $$=$1 }
-        | CHAIN_SYM                { $$=$1 }
-        | CHANGED                  { $$=$1 }
-        | CHANNEL_SYM              { $$=$1 }
-        | CIPHER_SYM               { $$=$1 }
-        | CLIENT_SYM               { $$=$1 }
-        | CLASS_ORIGIN_SYM         { $$=$1 }
-        | COALESCE                 { $$=$1 }
-        | CODE_SYM                 { $$=$1 }
-        | COLLATION_SYM            { $$=$1 }
-        | COLUMN_NAME_SYM          { $$=$1 }
-        | COLUMN_FORMAT_SYM        { $$=$1 }
-        | COLUMNS                  { $$=$1 }
-        | COMMITTED_SYM            { $$=$1 }
-        | COMPACT_SYM              { $$=$1 }
-        | COMPLETION_SYM           { $$=$1 }
-        | COMPONENT_SYM            { $$=$1 }
-        | COMPRESSED_SYM           { $$=$1 }
-        | COMPRESSION_SYM          { $$=$1 }
-        | ENCRYPTION_SYM           { $$=$1 }
-        | CONCURRENT               { $$=$1 }
-        | CONNECTION_SYM           { $$=$1 }
-        | CONSISTENT_SYM           { $$=$1 }
-        | CONSTRAINT_CATALOG_SYM   { $$=$1 }
-        | CONSTRAINT_SCHEMA_SYM    { $$=$1 }
-        | CONSTRAINT_NAME_SYM      { $$=$1 }
-        | CONTEXT_SYM              { $$=$1 }
-        | CPU_SYM                  { $$=$1 }
-        | CUBE_SYM                 { $$=$1 }
-        /*
-          Although a reserved keyword in SQL:2003 (and :2008),
-          not reserved in MySQL per WL#2111 specification.
-        */
+
+/*
+ * Keywords that we allow for labels in SPs.
+ * Anything that's the beginning of a statement or characteristics
+ * must be in keyword above, otherwise we get (harmful) shift/reduce
+ * conflicts.
+ */
+keyword_sp:
+          ACTION                   { $$=$1}
+        | ADDDATE_SYM              { $$=$1}
+        | AFTER_SYM                { $$=$1}
+        | AGAINST                  { $$=$1}
+        | AGGREGATE_SYM            { $$=$1}
+        | ALGORITHM_SYM            { $$=$1}
+        | ANALYSE_SYM              { $$=$1}
+        | ANY_SYM                  { $$=$1}
+        | AT_SYM                   { $$=$1}
+        | AUTO_INC                 { $$=$1}
+        | AUTOEXTEND_SIZE_SYM      { $$=$1}
+        | AVG_ROW_LENGTH           { $$=$1}
+        | AVG_SYM                  { $$=$1}
+        | BINLOG_SYM               { $$=$1}
+        | BIT_SYM                  { $$=$1}
+        | BLOCK_SYM                { $$=$1}
+        | BOOL_SYM                 { $$=$1}
+        | BOOLEAN_SYM              { $$=$1}
+        | BTREE_SYM                { $$=$1}
+        | CASCADED                 { $$=$1}
+        | CATALOG_NAME_SYM         { $$=$1}
+        | CHAIN_SYM                { $$=$1}
+        | CHANGED                  { $$=$1}
+        | CHANNEL_SYM              { $$=$1}
+        | CIPHER_SYM               { $$=$1}
+        | CLIENT_SYM               { $$=$1}
+        | CLASS_ORIGIN_SYM         { $$=$1}
+        | COALESCE                 { $$=$1}
+        | CODE_SYM                 { $$=$1}
+        | COLLATION_SYM            { $$=$1}
+        | COLUMN_NAME_SYM          { $$=$1}
+        | COLUMN_FORMAT_SYM        { $$=$1}
+        | COLUMNS                  { $$=$1}
+        | COMMITTED_SYM            { $$=$1}
+        | COMPACT_SYM              { $$=$1}
+        | COMPLETION_SYM           { $$=$1}
+        | COMPRESSED_SYM           { $$=$1}
+        | COMPRESSION_SYM          { $$=$1}
+        | CONCURRENT               { $$=$1}
+        | CONNECTION_SYM           { $$=$1}
+        | CONSISTENT_SYM           { $$=$1}
+        | CONSTRAINT_CATALOG_SYM   { $$=$1}
+        | CONSTRAINT_SCHEMA_SYM    { $$=$1}
+        | CONSTRAINT_NAME_SYM      { $$=$1}
+        | CONTEXT_SYM              { $$=$1}
+        | CPU_SYM                  { $$=$1}
+        | CUBE_SYM                 { $$=$1}
         | CURRENT_SYM              { $$=$1 }
         | CURSOR_NAME_SYM          { $$=$1 }
         | DATA_SYM                 { $$=$1 }
         | DATAFILE_SYM             { $$=$1 }
-        | DATETIME_SYM             { $$=$1 }
+        | DATETIME                 { $$=$1 }
         | DATE_SYM                 { $$=$1 }
         | DAY_SYM                  { $$=$1 }
         | DEFAULT_AUTH_SYM         { $$=$1 }
@@ -1093,12 +6096,13 @@ role_or_label_keyword:
         | DUPLICATE_SYM            { $$=$1 }
         | DYNAMIC_SYM              { $$=$1 }
         | ENDS_SYM                 { $$=$1 }
-        | ENUM_SYM                 { $$=$1 }
+        | ENUM                     { $$=$1 }
         | ENGINE_SYM               { $$=$1 }
         | ENGINES_SYM              { $$=$1 }
         | ERROR_SYM                { $$=$1 }
         | ERRORS                   { $$=$1 }
         | ESCAPE_SYM               { $$=$1 }
+        | EVENT_SYM                { $$=$1 }
         | EVENTS_SYM               { $$=$1 }
         | EVERY_SYM                { $$=$1 }
         | EXCHANGE_SYM             { $$=$1 }
@@ -1112,13 +6116,14 @@ role_or_label_keyword:
         | FOUND_SYM                { $$=$1 }
         | ENABLE_SYM               { $$=$1 }
         | FULL                     { $$=$1 }
+        | FILE_SYM                 { $$=$1 }
         | FILE_BLOCK_SIZE_SYM      { $$=$1 }
         | FILTER_SYM               { $$=$1 }
         | FIRST_SYM                { $$=$1 }
         | FIXED_SYM                { $$=$1 }
         | GENERAL                  { $$=$1 }
         | GEOMETRY_SYM             { $$=$1 }
-        | GEOMETRYCOLLECTION_SYM   { $$=$1 }
+        | GEOMETRYCOLLECTION       { $$=$1 }
         | GET_FORMAT               { $$=$1 }
         | GRANTS                   { $$=$1 }
         | GLOBAL_SYM               { $$=$1 }
@@ -1136,14 +6141,13 @@ role_or_label_keyword:
         | ISOLATION                { $$=$1 }
         | ISSUER_SYM               { $$=$1 }
         | INSERT_METHOD            { $$=$1 }
-        | INSTANCE_SYM             { $$=$1 }
         | JSON_SYM                 { $$=$1 }
         | KEY_BLOCK_SIZE           { $$=$1 }
         | LAST_SYM                 { $$=$1 }
         | LEAVES                   { $$=$1 }
         | LESS_SYM                 { $$=$1 }
         | LEVEL_SYM                { $$=$1 }
-        | LINESTRING_SYM           { $$=$1 }
+        | LINESTRING               { $$=$1 }
         | LIST_SYM                 { $$=$1 }
         | LOCAL_SYM                { $$=$1 }
         | LOCKS_SYM                { $$=$1 }
@@ -1188,9 +6192,9 @@ role_or_label_keyword:
         | MODIFY_SYM               { $$=$1 }
         | MODE_SYM                 { $$=$1 }
         | MONTH_SYM                { $$=$1 }
-        | MULTILINESTRING_SYM      { $$=$1 }
-        | MULTIPOINT_SYM           { $$=$1 }
-        | MULTIPOLYGON_SYM         { $$=$1 }
+        | MULTILINESTRING          { $$=$1 }
+        | MULTIPOINT               { $$=$1 }
+        | MULTIPOLYGON             { $$=$1 }
         | MUTEX_SYM                { $$=$1 }
         | MYSQL_ERRNO_SYM          { $$=$1 }
         | NAME_SYM                 { $$=$1 }
@@ -1203,6 +6207,7 @@ role_or_label_keyword:
         | NEW_SYM                  { $$=$1 }
         | NO_WAIT_SYM              { $$=$1 }
         | NODEGROUP_SYM            { $$=$1 }
+        | NONE_SYM                 { $$=$1 }
         | NUMBER_SYM               { $$=$1 }
         | NVARCHAR_SYM             { $$=$1 }
         | OFFSET_SYM               { $$=$1 }
@@ -1219,13 +6224,15 @@ role_or_label_keyword:
         | PLUGIN_SYM               { $$=$1 }
         | PLUGINS_SYM              { $$=$1 }
         | POINT_SYM                { $$=$1 }
-        | POLYGON_SYM              { $$=$1 }
+        | POLYGON                  { $$=$1 }
         | PRESERVE_SYM             { $$=$1 }
         | PREV_SYM                 { $$=$1 }
         | PRIVILEGES               { $$=$1 }
+        | PROCESS                  { $$=$1 }
         | PROCESSLIST_SYM          { $$=$1 }
         | PROFILE_SYM              { $$=$1 }
         | PROFILES_SYM             { $$=$1 }
+        | PROXY_SYM                { $$=$1 }
         | QUARTER_SYM              { $$=$1 }
         | QUERY_SYM                { $$=$1 }
         | QUICK                    { $$=$1 }
@@ -1240,14 +6247,16 @@ role_or_label_keyword:
         | RELAY_LOG_FILE_SYM       { $$=$1 }
         | RELAY_LOG_POS_SYM        { $$=$1 }
         | RELAY_THREAD             { $$=$1 }
+        | RELOAD                   { $$=$1 }
         | REORGANIZE_SYM           { $$=$1 }
         | REPEATABLE_SYM           { $$=$1 }
+        | REPLICATION              { $$=$1 }
         | REPLICATE_DO_DB          { $$=$1 }
         | REPLICATE_IGNORE_DB      { $$=$1 }
         | REPLICATE_DO_TABLE       { $$=$1 }
         | REPLICATE_IGNORE_TABLE   { $$=$1 }
         | REPLICATE_WILD_DO_TABLE  { $$=$1 }
-        | REPLICATE_WILD_IGNORE_TABLE { $$=$1}
+        | REPLICATE_WILD_IGNORE_TABLE { $$=$1 }
         | REPLICATE_REWRITE_DB     { $$=$1 }
         | RESOURCES                { $$=$1 }
         | RESUME_SYM               { $$=$1 }
@@ -1255,7 +6264,6 @@ role_or_label_keyword:
         | RETURNS_SYM              { $$=$1 }
         | REVERSE_SYM              { $$=$1 }
         | ROLLUP_SYM               { $$=$1 }
-        | ROTATE_SYM               { $$=$1 }
         | ROUTINE_SYM              { $$=$1 }
         | ROWS_SYM                 { $$=$1 }
         | ROW_COUNT_SYM            { $$=$1 }
@@ -1294,6 +6302,7 @@ role_or_label_keyword:
         | SUBJECT_SYM              { $$=$1 }
         | SUBPARTITION_SYM         { $$=$1 }
         | SUBPARTITIONS_SYM        { $$=$1 }
+        | SUPER_SYM                { $$=$1 }
         | SUSPEND_SYM              { $$=$1 }
         | SWAPS_SYM                { $$=$1 }
         | SWITCHES_SYM             { $$=$1 }
@@ -1307,7 +6316,7 @@ role_or_label_keyword:
         | THAN_SYM                 { $$=$1 }
         | TRANSACTION_SYM          { $$=$1 }
         | TRIGGERS_SYM             { $$=$1 }
-        | TIMESTAMP_SYM            { $$=$1 }
+        | TIMESTAMP                { $$=$1 }
         | TIMESTAMP_ADD            { $$=$1 }
         | TIMESTAMP_DIFF           { $$=$1 }
         | TIME_SYM                 { $$=$1 }
@@ -1340,222 +6349,954 @@ role_or_label_keyword:
         ;
 
 
+set:
+          SET start_option_value_list
+          {
+            $$ = $2
+          }
+        ;
 
 
-ident_or_text:
-             ident           { $$=$1}
-             | TEXT_STRING_sys { $$=$1}
-             | LEX_HOSTNAME { $$=$1;}
-             ;
+// Start of option value list
+start_option_value_list:
+          option_value_no_option_type option_value_list_continued
+          {
+            if $2==nil {
+                $$=&SetStmt{ Variables: Variables{$1}}
+            }
+                $$ = &SetStmt{Variables:append($2,$1)}
+          }
+        | TRANSACTION_SYM transaction_characteristics
+          {
+            $$ = &SetTransStmt{}
+          }
+        | option_type start_option_value_list_following_option_type
+          {
+            if st, ok := $2.(*SetTransStmt); ok {
+                $$ = St
+            }else {
+            tmp := $2.(Variables)
+            for _, v := range tmp {
+                v.Life = $1
+             }
+              $$=&SetStmt{ Variables: Variables{tmp}}
+              }
 
-TEXT_STRING_sys:
-               TEXT_STRING { $$ = $1} 
-               ;
+          }
+        | PASSWORD equal password
+          {
+            $$= SetPasswordStmt{};
+          }
+        | PASSWORD equal PASSWORD '(' password ')'
+          {
+            $$= SetPasswordStmt{};
+          }
+        | PASSWORD FOR_SYM user equal password
+          {
+            $$= SetPasswordStmt{};
+          }
+        | PASSWORD FOR_SYM user equal PASSWORD '(' password ')'
+          {
+            $$= SetPasswordStmt{};
+          }
+        ;
 
-field_def:
-         type opt_column_attribute_list
-         | type opt_collate_explicit opt_generated_always
-           AS '(' expr ')'
-           opt_stored_attribute opt_column_attribute_lis
-         ;
 
-field_ident:
-           ident
-           | ident '.' ident '.' ident
-           | ident '.' ident
-           | '.' ident /* For Delphi */
-           ;
-key_or_index:
-            KEY_SYM {}
-            | INDEX_SYM {}
-            ;
+// Start of option value list, option_type was given
+start_option_value_list_following_option_type:
+          option_value_following_option_type option_value_list_continued
+          {
+            tmp := Variables{$1}
+            if $2 != nil {
+                $$ = append(tmp, $2...)
+            } else {
+                $$ = tmp
+            }
+          }
+        | TRANSACTION_SYM transaction_characteristics
+          {
+            $$=&SetTransStmt{}
+          }
+        ;
 
-opt_check_or_references:
+option_value_list_continued:
+          /* empty */           { $$= nil }
+        | ',' option_value_list { $$= $2 }
+        ;
 
-            | check_constraint
-            | references
-            ;
+option_value_list:
+          option_value
+          {
+            $$ = Variables{$1}
+          }
+        | option_value_list ',' option_value
+          {
+            $$ = append($1, $3)
+          }
+        ;
 
-opt_collate:
+option_value:
+          option_type option_value_following_option_type
+          {
+            $2.Life = $1
+            $$ = $2
+          }
+        | option_value_no_option_type { $$= $1 }
+        ;
 
-           | COLLATE_SYM collation_name_or_default
-           ;
+option_type:
+          GLOBAL_SYM { $$ = LifeGlobal }
+        | LOCAL_SYM { $$ = LifeLocal }
+        | SESSION_SYM { $$ = LifeSession }
+        ;
 
-opt_column:
+opt_var_type:
+          /* empty */
+        | GLOBAL_SYM
+        | LOCAL_SYM
+        | SESSION_SYM
+        ;
 
-          | COLUMN_SYM 
+opt_var_ident_type:
+          /* empty */ { $$ = LifeUnknown }
+        | GLOBAL_SYM '.' { $$ = LifeGlobal }
+        | LOCAL_SYM '.' { $$ = LifeLocal }
+        | SESSION_SYM '.' { $$ = LifeSession }
+        ;
+
+// Option values with preceding option_type.
+option_value_following_option_type:
+          internal_variable_name equal set_expr_or_default
+          {
+            $$ = Variable{Name: $1, Value: $3}
+          }
+        ;
+
+// Option values without preceding option_type.
+option_value_no_option_type:
+          internal_variable_name        /*$1*/
+          equal                         /*$2*/
+          set_expr_or_default           /*$3*/
+          {
+            $$ = Variable{Name: $1, Value: $3}
+          }
+        | '@' ident_or_text equal expr
+          {
+            $$ = &Variable{ Name: string($2), Value: $4}
+          }
+        | '@' '@' opt_var_ident_type internal_variable_name equal set_expr_or_default
+          {
+            $$ = &Variable{Name: $4, Value: $6}
+          }
+        | charset old_or_new_charset_name_or_default
+          {
+            $$ = &Variable{ Name: "CHARACTER SET", Value: StringVal($2)}
+          }
+        | NAMES_SYM equal expr
+          {
+            $$ = &Variable{Name: "NAMES", Value: $3}
+          }
+        | NAMES_SYM charset_name_or_default opt_collate
+          {
+            $$ = &Variable{Name: "NAMES", Value: StringVal($2)}
+          }
+        ;
+
+internal_variable_name:
+          ident
+          {
+            $$ = string($1)
+          }
+        | ident '.' ident
+          {
+            $$ = string($1) + "." + string($3)
+          }
+        | DEFAULT '.' ident
+          {
+             $$ = "DEFAULT." + string($3)
+          }
+        ;
+
+transaction_characteristics:
+          transaction_access_mode opt_isolation_level
+        | isolation_level opt_transaction_access_mode
+        ;
+
+transaction_access_mode:
+          transaction_access_mode_types
+        ;
+
+opt_transaction_access_mode:
+          /* empty */
+        | ',' transaction_access_mode
+        ;
+
+isolation_level:
+          ISOLATION LEVEL_SYM isolation_types
+        ;
+
+opt_isolation_level:
+          /* empty */
+        | ',' isolation_level
+        ;
+
+transaction_access_mode_types:
+          READ_SYM ONLY_SYM
+        | READ_SYM WRITE_SYM
+        ;
+
+isolation_types:
+          READ_SYM UNCOMMITTED_SYM
+        | READ_SYM COMMITTED_SYM
+        | REPEATABLE_SYM READ_SYM
+        | SERIALIZABLE_SYM
+        ;
+
+password:
+          TEXT_STRING
+        ;
+
+
+set_expr_or_default:
+          expr { $$ = $1 }
+        | DEFAULT { $$ = StringVal($1) }
+        | ON
+          {
+            $$ = StringVal($1)
+          }
+        | ALL
+          {
+            $$ = StringVal($1)
+          }
+        | BINARY
+          {
+            $$ = StringVal($1)
+          }
+        ;
+
+/* Lock function */
+
+lock:
+          LOCK_SYM table_or_tables
+          table_lock_list
+          {
+            $$ = &Lock{Tables: $3}
+          }
+        ;
+
+table_or_tables:
+          TABLE_SYM
+        | TABLES
+        ;
+
+table_lock_list:
+          table_lock { $$=Tables{$1}}
+        | table_lock_list ',' table_lock
+        {
+            $$ = append($1, $3)
+        }
+        ;
+
+table_lock:
+          table_ident opt_table_alias lock_option
+          {
+            $$ = $1
+          }
+        ;
+
+lock_option:
+          READ_SYM
+        | WRITE_SYM
+        | LOW_PRIORITY WRITE_SYM
+        | READ_SYM LOCAL_SYM
+        ;
+
+unlock:
+          UNLOCK_SYM
+          {
+            $$ = &Unlock{}
+          }
+        ;
+
+
+shutdown_stmt:
+          SHUTDOWN
+          {
+            $$ = &ShutdownStmt{}
+          }
+        ;
+
+/*
+** Handler: direct access to ISAM functions
+*/
+
+handler:
+          HANDLER_SYM table_ident OPEN_SYM opt_table_alias
+          {
+            $$ = HandlerStmt{}
+          }
+        |HANDLER_SYM table_ident_nodb CLOSE_SYM
+          {
+            $$ = HandlerStmt{}
+          }
+        | HANDLER_SYM           /* #1 */
+          table_ident_nodb      /* #2 */
+          READ_SYM              /* #3 */
+          handler_read_or_scan  /* #5 */
+          opt_where_clause      /* #6 */
+          opt_limit_clause      /* #7 */
+          {
+            $$ = HandlerStmt{}
+          }
+        ;
+
+handler_read_or_scan:
+          handler_scan_function
+        | ident handler_rkey_function
+        ;
+
+handler_scan_function:
+          FIRST_SYM
+        | NEXT_SYM
+        ;
+
+handler_rkey_function:
+          FIRST_SYM
+        | NEXT_SYM
+        | PREV_SYM
+        | LAST_SYM
+        | handler_rkey_mode
+        ;
+
+handler_rkey_mode:
+          EQ
+        | GE
+        | LE
+        | GT_SYM
+        | LT
+        ;
+
+/* GRANT / REVOKE */
+
+revoke:
+          REVOKE clear_privileges  revoke_command
+          {
+            $$ = &RevokeStmt{}
+          }
+        ;
+
+revoke_command:
+          grant_privileges ON opt_table grant_ident FROM user_list
+        | grant_privileges ON FUNCTION_SYM grant_ident FROM user_list
+        | grant_privileges ON PROCEDURE_SYM grant_ident FROM user_list
+        | ALL opt_privileges ',' GRANT OPTION FROM user_list
+        | PROXY_SYM ON user FROM user_list
+        ;
+
+grant:
+          GRANT clear_privileges  grant_command
+          {
+            $$ = &GrantStmt{}
+          }
+        ;
+
+grant_command:
+          grant_privileges ON opt_table grant_ident TO_SYM grant_list
+          require_clause grant_options
+        | grant_privileges ON FUNCTION_SYM grant_ident TO_SYM grant_list
+          require_clause grant_options
+        | grant_privileges ON PROCEDURE_SYM grant_ident TO_SYM grant_list
+          require_clause grant_options
+        | PROXY_SYM ON user TO_SYM grant_list opt_grant_option
+        ;
+
+opt_table:
+          /* Empty */
+        | TABLE_SYM
+        ;
+
+grant_privileges:
+          object_privilege_list
+        | ALL opt_privileges
+        ;
+
+opt_privileges:
+          /* empty */
+        | PRIVILEGES
+        ;
+
+object_privilege_list:
+          object_privilege
+        | object_privilege_list ',' object_privilege
+        ;
+
+object_privilege:
+          SELECT_SYM
+          opt_column_list {}
+        | INSERT
+          opt_column_list {}
+        | UPDATE_SYM
+          opt_column_list {}
+        | REFERENCES
+          opt_column_list {}
+        | DELETE_SYM
+        | USAGE
+        | INDEX_SYM
+        | ALTER
+        | CREATE
+        | DROP
+        | EXECUTE_SYM
+        | RELOAD
+        | SHUTDOWN
+        | PROCESS
+        | FILE_SYM
+        | GRANT OPTION
+        | SHOW DATABASES
+        | SUPER_SYM
+        | CREATE TEMPORARY TABLES
+        | LOCK_SYM TABLES
+        | REPLICATION SLAVE
+        | REPLICATION CLIENT_SYM
+        | CREATE VIEW_SYM
+        | SHOW VIEW_SYM
+        | CREATE ROUTINE_SYM
+        | ALTER ROUTINE_SYM
+        | CREATE USER
+        | EVENT_SYM
+        | TRIGGER_SYM
+        | CREATE TABLESPACE_SYM
+        ;
+
+opt_and:
+          /* empty */ {}
+        | AND_SYM {}
+        ;
+
+require_list:
+          require_list_element opt_and require_list
+        | require_list_element
+        ;
+
+require_list_element:
+          SUBJECT_SYM TEXT_STRING
+        | ISSUER_SYM TEXT_STRING
+        | CIPHER_SYM TEXT_STRING
+        ;
+
+grant_ident:
+          '*'
+        | ident '.' '*'
+        | '*' '.' '*'
+        | table_ident
+        ;
+
+user_list:
+          user
+        | user_list ',' user
+        ;
+
+grant_list:
+          grant_user
+        | grant_list ',' grant_user
+        ;
+
+grant_user:
+          user IDENTIFIED_SYM BY TEXT_STRING
+        | user IDENTIFIED_SYM BY PASSWORD TEXT_STRING
+        | user IDENTIFIED_SYM WITH ident_or_text
+        | user IDENTIFIED_SYM WITH ident_or_text AS TEXT_STRING_sys
+        | user IDENTIFIED_SYM WITH ident_or_text BY TEXT_STRING_sys
+        | user
+        ;
+
+opt_column_list:
+          /* empty */
+        | '(' column_list ')'
+        ;
+
+column_list:
+          column_list ',' column_list_id
+        | column_list_id
+        ;
+
+column_list_id:
+          ident
+        ;
+
+require_clause:
+          /* empty */
+        | REQUIRE_SYM require_list
+        | REQUIRE_SYM SSL_SYM
+        | REQUIRE_SYM X509_SYM
+        | REQUIRE_SYM NONE_SYM
+        ;
+
+grant_options:
+          /* empty */ {}
+        | WITH grant_option_list
+        ;
+
+opt_grant_option:
+          /* empty */ {}
+        | WITH GRANT OPTION
+        ;
+
+grant_option_list:
+          grant_option_list grant_option {}
+        | grant_option {}
+        ;
+
+grant_option:
+          GRANT OPTION
+        | MAX_QUERIES_PER_HOUR ulong_num
+        | MAX_UPDATES_PER_HOUR ulong_num
+        | MAX_CONNECTIONS_PER_HOUR ulong_num
+        | MAX_USER_CONNECTIONS_SYM ulong_num
+        ;
+
+begin:
+          BEGIN_SYM
+          opt_work {}
+        ;
+
+opt_work:
+          /* empty */ {}
+        | WORK_SYM  {}
+        ;
+
+opt_chain:
+          /* empty */
+        | AND_SYM NO_SYM CHAIN_SYM
+        | AND_SYM CHAIN_SYM
+        ;
+
+opt_release:
+          /* empty */
+        | RELEASE_SYM
+        | NO_SYM RELEASE_SYM
+;
+
+opt_savepoint:
+          /* empty */ {}
+        | SAVEPOINT_SYM {}
+        ;
+
+commit:
+          COMMIT_SYM opt_work opt_chain opt_release
+          {
+            $$ = &CommitStmt{}
+          }
+        ;
+
+rollback:
+          ROLLBACK_SYM opt_work opt_chain opt_release
+          {
+            $$ = RollBackStmt{}
+          }
+        | ROLLBACK_SYM opt_work
+          TO_SYM opt_savepoint ident
+          {
+            $$ = RollBackStmt{}
+          }
+        ;
+
+savepoint:
+          SAVEPOINT_SYM ident
+          {
+            $$ = &SavePointStmt{}
+          }
+        ;
+
+release:
+          RELEASE_SYM SAVEPOINT_SYM ident
+          {
+            $$ = &ReleaseStmt{}
+          }
+        ;
+
+/*
+   UNIONS : glue selects together
+*/
+
+
+opt_union_clause:
+          /* empty */ { $$=nil }
+        | union_list { $$=$1 }
+        ;
+
+union_list:
+          UNION_SYM union_option select_init
+          {
+            { $$ = $3 }
+          }
+        ;
+
+union_opt:
+          /* Empty */          { $$= nil }
+        | union_list           { $$= $1 }
+        | union_order_or_limit { $$= nil }
+        ;
+
+opt_union_order_or_limit:
+          /* Empty */
+        | union_order_or_limit
+        ;
+
+union_order_or_limit:
+          order_or_limit
+        ;
+
+order_or_limit:
+          order_clause opt_limit_clause
+        | limit_clause
+        ;
+
+union_option:
+          /* empty */
+        | DISTINCT
+        | ALL
+        ;
+
+query_specification:
+          SELECT_SYM select_part2_derived table_expression
+          {
+            $$ = &SubQuery{SelectStatement: $2}
+          }
+        | '(' select_paren_derived ')'
+          opt_union_order_or_limit
+          {
+            $$ = &SubQuery{SelectStatement: $2}
+          }
+        ;
+
+query_expression_body:
+          query_specification
+            { $$ = $1 }
+        | query_expression_body UNION_SYM union_option query_specification
+          {
+            $$ = &UnionStmt{SelectList:$1,OrderBy:$4.OrderBy,Limit:$4.Limit}
+          }
+        ;
+
+/* Corresponds to <query expression> in the SQL:2003 standard. */
+subselect:
+          query_expression_body
+          {
+          $$ = &SubQuery{SelectStatement: $1}
+          }
+        ;
+
+opt_query_spec_options:
+          /* empty */
+        | query_spec_option_list
+        ;
+
+query_spec_option_list:
+          query_spec_option_list query_spec_option
+        | query_spec_option
+        ;
+
+query_spec_option:
+          STRAIGHT_JOIN
+        | HIGH_PRIORITY
+        | DISTINCT
+        | SQL_SMALL_RESULT
+        | SQL_BIG_RESULT
+        | SQL_BUFFER_RESULT
+        | SQL_CALC_FOUND_ROWS
+        | ALL
+        ;
+
+/**************************************************************************
+
+ CREATE VIEW | TRIGGER | PROCEDURE statements.
+
+**************************************************************************/
+
+view_or_trigger_or_sp_or_event:
+          definer definer_tail
+          { $$ = $2}
+        | no_definer no_definer_tail
+          {$$ = $2}
+        | view_replace_or_algorithm definer_opt view_tail
+          { $$ = $3}
+        ;
+
+definer_tail:
+          view_tail {$$ = $1}
+        | trigger_tail {$$ = $1}
+        | sp_tail {$$ = $1}
+        | sf_tail {$$ = $1}
+        | event_tail {$$ = $1}
+        ;
+
+no_definer_tail:
+          view_tail { $$ = $1 }
+        | trigger_tail { $$ = $1 }
+        | sp_tail { $$ = $1 }
+        | sf_tail { $$ = $1 }
+        | udf_tail { $$ = $1 }
+        | event_tail { $$ = $1 }
+        ;
+
+/**************************************************************************
+
+ DEFINER clause support.
+
+**************************************************************************/
+
+definer_opt:
+          no_definer
+        | definer
+        ;
+
+no_definer:
+        ;
+
+definer:
+          DEFINER_SYM EQ user
+        ;
+
+/**************************************************************************
+
+ CREATE VIEW statement parts.
+
+**************************************************************************/
+
+view_replace_or_algorithm:
+          view_replace
+          {}
+        | view_replace view_algorithm
+          {}
+        | view_algorithm
+          {}
+        ;
+
+view_replace:
+          OR_SYM REPLACE
+        ;
+
+view_algorithm:
+          ALGORITHM_SYM EQ UNDEFINED_SYM
+        | ALGORITHM_SYM EQ MERGE_SYM
+        | ALGORITHM_SYM EQ TEMPTABLE_SYM
+        ;
+
+view_suid:
+          /* empty */
+        | SQL_SYM SECURITY_SYM DEFINER_SYM
+        | SQL_SYM SECURITY_SYM INVOKER_SYM
+        ;
+
+view_tail:
+          view_suid VIEW_SYM table_ident
+          view_list_opt AS view_select
+          {
+            $$ = &viewTail{View: $3, As: $6}
+          }
+        ;
+
+view_list_opt:
+          /* empty */
+          {}
+        | '(' view_list ')'
+        ;
+
+view_list:
+          ident
+        | view_list ',' ident
+        ;
+
+view_select:
+          view_select_aux view_check_option
+          {
+            $$ = $1
+          }
+        ;
+
+view_select_aux:
+          create_view_select
+          opt_union_clause
+          {
+             if $2 == nil {
+                       $$ = $1
+             } else {
+                  $$ = &Union{Left: $1, Right: $2}
+             }
+          }
+        | '(' create_view_select_paren ')' union_opt
+          {
+              if $4 == nil {
+                        $$ = &ParenSelect{Select: $2}
+                              } else {
+                                        $$ = &Union{Left: &ParenSelect{Select: $2}, Right: $4}
+                                              }
+
+          }
+        ;
+
+create_view_select_paren:
+          create_view_select
+          {
+             $$ = $1 
+          }
+        | '(' create_view_select_paren ')'
+        {
+            $$ = &ParenSelect{Select: $2}
+        }
+        ;
+
+create_view_select:
+          SELECT_SYM
+          select_part2
+          {
+            { $$ = $2 }
+          }
+        ;
+
+view_check_option:
+          /* empty */
+        | WITH CHECK_SYM OPTION
+        | WITH CASCADED CHECK_SYM OPTION
+        | WITH LOCAL_SYM CHECK_SYM OPTION
+        ;
+
+/**************************************************************************
+
+ CREATE TRIGGER statement parts.
+
+**************************************************************************/
+
+trigger_action_order:
+            FOLLOWS_SYM
+          | PRECEDES_SYM
           ;
 
-opt_restrict:
-            | RESTRICT
-            | CASCADE
-            ;
-
-
-opt_to:
-
-      | TO_SYM {}
-      | EQ
-      | AS
-      ;
-
-
-opt_place:
-
-         | AFTER_SYM ident
-         | FIRST_SYM 
-         ;
-
-signed_literal:
-              literal
-              | '+' NUM_literal
-              | '-' NUM_literal
-              ;
-table_constraint_def:
-                    normal_key_type opt_index_name_and_type '(' key_list ')'
-                    opt_index_options
-                    | FULLTEXT_SYM opt_key_or_index opt_ident '(' key_list ')'
-                      opt_fulltext_index_options
-                    | spatial opt_key_or_index opt_ident '(' key_list ')'
-                      opt_spatial_index_options
-                    | opt_constraint constraint_key_type opt_index_name_and_type
-                      '(' key_list ')' opt_index_options
-                    | opt_constraint FOREIGN KEY_SYM opt_ident '(' key_list ')' references
-                    | opt_constraint check_constraint
-                    ;
-table_element_list:
-                  table_element
-                  { 
-                   $$ = Tables{$1}
-                  }
-                  | table_element_list ',' table_element
-                  {
-                    $$ = append($1, $3)
-                  }
-                  ;
-
-table_element:
-             column_def
-             {
-                $$=$1
-             }
-             | table_constraint_def
-             {
-                $$=$1
-             }
-             ;
-visibility:
-          VISIBLE_SYM
-          | INVISIBLE_SYM 
-          ;
-
-equal:
-     EQ
-     | SET_VAR
-     ;
-
-opt_equal:
-         /* empty */
-         | equal
-         ;
-
-order_dir:
-         /* empty */
-         | ASC
-         | DESC
-         ;
-simple_ident_nospvar:
-                   ident
-                   | simple_ident_q
-                   ;
-charset_name:
-            ident_or_text
-            {
-                $$=$1
-            }
-            | BINARY_SYM
-            {
-                $$=$1
-            }
-            ;
-
-create_table_option:
-                   ENGINE_SYM opt_equal ident_or_text
-                   | MAX_ROWS opt_equal ulonglong_num
-                   | MIN_ROWS opt_equal ulonglong_num
-                   | AVG_ROW_LENGTH opt_equal ulong_num
-                   | PASSWORD opt_equal TEXT_STRING_sys
-                   | COMMENT_SYM opt_equal TEXT_STRING_sys
-                   | COMPRESSION_SYM opt_equal TEXT_STRING_sys
-                   | ENCRYPTION_SYM opt_equal TEXT_STRING_sys
-                   | AUTO_INC opt_equal ulonglong_num
-                   | PACK_KEYS_SYM opt_equal ternary_option
-                   | STATS_AUTO_RECALC_SYM opt_equal ternary_option
-                   | STATS_SAMPLE_PAGES_SYM opt_equal ulong_num
-                   | STATS_SAMPLE_PAGES_SYM opt_equal DEFAULT_SYM
-                   | CHECKSUM_SYM opt_equal ulong_num
-                   | TABLE_CHECKSUM_SYM opt_equal ulong_num
-                   | DELAY_KEY_WRITE_SYM opt_equal ulong_num
-                   | ROW_FORMAT_SYM opt_equal row_types
-                   | UNION_SYM opt_equal '(' opt_table_list ')'
-                   | default_charset
-                   | default_collation
-                   | INSERT_METHOD opt_equal merge_insert_types
-                   | DATA_SYM DIRECTORY_SYM opt_equal TEXT_STRING_sys
-                   | INDEX_SYM DIRECTORY_SYM opt_equal TEXT_STRING_sys
-                   | TABLESPACE_SYM opt_equal ident
-                   | STORAGE_SYM DISK_SYM
-                   | STORAGE_SYM MEMORY_SYM
-                   | CONNECTION_SYM opt_equal TEXT_STRING_sys
-                   | KEY_BLOCK_SIZE opt_equal ulong_num
-                   ;
-
-opt_num_parts:
-             /* empty */
-             | PARTITIONS_SYM real_ulong_num
-             ;
-
-opt_part_defs:
-             /* empty */
-             | '(' part_def_list ')'
-             ;
-opt_sub_part:
+trigger_follows_precedes_clause:
             /* empty */
-            | SUBPARTITION_SYM BY opt_linear HASH_SYM '(' bit_expr ')'
-            opt_num_subparts
-            | SUBPARTITION_SYM BY opt_linear KEY_SYM opt_key_algo
-            '(' name_list ')' opt_num_subparts
-            ;
-bit_expr:
-        bit_expr '|' bit_expr %prec '|'
-        {
-             $$ = &BitOr{Left: $1,  Right: $3}
-        }
-        |bit_expr '&' bit_expr %prec '&'
-        {
-             $$ = &BitAnd{Left: $1,  Right: $3}
-        }
-        |bit_expr SHIFT_LEFT bit_expr %prec SHIFT_LEFT
-        {
-            $$ = &BitShiftLeft{Left:$1,Right:$3}
-        }
-        | bit_expr SHIFT_RIGHT bit_expr %prec SHIFT_RIGHT
-        {
-            $$ = &BitShiftRight{Left:$1,Right:$3}
-        }
-        | bit_expr '+' bit_expr %prec '+'
-        {
-            $$ = &BitPlus{Left:$1,Right:$3}
-        }
-        | bit_expr '-' bit_expr %prec '-'
-        {
-            $$ = &BitMinus{Left:$1,Right:$3}
-        }
-        | bit_expr '+' INTERVAL_SYM expr interval %prec '+'
-        {
-            $$ = BitAdd
-        }
+          |
+            trigger_action_order ident_or_text
+          ;
 
+trigger_tail:
+          TRIGGER_SYM       /* $1 */
+          sp_name           /* $2 */
+          trg_action_time   /* $3 */
+          trg_event         /* $4 */
+          ON                /* $5 */
+          table_ident       /* $6 */
+          FOR_SYM           /* $7 */
+          EACH_SYM          /* $8 */
+          ROW_SYM           /* $9 */
+          trigger_follows_precedes_clause /* $10 */
+          {
+            $$ = &TriggerTail{Trigger: $2}
+          }
+        ;
 
+/**************************************************************************
 
+ CREATE FUNCTION | PROCEDURE statements parts.
 
+**************************************************************************/
+
+udf_tail:
+          AGGREGATE_SYM FUNCTION_SYM ident
+          RETURNS_SYM udf_type SONAME_SYM TEXT_STRING_sys
+          {
+            $$ = &UdfTail{}
+          }
+        | FUNCTION_SYM ident
+          RETURNS_SYM udf_type SONAME_SYM TEXT_STRING_sys
+          {
+            $$ = &UdfTail{}
+          }
+        ;
+
+sf_tail:
+          FUNCTION_SYM /* $1 */
+          sp_name /* $2 */
+          '(' /* $3 */
+          sp_fdparam_list /* $5 */
+          ')' /* $6 */
+          RETURNS_SYM /* $8 */
+          type_with_opt_collate /* $10 */
+          sp_c_chistics /* $12 */
+          sp_proc_stmt /* $14 */
+          {
+            $$ = &SfTail{Function: $2}
+          }
+        ;
+
+sp_tail:
+          PROCEDURE_SYM         /*$1*/
+          sp_name               /*$2*/
+          '('                   /*$4*/
+          sp_pdparam_list       /*$6*/
+          ')'                   /*$7*/
+          sp_c_chistics         /*$9*/
+          sp_proc_stmt          /*$11*/
+          {
+            $$ = &SpTail{Procedure: $2}
+          }
+        ;
+
+/*************************************************************************/
+
+xa:
+          XA_SYM begin_or_start xid opt_join_or_resume { $$ = &XAStmt{} }
+        | XA_SYM END xid opt_suspend { $$ = &XAStmt{} }
+        | XA_SYM PREPARE_SYM xid { $$ = &XAStmt{} }
+        | XA_SYM COMMIT_SYM xid opt_one_phase { $$ = &XAStmt{} }
+        | XA_SYM ROLLBACK_SYM xid { $$ = &XAStmt{} }
+        | XA_SYM RECOVER_SYM opt_convert_xid { $$ = &XAStmt{} }
+        ;
+
+opt_convert_xid:
+          /* empty */
+         | CONVERT_SYM XID_SYM
+
+xid:
+          text_string
+          | text_string ',' text_string
+          | text_string ',' text_string ',' ulong_num
+        ;
+
+begin_or_start:
+          BEGIN_SYM {}
+        | START_SYM {}
+        ;
+
+opt_join_or_resume:
+          /* nothing */
+        | JOIN_SYM
+        | RESUME_SYM
+        ;
+
+opt_one_phase:
+        | ONE_SYM PHASE_SYM
+        ;
+
+opt_suspend:
+          /* nothing */
+        | SUSPEND_SYM
+        | SUSPEND_SYM FOR_SYM MIGRATE_SYM
+        ;
+
+install:
+          INSTALL_SYM PLUGIN_SYM ident SONAME_SYM TEXT_STRING_sys
+          {
+            $$=&InstallStmt{}
+          }
+        ;
+
+uninstall:
+          UNINSTALL_SYM PLUGIN_SYM ident
+          {
+            $$=&UninstallStmt{}
+          }
+        ;
+
+/**
+  @} (end of group Parser)
+*/

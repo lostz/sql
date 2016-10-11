@@ -6,12 +6,22 @@ type AlterTableStmt struct {
 	Table Table
 }
 
-//IsDDL  true
-func (a *AlterTableStmt) IsDDL() bool {
-	return true
+type ViewTail struct {
+	View TableIdent
+	As   SelectStmt
+}
+type EventTail struct {
+	Event TableIdent
 }
 
-//IsDML false
-func (a *AlterTableStmt) IsDML() bool {
-	return false
+type TriggerTail struct {
+	Trigger TableIdent
+}
+
+type SfTail struct {
+	Function TableIdent
+}
+
+type SpTail struct {
+	Procedure TableIdent
 }
