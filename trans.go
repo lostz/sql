@@ -11,3 +11,7 @@ func (*ExecuteStmt) Statement() {}
 type PrepareStmt struct{}
 
 func (*PrepareStmt) Statement() {}
+
+type StartTransStmt struct{}
+
+func (*StartTransStmt) Statement() {}

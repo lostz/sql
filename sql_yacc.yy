@@ -17,8 +17,6 @@
 /* sql_yacc.yy */
 %{
 package sql
-import (
-    )
 %}
 %union {
     str  string
@@ -26,7 +24,8 @@ import (
     bytes []byte
     statement Statement
     selectStatement *SelectStmt
-    subquery  *SubQuery
+    iselect Select
+    subquery  *SubQueryStmt
     table     Table
     tables Tables
     tableToTable *TableToTable
@@ -728,9 +727,9 @@ import (
 %type <statement> alter create drop rename truncate
 /* DML */
 %type <statement> insert_stmt update_stmt delete_stmt replace_stmt call do_stmt handler  load
-%type <selectStatement> select select_init  select_paren select_part2 query_specification  select_part2_derived select_paren_derived select_derived create_select 
+%type <iselect> select select_init  select_paren select_part2 query_specification  select_part2_derived select_paren_derived select_derived create_select  select_derived_union
 %type <selectStatement> view_select view_select_aux create_view_select create_view_select_paren query_expression_body
-%type <selectStatement> union_opt opt_union_clause  select_derived_union union_list
+%type <selectStatement> union_opt opt_union_clause union_list
 %type <subquery> subselect
 /* Transaction */
 %type <statement> commit lock release rollback savepoint start unlock xa
@@ -744,7 +743,7 @@ import (
 %type <statement> get_diagnostics resignal_stmt signal_stmt
 /* MySQL Utility Statement */
 %type <statement> describe help use shutdown_stmt explainable_command
-%type <bytes> ident IDENT_sys keyword keyword_sp ident_or_empty opt_wild opt_table_alias opt_db TEXT_STRING_sys ident_or_text interval interval_time_stamp TEXT_STRING_literal old_or_new_charset_name old_or_new_charset_name_or_default charset_name_or_default charset_name opt_full
+%type <bytes> ident IDENT_sys keyword keyword_sp ident_or_empty opt_wild opt_table_alias opt_db TEXT_STRING_sys ident_or_text interval interval_time_stamp TEXT_STRING_literal old_or_new_charset_name old_or_new_charset_name_or_default charset_name_or_default charset_name opt_full limit_option
 %type <interf> insert_from_constructor   insert_from_subquery  insert_query_expression insert_values view_or_trigger_or_sp_or_event definer_tail no_definer_tail start_option_value_list_following_option_type 
 %type <table> table_ident  table_ident_nodb  table_ident_opt_wild table_name  table_lock from_clause table_reference_list opt_from_clause
 %type <tables> table_list table_lock_list opt_table_list
@@ -755,7 +754,7 @@ import (
 %type <tableExpression> table_expression
 %type <tableIndex> assign_to_keycache assign_to_keycache_parts preload_keys_parts preload_keys
 %type <tableIndexs> keycache_list_or_parts keycache_list preload_list_or_parts preload_list
-%type <limit> opt_limit_clause limit_clause limit_options limit_option
+%type <limit> opt_limit_clause limit_clause limit_options
 %type <spname> sp_name opt_ev_rename_to
 %type <empty> '.'
 %type <lockType> opt_select_lock_type
@@ -1262,7 +1261,7 @@ call:
           CALL_SYM sp_name
           opt_sp_cparam_list
           {
-            $$ = &Call{Spname:$2}
+            $$ = &CallStmt{Spname:$2}
           }
         ;
 
@@ -1452,7 +1451,7 @@ resignal_stmt:
 get_diagnostics:
           GET_SYM which_area DIAGNOSTICS_SYM diagnostics_information
           {
-            $$ = &Diagnostics{}
+            $$ = &DiagnosticsStmt{}
           }
         ;
 
@@ -2396,7 +2395,7 @@ opt_stored_attribute:
 parse_gcol_expr:
           PARSE_GCOL_EXPR_SYM '(' generated_column_func ')'
           {
-            $$ = GeneratedColumn{}
+            $$ = &GeneratedColumnStmt{}
           }
         ;
 
@@ -3253,7 +3252,7 @@ start_slave_opts:
 start:
           START_SYM TRANSACTION_SYM opt_start_transaction_option_list
           {
-            $$ = &StartTrans{}
+            $$ = &StartTransStmt{}
           }
         ;
 
@@ -3500,7 +3499,7 @@ preload:
           LOAD INDEX_SYM INTO CACHE_SYM
           preload_list_or_parts
           {
-            $$ = &LoadIndex{TableIndexList: $5}
+            $$ = &LoadIndexStmt{TableIndexList: $5}
           }
         ;
 
@@ -3572,8 +3571,9 @@ select_init:
           {
             if $4 == nil {
                 $$ = $2
-            }
+            }else {
             $$ = &UnionStmt{SelectList:$2,OrderBy:$4.OrderBy,Limit:$4.Limit}
+            }
           }
         ;
 
@@ -3584,7 +3584,7 @@ select_paren:
           }
         | '(' select_paren ')'
         {
-           $$ = &SubQuery{SelectStatement : $2}
+           $$ = &SubQueryStmt{SelectStmt : $2}
         }
         ;
 
@@ -3738,23 +3738,23 @@ expr:
           }
         | bool_pri IS not TRUE_SYM %prec IS
           {
-            $$ = TrueExpr{Expr:$1,Not:true}
+            $$ = &TrueExpr{Expr:$1,Not:true}
           }
         | bool_pri IS FALSE_SYM %prec IS
           {
-            $$ = FalseExpr{Expr:$1}
+            $$ = &FalseExpr{Expr:$1}
           }
         | bool_pri IS not FALSE_SYM %prec IS
           {
-            $$ = FalseExpr{Expr:$1,Not:true}
+            $$ = &FalseExpr{Expr:$1,Not:true}
           }
         | bool_pri IS UNKNOWN_SYM %prec IS
           {
-            $$ = UnknownExpr{Expr:$1}
+            $$ = &UnknownExpr{Expr:$1}
           }
         | bool_pri IS not UNKNOWN_SYM %prec IS
           {
-            $$=UnknownExpr{Expr:$1,Not:true}
+            $$ = &UnknownExpr{Expr:$1,Not:true}
           }
         | bool_pri { $$ = $1 }
         ;
@@ -3776,33 +3776,36 @@ bool_pri:
           {
             $$ = &CompOpAll{Left:$1,Right:$5}
           }
-        | predicate { $$ = $1 }
+        | predicate
+          {
+            $$ = &Predicate{Expr:$1}
+          }
         ;
 
 predicate:
           bit_expr IN_SYM '(' subselect ')'
           {
-            $$ = &InCondition{Expr: $1, List: InExprs{$4}}
+            $$ = &InCondition{Expr: $1, List: Exprs{$4}}
           }
         | bit_expr not IN_SYM '(' subselect ')'
           {
-            $$ = &InCondition{Expr: $1, List: InExprs{$5},Not:true}
+            $$ = &InCondition{Expr: $1, List: Exprs{$5},Not:true}
           }
         | bit_expr IN_SYM '(' expr ')'
           {
-            $$ = &InCondition{Expr: $1, List: InExprs{$4}}
+            $$ = &InCondition{Expr: $1, List: Exprs{$4}}
           }
         | bit_expr IN_SYM '(' expr ',' expr_list ')'
           {
-            $$ = &InCondition{Expr: $1, List: append(InExprs{$4}, $6...)}
+            $$ = &InCondition{Expr: $1, List: append(Exprs{$4}, $6...)}
           }
         | bit_expr not IN_SYM '(' expr ')'
           {
-            $$ = &InCondition{Expr: $1, List: InExprs{$5},Not:true}
+            $$ = &InCondition{Expr: $1, List: Exprs{$5},Not:true}
           }
         | bit_expr not IN_SYM '(' expr ',' expr_list ')'
           {
-            $$ = &InCondition{Expr: $1, List: append(InExprs{$5}, $7...),Not:true}
+            $$ = &InCondition{Expr: $1, List: append(Exprs{$5}, $7...),Not:true}
           }
         | bit_expr BETWEEN_SYM bit_expr AND_SYM predicate
           {
@@ -3850,7 +3853,7 @@ bit_expr:
           }
         | bit_expr SHIFT_RIGHT bit_expr %prec SHIFT_RIGHT
           {
-            $$=&BinaryOperationExpr{Left: $1, Operator: SHIFRIGHT, Right: $3}
+            $$=&BinaryOperationExpr{Left: $1, Operator: SHIFTRIGHT, Right: $3}
           }
         | bit_expr '+' bit_expr %prec '+'
           {
@@ -3878,7 +3881,7 @@ bit_expr:
           }
         | bit_expr '%' bit_expr %prec '%'
           {
-            $$=&BinaryOperationExpr{Left: $1, Operator: MOD, Mod: $3}
+            $$=&BinaryOperationExpr{Left: $1, Operator: MOD, Right: $3}
           }
         | bit_expr DIV_SYM bit_expr %prec DIV_SYM
           {
@@ -3886,11 +3889,11 @@ bit_expr:
           }
         | bit_expr MOD_SYM bit_expr %prec MOD_SYM
           {
-            $$=&BinaryOperationExpr{Left: $1, Operator: MOD, Mod: $3}
+            $$=&BinaryOperationExpr{Left: $1, Operator: MOD, Right: $3}
           }
         | bit_expr '^' bit_expr
           {
-            $$=&BinaryOperationExpr{Left: $1, Operator: BITXOR, Mod: $3}
+            $$=&BinaryOperationExpr{Left: $1, Operator: BITXOR, Right: $3}
           }
         | simple_expr { $$ = $1 }
         ;
@@ -3916,13 +3919,13 @@ not2:
         ;
 
 comp_op:
-          EQ     { $$ = EQ }
-        | EQUAL_SYM { $$ = EQUAL }
-        | GE     { $$ = GE }
-        | GT_SYM { $$ = GE }
-        | LE     { $$ = LE }
-        | LT     { $$ = LT }
-        | NE     { $$ = NE }
+          EQ     { $$ = OPEQ }
+        | EQUAL_SYM { $$ = OPEQUAL }
+        | GE     { $$ = OPGE }
+        | GT_SYM { $$ = OPGE }
+        | LE     { $$ = OPLE }
+        | LT     { $$ = OPLT }
+        | NE     { $$ = OPNE }
         ;
 
 all_or_any:
@@ -3964,7 +3967,7 @@ simple_expr:
           }
         | '(' subselect ')'
           {
-            $$ = &SubQuery{SelectStatement: $2}
+            $$ = &SubQueryStmt{SelectStmt: $2}
           }
         | '(' expr ')'
           {
@@ -4392,11 +4395,11 @@ table_factor:
 select_derived_union:
           select_derived opt_union_order_or_limit
           {
-            $$ = &SubQuery{SelectStatement:$1}
+            $$ = &SubQueryStmt{SelectStmt:$1}
           }
         | select_derived_union UNION_SYM union_option query_specification
           {
-            $$ = &SubQuery{SelectStatement: &UnionStmt{SelectList:$1}}
+            $$ = &SubQueryStmt{SelectStmt: &UnionStmt{SelectList:$1}}
           }
         ;
 
@@ -4615,7 +4618,7 @@ limit_options:
 
 limit_option:
           ident { $$=$1 }
-        | param_marker { $$=$1 }
+        | param_marker { $$=[]byte("?") }
         | ULONGLONG_NUM { $$=$1 }
         | LONG_NUM { $$=$1 }
         | NUM { $$=$1 }
@@ -4743,7 +4746,7 @@ drop:
           }
         | DROP FUNCTION_SYM if_exists ident '.' ident
           {
-            $$ = &DropFunctionStmt{Function: &Spname{Qualifier: $4 , Name: $6}}
+            $$ = &DropFunctionStmt{Function: &Spname{Schema: $4 , Name: $6}}
           }
         | DROP FUNCTION_SYM if_exists ident
           {
@@ -4968,7 +4971,7 @@ insert_values:
 insert_query_expression:
           create_select opt_union_clause
           {
-            if $$2==nil {
+            if $2==nil {
                 $$ = $1
             } else {
             $$ = &UnionStmt{SelectList:$1}
@@ -5072,7 +5075,7 @@ delete_stmt:
           opt_order_clause
           opt_simple_limit
           {
-            $$ = DeleteStmt{Tabels:$4}
+            $$ = &DeleteStmt{Tables:Tables{$4}}
           }
         | DELETE_SYM
           opt_delete_options
@@ -5081,7 +5084,7 @@ delete_stmt:
           join_table_list
           opt_where_clause
           {
-            $$= DeleteStmt{Tables:append($3,$5...)}
+            $$= &DeleteStmt{Tables:append($3,$5...)}
           }
         | DELETE_SYM
           opt_delete_options
@@ -5091,7 +5094,7 @@ delete_stmt:
           join_table_list
           opt_where_clause
           {
-            $$= DeleteStmt{Tables:append($4, $6...)}
+            $$= &DeleteStmt{Tables:append($4, $6...)}
           }
         ;
 
@@ -5115,7 +5118,7 @@ truncate:
           TRUNCATE_SYM opt_table_sym
           table_name
           {
-            $$=&TruncateTableStmt{Tables:$3}
+            $$=&TruncateTableStmt{Tables:Tables{$3}}
           }
         ;
 
@@ -5266,8 +5269,9 @@ show_param:
           {
                 if $1==nil {
                     $$ = &ShowStmt{Tp:ShowProcesslist}
+                }else {
+                    $$=&ShowStmt{Tp:ShowFullProcesslist}
                 }
-                $$=&ShowStmt{Tp:ShowFullProcesslist}
           }
         | opt_var_type VARIABLES opt_wild_or_where_for_show
           {
@@ -5434,7 +5438,7 @@ explainable_command:
         | delete_stmt                           { $$ = $1 }
         | FOR_SYM CONNECTION_SYM real_ulong_num
           {
-            $$ = $1
+            $$ = nil
           }
         ;
 
@@ -5519,7 +5523,7 @@ reset:
           RESET_SYM
           reset_options
           {
-            $$=ResetStmt{}
+            $$=&ResetStmt{}
           }
         ;
 
@@ -5544,7 +5548,7 @@ purge:
           PURGE
           purge_options
           {
-            $$=PurgeStmt{}
+            $$=&PurgeStmt{}
           }
         ;
 
@@ -5562,7 +5566,7 @@ purge_option:
 kill:
           KILL_SYM kill_option expr
           {
-            $$=KilStmt{}
+            $$=&KillStmt{}
           }
         ;
 
@@ -6960,12 +6964,12 @@ union_option:
 query_specification:
           SELECT_SYM select_part2_derived table_expression
           {
-            $$ = &SubQuery{SelectStatement: $2}
+            $$ = &SubQueryStmt{SelectStmt: $2}
           }
         | '(' select_paren_derived ')'
           opt_union_order_or_limit
           {
-            $$ = &SubQuery{SelectStatement: $2}
+            $$ = &SubQueryStmt{SelectStmt: $2}
           }
         ;
 
@@ -6982,7 +6986,7 @@ query_expression_body:
 subselect:
           query_expression_body
           {
-          $$ = &SubQuery{SelectStatement: $1}
+          $$ = &SubQueryStmt{SelectStmt: $1}
           }
         ;
 

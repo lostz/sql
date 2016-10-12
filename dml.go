@@ -51,8 +51,8 @@ type OrderBy struct {
 }
 
 type Limit struct {
-	Offset uint64
-	Count  uint64
+	Offset []byte
+	Count  []byte
 }
 
 type SelectLockType int
@@ -64,6 +64,11 @@ const (
 	SelectLockInShareMode
 )
 
+type Select interface {
+	Select()
+	Statement()
+}
+
 type SelectStmt struct {
 	From    Table
 	GroupBy *GroupBy
@@ -73,3 +78,33 @@ type SelectStmt struct {
 }
 
 func (*SelectStmt) Statement() {}
+func (*SelectStmt) Select()    {}
+
+type CallStmt struct {
+	Spname *Spname
+}
+
+func (*CallStmt) Statement() {}
+
+type UnionStmt struct {
+	SelectList Select
+	OrderBy    *OrderBy
+	Limit      *Limit
+}
+
+func (*UnionStmt) Statement() {}
+func (*UnionStmt) Select()    {}
+
+type SubQueryStmt struct {
+	SelectStmt Select
+}
+
+func (*SubQueryStmt) Statement()       {}
+func (*SubQueryStmt) Select()          {}
+func (*SubQueryStmt) Expression()      {}
+func (*SubQueryStmt) ValueExpression() {}
+
+type DoStmt struct {
+}
+
+func (*DoStmt) Statement() {}
