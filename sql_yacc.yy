@@ -23,8 +23,7 @@ package sql
     interf interface{}
     bytes []byte
     statement Statement
-    selectStatement *SelectStmt
-    iselect Select
+    selectStatement Select
     subquery  *SubQueryStmt
     table     Table
     tables Tables
@@ -47,7 +46,7 @@ package sql
     spTail *SpTail
     udfTail *UdfTail
     variable *Variable
-    variables []*Variable
+    variables Variables
     likeOrWhere *LikeOrWhere
     lifeType LifeType
     limit *Limit
@@ -727,8 +726,8 @@ package sql
 %type <statement> alter create drop rename truncate
 /* DML */
 %type <statement> insert_stmt update_stmt delete_stmt replace_stmt call do_stmt handler  load
-%type <iselect> select select_init  select_paren select_part2 query_specification  select_part2_derived select_paren_derived select_derived create_select  select_derived_union
-%type <selectStatement> view_select view_select_aux create_view_select create_view_select_paren query_expression_body
+%type <selectStatement> select select_paren select_part2 query_specification  select_part2_derived select_paren_derived select_derived create_select  select_derived_union
+%type <selectStatement>select_init view_select view_select_aux create_view_select create_view_select_paren query_expression_body
 %type <selectStatement> union_opt opt_union_clause union_list
 %type <subquery> subselect
 /* Transaction */
@@ -5581,7 +5580,7 @@ kill_option:
 use:
           USE_SYM ident
           {
-            $$ = &Use{Name: $2}
+            $$ = &UseStmt{Name: $2}
           }
         ;
 
@@ -6366,7 +6365,7 @@ start_option_value_list:
           option_value_no_option_type option_value_list_continued
           {
             if $2==nil {
-                $$=&SetStmt{ Variables: Variables{$1}}
+                $$= &SetStmt{ Variables: Variables{$1}}
             }
                 $$ = &SetStmt{Variables:append($2,$1)}
           }
@@ -6377,31 +6376,31 @@ start_option_value_list:
         | option_type start_option_value_list_following_option_type
           {
             if st, ok := $2.(*SetTransStmt); ok {
-                $$ = St
+                $$ = st
             }else {
             tmp := $2.(Variables)
             for _, v := range tmp {
                 v.Life = $1
              }
-              $$=&SetStmt{ Variables: Variables{tmp}}
+              $$=&SetStmt{ Variables: tmp}
               }
 
           }
         | PASSWORD equal password
           {
-            $$= SetPasswordStmt{};
+            $$= &SetPasswordStmt{};
           }
         | PASSWORD equal PASSWORD '(' password ')'
           {
-            $$= SetPasswordStmt{};
+            $$= &SetPasswordStmt{};
           }
         | PASSWORD FOR_SYM user equal password
           {
-            $$= SetPasswordStmt{};
+            $$= &SetPasswordStmt{};
           }
         | PASSWORD FOR_SYM user equal PASSWORD '(' password ')'
           {
-            $$= SetPasswordStmt{};
+            $$= &SetPasswordStmt{};
           }
         ;
 
@@ -6472,7 +6471,7 @@ opt_var_ident_type:
 option_value_following_option_type:
           internal_variable_name equal set_expr_or_default
           {
-            $$ = Variable{Name: $1, Value: $3}
+            $$ = &Variable{Name: $1, Value: $3}
           }
         ;
 
@@ -6482,7 +6481,7 @@ option_value_no_option_type:
           equal                         /*$2*/
           set_expr_or_default           /*$3*/
           {
-            $$ = Variable{Name: $1, Value: $3}
+            $$ = &Variable{Name: $1, Value: $3}
           }
         | '@' ident_or_text equal expr
           {
@@ -6637,11 +6636,11 @@ shutdown_stmt:
 handler:
           HANDLER_SYM table_ident OPEN_SYM opt_table_alias
           {
-            $$ = HandlerStmt{}
+            $$ = &HandlerStmt{}
           }
         |HANDLER_SYM table_ident_nodb CLOSE_SYM
           {
-            $$ = HandlerStmt{}
+            $$ = &HandlerStmt{}
           }
         | HANDLER_SYM           /* #1 */
           table_ident_nodb      /* #2 */
@@ -6650,7 +6649,7 @@ handler:
           opt_where_clause      /* #6 */
           opt_limit_clause      /* #7 */
           {
-            $$ = HandlerStmt{}
+            $$ = &HandlerStmt{}
           }
         ;
 
@@ -6895,12 +6894,12 @@ commit:
 rollback:
           ROLLBACK_SYM opt_work opt_chain opt_release
           {
-            $$ = RollBackStmt{}
+            $$ = &RollBackStmt{}
           }
         | ROLLBACK_SYM opt_work
           TO_SYM opt_savepoint ident
           {
-            $$ = RollBackStmt{}
+            $$ = &RollBackStmt{}
           }
         ;
 
@@ -6931,7 +6930,7 @@ opt_union_clause:
 union_list:
           UNION_SYM union_option select_init
           {
-            { $$ = $3 }
+             $$ = $3 
           }
         ;
 

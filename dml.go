@@ -108,3 +108,13 @@ type DoStmt struct {
 }
 
 func (*DoStmt) Statement() {}
+
+type LoadStmt struct {
+}
+
+func (*LoadStmt) Statement() {}
+
+type HandlerStmt struct {
+}
+
+func (*HandlerStmt) Statement() {}

@@ -214,3 +214,42 @@ type MatchExpr struct{}
 
 func (*MatchExpr) Expression()      {}
 func (*MatchExpr) ValueExpression() {}
+
+type StringVal []byte
+
+func (StringVal) Expression()      {}
+func (StringVal) ValueExpression() {}
+
+type BoolVal bool
+
+func (BoolVal) Expression()      {}
+func (BoolVal) ValueExpression() {}
+
+type BinVal []byte
+
+func (BinVal) Expression()      {}
+func (BinVal) ValueExpression() {}
+
+type NullVal struct{}
+
+func (NullVal) Expression()      {}
+func (NullVal) ValueExpression() {}
+
+type HexVal []byte
+
+func (HexVal) Expression()      {}
+func (HexVal) ValueExpression() {}
+
+type NumVal []byte
+
+func (NumVal) Expression()      {}
+func (NumVal) ValueExpression() {}
+
+type SchemaObject struct {
+	Schema []byte
+	Table  []byte
+	Column []byte
+}
+
+func (*SchemaObject) Expression()      {}
+func (*SchemaObject) ValueExpression() {}

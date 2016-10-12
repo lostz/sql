@@ -20,12 +20,18 @@ const (
 )
 
 type Variable struct {
-	Life LifeType
-	Name string
+	Life  LifeType
+	Name  string
+	Value Expr
 }
 
 func (*Variable) Expression()      {}
 func (*Variable) ValueExpression() {}
+
+type Variables []*Variable
+
+func (Variables) Expression()      {}
+func (Variables) ValueExpression() {}
 
 type RenameTableStmt struct {
 	ToList []*TableToTable
@@ -92,3 +98,24 @@ type ShowStmt struct {
 }
 
 func (*ShowStmt) Statement() {}
+
+type UseStmt struct {
+	Name []byte
+}
+
+func (*UseStmt) Statement() {}
+
+type SetStmt struct {
+	Variables Variables
+}
+
+func (*SetStmt) Statement() {}
+
+type SetPasswordStmt struct {
+}
+
+func (*SetPasswordStmt) Statement() {}
+
+type SetTransStmt struct{}
+
+func (*SetTransStmt) Statement() {}
