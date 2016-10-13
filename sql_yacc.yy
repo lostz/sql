@@ -786,11 +786,11 @@ query:
           ';'
           opt_end_of_input
           {
-            SetParseTree(yylex, nil)
+            SetParseTree(yylex, $1)
           }
         | verb_clause END_OF_INPUT
           {
-            SetParseTree(yylex, nil)
+            SetParseTree(yylex, $1)
           }
         ;
 
@@ -7301,4 +7301,4 @@ uninstall:
   @} (end of group Parser)
 */
 
-
+%%
