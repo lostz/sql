@@ -12,10 +12,11 @@ func TestPase(t *testing.T) {
 		log.Println(err.Error())
 		return
 	}
+	log.Println(sql)
 	switch st := stmt.(type) {
 	case SelectStatement:
-		log.Println(st.GetSchemas())
-		log.Println("select")
+		log.Println("type: select")
+		log.Println("Schemas:", st.GetSchemas())
 	default:
 		log.Println("unknown %v ", st)
 	}
