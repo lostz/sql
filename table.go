@@ -44,7 +44,7 @@ type Spname struct {
 }
 
 func (s *Spname) GetSchemas() []string {
-	return string(s.Schema)
+	return []string{string(s.Schema)}
 }
 
 type AliasedTable struct {

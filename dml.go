@@ -64,9 +64,13 @@ const (
 	SelectLockInShareMode
 )
 
-type Select interface {
+type SelectStatement interface {
 	Select()
 	Statement()
+	GetGroupBy() *GroupBy
+	GetOrderBy() *OrderBy
+	GetLimit() *Limit
+	GetSchemas() []string
 }
 
 type SelectStmt struct {
@@ -79,6 +83,21 @@ type SelectStmt struct {
 
 func (*SelectStmt) Statement() {}
 func (*SelectStmt) Select()    {}
+func (s *SelectStmt) GetGroupBy() *GroupBy {
+	return s.GroupBy
+}
+
+func (s *SelectStmt) GetOrderBy() *OrderBy {
+	return s.OrderBy
+}
+
+func (s *SelectStmt) GetLimit() *Limit {
+	return s.Limit
+}
+
+func (s *SelectStmt) GetSchemas() []string {
+	return s.From.GetSchemas()
+}
 
 type CallStmt struct {
 	Spname *Spname
@@ -87,20 +106,59 @@ type CallStmt struct {
 func (*CallStmt) Statement() {}
 
 type UnionStmt struct {
-	SelectList Select
-	OrderBy    *OrderBy
-	Limit      *Limit
+	Left  SelectStatement
+	Right SelectStatement
 }
 
 func (*UnionStmt) Statement() {}
 func (*UnionStmt) Select()    {}
 
-type SubQueryStmt struct {
-	SelectStmt Select
+func (u *UnionStmt) GetGroupBy() *GroupBy {
+	return nil
 }
 
-func (*SubQueryStmt) Statement()       {}
-func (*SubQueryStmt) Select()          {}
+func (u *UnionStmt) GetOrderBy() *OrderBy {
+	return nil
+}
+
+func (u *UnionStmt) GetLimit() *Limit {
+	return nil
+}
+
+func (u *UnionStmt) GetSchemas() []string {
+	if u.Left == nil {
+		panic("union must have left select statement")
+	}
+	if u.Right == nil {
+		panic("union must have right select statement")
+	}
+	l := u.Left.GetSchemas()
+	r := u.Right.GetSchemas()
+	return append(l, r...)
+
+}
+
+type SubQueryStmt struct {
+	SelectStmt SelectStatement
+}
+
+func (*SubQueryStmt) Statement() {}
+func (*SubQueryStmt) Select()    {}
+func (s *SubQueryStmt) GetGroupBy() *GroupBy {
+	return s.SelectStmt.GetGroupBy()
+}
+
+func (s *SubQueryStmt) GetOrderBy() *OrderBy {
+	return s.SelectStmt.GetOrderBy()
+}
+
+func (s *SubQueryStmt) GetLimit() *Limit {
+	return s.SelectStmt.GetLimit()
+}
+
+func (s *SubQueryStmt) GetSchemas() []string {
+	return s.SelectStmt.GetSchemas()
+}
 func (*SubQueryStmt) Expression()      {}
 func (*SubQueryStmt) ValueExpression() {}
 
@@ -118,3 +176,27 @@ type HandlerStmt struct {
 }
 
 func (*HandlerStmt) Statement() {}
+
+type ParenSelect struct {
+	SelectStmt SelectStatement
+}
+
+func (*ParenSelect) Statement() {}
+
+func (p *ParenSelect) GetLimit() *Limit {
+	return p.SelectStmt.GetLimit()
+}
+
+func (p *ParenSelect) GetGroupBy() *GroupBy {
+	return p.SelectStmt.GetGroupBy()
+}
+
+func (p *ParenSelect) GetOrderBy() *OrderBy {
+	return p.SelectStmt.GetOrderBy()
+}
+
+func (p *ParenSelect) GetSchemas() []string {
+	return p.SelectStmt.GetSchemas()
+}
+
+func (*ParenSelect) Select() {}

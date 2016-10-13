@@ -47,3 +47,15 @@ func (*CheckStmt) Statement() {}
 type OptimizeStmt struct{}
 
 func (*OptimizeStmt) Statement() {}
+
+type XAStmt struct{}
+
+func (*XAStmt) Statement() {}
+
+type InstallStmt struct{}
+
+func (*InstallStmt) Statement() {}
+
+type UninstallStmt struct{}
+
+func (*UninstallStmt) Statement() {}

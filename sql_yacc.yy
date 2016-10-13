@@ -23,7 +23,7 @@ package sql
     interf interface{}
     bytes []byte
     statement Statement
-    selectStatement Select
+    selectStatement SelectStatement
     subquery  *SubQueryStmt
     table     Table
     tables Tables
@@ -46,7 +46,7 @@ package sql
     spTail *SpTail
     udfTail *UdfTail
     variable *Variable
-    variables Variables
+    variables []*Variable
     likeOrWhere *LikeOrWhere
     lifeType LifeType
     limit *Limit
@@ -726,8 +726,9 @@ package sql
 %type <statement> alter create drop rename truncate
 /* DML */
 %type <statement> insert_stmt update_stmt delete_stmt replace_stmt call do_stmt handler  load
-%type <selectStatement> select select_paren select_part2 query_specification  select_part2_derived select_paren_derived select_derived create_select  select_derived_union
-%type <selectStatement>select_init view_select view_select_aux create_view_select create_view_select_paren query_expression_body
+%type <selectStatement> select
+%type <selectStatement> select_init  select_paren select_part2 query_specification  select_part2_derived select_paren_derived select_derived create_select  select_derived_union
+%type <selectStatement> view_select view_select_aux create_view_select create_view_select_paren query_expression_body
 %type <selectStatement> union_opt opt_union_clause union_list
 %type <subquery> subselect
 /* Transaction */
@@ -3571,7 +3572,7 @@ select_init:
             if $4 == nil {
                 $$ = $2
             }else {
-            $$ = &UnionStmt{SelectList:$2,OrderBy:$4.OrderBy,Limit:$4.Limit}
+            $$ = &UnionStmt{Left:$2,Right:$4}
             }
           }
         ;
@@ -4398,7 +4399,7 @@ select_derived_union:
           }
         | select_derived_union UNION_SYM union_option query_specification
           {
-            $$ = &SubQueryStmt{SelectStmt: &UnionStmt{SelectList:$1}}
+            $$ = &SubQueryStmt{SelectStmt: &UnionStmt{Left:$1}}
           }
         ;
 
@@ -4973,7 +4974,7 @@ insert_query_expression:
             if $2==nil {
                 $$ = $1
             } else {
-            $$ = &UnionStmt{SelectList:$1}
+            $$ = &UnionStmt{Left:$1,Right:$2}
             }
           }
         | '(' create_select ')' union_opt
@@ -4981,7 +4982,7 @@ insert_query_expression:
             if $4==nil {
                 $$ = $2
             }else {
-            $$ = &UnionStmt{SelectList:$2}
+            $$ = &UnionStmt{Left:$2,Right:$4}
             }
           }
         ;
@@ -5044,7 +5045,7 @@ update_stmt:
           opt_order_clause      /* #8 */
           opt_simple_limit      /* #9 */
           {
-            $$ = &UpdateStmt{Tables:$4}
+            $$ = &UpdateStmt{Tables:Tables{$4}}
           }
         ;
 
@@ -5435,10 +5436,6 @@ explainable_command:
         | replace_stmt                          { $$ = $1 }
         | update_stmt                           { $$ = $1 }
         | delete_stmt                           { $$ = $1 }
-        | FOR_SYM CONNECTION_SYM real_ulong_num
-          {
-            $$ = nil
-          }
         ;
 
 describe_command:
@@ -6365,7 +6362,7 @@ start_option_value_list:
           option_value_no_option_type option_value_list_continued
           {
             if $2==nil {
-                $$= &SetStmt{ Variables: Variables{$1}}
+                $$=&SetStmt{ Variables: Variables{$1}}
             }
                 $$ = &SetStmt{Variables:append($2,$1)}
           }
@@ -6583,7 +6580,7 @@ lock:
           LOCK_SYM table_or_tables
           table_lock_list
           {
-            $$ = &Lock{Tables: $3}
+            $$ = &LockStmt{Tables: $3}
           }
         ;
 
@@ -6617,7 +6614,7 @@ lock_option:
 unlock:
           UNLOCK_SYM
           {
-            $$ = &Unlock{}
+            $$ = &UnlockStmt{}
           }
         ;
 
@@ -6930,7 +6927,7 @@ opt_union_clause:
 union_list:
           UNION_SYM union_option select_init
           {
-             $$ = $3 
+            { $$ = $3 }
           }
         ;
 
@@ -6977,7 +6974,7 @@ query_expression_body:
             { $$ = $1 }
         | query_expression_body UNION_SYM union_option query_specification
           {
-            $$ = &UnionStmt{SelectList:$1,OrderBy:$4.OrderBy,Limit:$4.Limit}
+            $$ = &UnionStmt{Left:$1,Right:$4}
           }
         ;
 
@@ -7124,15 +7121,15 @@ view_select_aux:
              if $2 == nil {
                        $$ = $1
              } else {
-                  $$ = &Union{Left: $1, Right: $2}
+                  $$ = &UnionStmt{Left: $1, Right: $2}
              }
           }
         | '(' create_view_select_paren ')' union_opt
           {
               if $4 == nil {
-                        $$ = &ParenSelect{Select: $2}
+                        $$ = &ParenSelect{SelectStmt: $2}
                               } else {
-                                        $$ = &Union{Left: &ParenSelect{Select: $2}, Right: $4}
+                                        $$ = &UnionStmt{Left: &ParenSelect{SelectStmt: $2}, Right: $4}
                                               }
 
           }
@@ -7145,7 +7142,7 @@ create_view_select_paren:
           }
         | '(' create_view_select_paren ')'
         {
-            $$ = &ParenSelect{Select: $2}
+            $$ = &ParenSelect{SelectStmt: $2}
         }
         ;
 

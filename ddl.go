@@ -27,8 +27,8 @@ type AlterFunctionStmt struct {
 func (*AlterFunctionStmt) Statement() {}
 
 type AlterViewStmt struct {
-	View *TableIdent
-	As   SelectStmt
+	View Table
+	As   SelectStatement
 }
 
 func (*AlterViewStmt) Statement() {}
@@ -75,8 +75,8 @@ type CreateIndexStmt struct {
 func (*CreateIndexStmt) Statement() {}
 
 type CreateViewStmt struct {
-	View *TableIdent
-	As   SelectStmt
+	View Table
+	As   SelectStatement
 }
 
 func (*CreateViewStmt) Statement() {}
@@ -100,7 +100,7 @@ type CreateFunctionStmt struct {
 func (*CreateFunctionStmt) Statement() {}
 
 type CreateUDFStmt struct {
-	Function *TableIdent
+	Function Table
 }
 
 func (*CreateUDFStmt) Statement() {}
@@ -128,8 +128,8 @@ type CreateServerStmt struct{}
 func (*CreateServerStmt) Statement() {}
 
 type ViewTail struct {
-	View *TableIdent
-	As   SelectStmt
+	View Table
+	As   SelectStatement
 }
 type EventTail struct {
 	Event Table

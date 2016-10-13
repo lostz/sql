@@ -27,3 +27,18 @@ func (*CommitStmt) Statement() {}
 type RollBackStmt struct{}
 
 func (*RollBackStmt) Statement() {}
+
+type ReleaseStmt struct{}
+
+func (*ReleaseStmt) Statement() {}
+
+type LockStmt struct {
+	Tables Tables
+}
+
+func (*LockStmt) Statement() {}
+
+type UnlockStmt struct {
+}
+
+func (*UnlockStmt) Statement() {}

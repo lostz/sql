@@ -12,6 +12,6 @@ func TestPase(t *testing.T) {
 		log.Println(err.Error())
 		return
 	}
-	log.Println(stmt.IsDDL())
+	log.Println(stmt)
 
 }

@@ -119,3 +119,15 @@ func (*SetPasswordStmt) Statement() {}
 type SetTransStmt struct{}
 
 func (*SetTransStmt) Statement() {}
+
+type ShutdownStmt struct{}
+
+func (*ShutdownStmt) Statement() {}
+
+type GrantStmt struct{}
+
+func (*GrantStmt) Statement() {}
+
+type SavePointStmt struct{}
+
+func (*SavePointStmt) Statement() {}
