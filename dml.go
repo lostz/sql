@@ -51,8 +51,8 @@ type OrderBy struct {
 }
 
 type Limit struct {
-	Offset []byte
-	Count  []byte
+	Offset NumVal
+	Count  NumVal
 }
 
 type SelectLockType int

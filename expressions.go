@@ -1,5 +1,7 @@
 package sql
 
+import "strconv"
+
 type TableExpression struct {
 	From    Table
 	GroupBy *GroupBy
@@ -244,6 +246,13 @@ type NumVal []byte
 
 func (NumVal) Expression()      {}
 func (NumVal) ValueExpression() {}
+func (n NumVal) ParseInt() (int, error) {
+	i, err := strconv.Atoi(string([]byte(n)))
+	if err != nil {
+		return 0, err
+	}
+	return i, nil
+}
 
 type SchemaObject struct {
 	Schema []byte
