@@ -1,16 +1,6 @@
 package sql
 
-import (
-	"bytes"
-)
-
-func init() {
-	for k, v := range Symbols {
-		Functions[k] = v
-	}
-}
-
-var Symbols map[string]int = map[string]int{
+var keywords map[string]int = map[string]int{
 	/*
 	   Insert new SQL keywords after that commentary (by alphabetical order):
 	*/
@@ -716,23 +706,4 @@ var Functions map[string]int = map[string]int{
 	"VARIANCE":     VARIANCE_SYM,
 	"VAR_POP":      VARIANCE_SYM,
 	"VAR_SAMP":     VAR_SAMP_SYM,
-}
-
-const (
-	TK_NAME_LENGTH = 24
-	EOF            = 0
-)
-
-func findKeywords(b []byte, isfunc bool) (int, bool) {
-	if isfunc {
-		if v, ok := Functions[string(bytes.ToUpper(b))]; ok {
-			return v, true
-		}
-	} else {
-		if v, ok := Symbols[string(bytes.ToUpper(b))]; ok {
-			return v, true
-		}
-	}
-
-	return 0, false
 }
